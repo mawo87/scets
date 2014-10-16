@@ -1,0 +1,23 @@
+{
+  "name": "setvis",
+  "version": "0.0.0",
+  "description": "setvis ====== A scalable visualization of set-typed data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mawo87/setvis.git"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/mawo87/setvis/issues"
+  },
+  "devDependencies": {
+    "gulp-connect": "^2.0.6",
+    "gulp-ruby-sass": "^0.7.1",
+    "gulp-traceur": "^0.13.0"
+  }
+}
