@@ -18,9 +18,97 @@ var SetVis = (function(my) {
             var self = this,
                 converter = new Converter();
 
-            converter.initializeDataSet(config.dataset, function(grid) {
-                self.draw(grid);
+            converter.initializeDataSet(config.dataset, function(gridData) {
+                //self.draw(gridData);
+                self.draw_new(gridData);
             });
+        },
+        draw_new: function(gridData) {
+
+            var margin = {top: 80, right: 0, bottom: 10, left: 80},
+                width = 720,
+                height = 720,
+                cellSize = 20,
+                svg = d3.select("body").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .style("margin-left", -margin.left + "px")
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var x = d3.scale.ordinal().rangeBands([0, width]);
+            var c = d3.scale.category10().domain(d3.range(10));
+
+            //x.domain(["Degree 0", "Degree 1", "Degree 2"]); //TODO: compute elements of matrix
+            x.domain(d3.range(9)); //TODO compute the total number of cells
+
+            svg.append("rect")
+                .attr("class", "background")
+                .attr("width", width)
+                .attr("height", height);
+
+            var row = svg.selectAll(".row")
+                .data(gridData)
+                .enter().append("g")
+                .attr("class", "row")
+                //.attr("transform", function(d, i) { console.log("x(i) ", x(i)); return "translate(0," + i * cellSize + ")"; })
+                .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
+                .each(row);
+
+            row.append("line")
+                .attr("x2", width);
+
+            row.append("text")
+                .attr("x", -6)
+                .attr("y", x.rangeBand() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "end")
+                .text(function(d, i) { return "Degree " + i; });
+
+            var column = svg.selectAll(".column")
+                .data(gridData)
+                .enter().append("g")
+                .attr("class", "column")
+                //.attr("transform", function(d, i) { return "translate(" + i * cellSize + ")rotate(-90)"; });
+                .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+
+            column.append("line")
+                .attr("x1", -width);
+
+            function row(row) {
+                /*
+                var cell = d3.select(this).selectAll(".cell")
+                    .data(row.filter(function(d) { return d.z; }))
+                    .enter().append("rect")
+                    .attr("class", "cell")
+                    .attr("x", function(d) { return x(d.x); })
+                    .attr("width", x.rangeBand())
+                    .attr("height", x.rangeBand())
+                    .style("fill-opacity", function(d) { return z(d.z); })
+                    .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : null; })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
+                */
+
+
+                var cell = d3.select(this).selectAll(".cell")
+                    .data(row.cells)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "cell")
+                    //.attr("x", function(d, i) { return i * cellSize; })
+                    .attr("x", function(d, i) { return x(i); })
+                    //.attr("width", cellSize)
+                    .attr("width", x.rangeBand())
+                    //.attr("height", cellSize)
+                    .attr("height", x.rangeBand())
+                    //.style("fill", "rgb(243,243,243)");
+                    .style("fill", function(d) { return c(d.items.length); });
+
+
+                console.log("row ", row);
+            }
+
         },
         draw: function(gridData) {
             var width = 300,

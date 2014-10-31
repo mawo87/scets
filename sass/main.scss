@@ -2,6 +2,19 @@
   font-family: sans-serif;
 }
 
+body {
+  margin: 1em auto 4em auto;
+  width: 960px;
+}
+
 #main {
   color: #000000;
+}
+
+line {
+  stroke: #FFFFFF;
+}
+
+.background {
+  fill: #EEEEEE;
 }
