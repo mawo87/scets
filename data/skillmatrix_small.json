@@ -1,0 +1,18 @@
+{
+    "file": "../data/skillmatrix_small.csv",
+    "name": "Employee Skills",
+    "separator": ",",
+    "header": 0,
+    "meta": [
+        { "type": "id", "index": 0, "name": "Name" },
+        { "type": "integer", "index": 1, "name": "Group" },
+        { "type": "integer", "index": 2, "name": "Depth" }
+    ],
+    "set": {
+        "start": 3,
+        "end": 11,
+        "format": "binary"
+    },
+    "author": "Martin Wortschack",
+    "source": ""
+}
