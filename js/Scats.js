@@ -1,7 +1,14 @@
-var SetVis = (function(my) {
+var SetVis = (function(vis) {
 
-    my.init = function() {
+    vis.init = function() {
         new Scats().init();
+    };
+
+    vis.settings = {
+        axisNames: {
+            x: [],
+            y: []
+        }
     };
 
     var config = {
@@ -29,7 +36,7 @@ var SetVis = (function(my) {
                 width = 720,
                 height = 720,
                 cellSize = 20,
-                svg = d3.select("body").append("svg")
+                svg = d3.select("#main").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .style("margin-left", -margin.left + "px")
@@ -39,8 +46,8 @@ var SetVis = (function(my) {
             var x = d3.scale.ordinal().rangeBands([0, width]);
             var c = d3.scale.category10().domain(d3.range(10));
 
-            //x.domain(["Degree 0", "Degree 1", "Degree 2"]); //TODO: compute elements of matrix
-            x.domain(d3.range(9)); //TODO compute the total number of cells
+            var totalCells = gridData.length * gridData[0].cells.length; //rows x cols
+            x.domain(d3.range(totalCells));
 
             svg.append("rect")
                 .attr("class", "background")
@@ -56,6 +63,7 @@ var SetVis = (function(my) {
                 .each(row);
 
             row.append("line")
+                .attr("class", "grid-line")
                 .attr("x2", width);
 
             row.append("text")
@@ -73,7 +81,16 @@ var SetVis = (function(my) {
                 .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
 
             column.append("line")
+                .attr("class", "grid-line")
                 .attr("x1", -width);
+
+            column.append("text")
+                .attr("x", 6)
+                .attr("y", x.rangeBand() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "start")
+                //.text(function(d, i) { return "Set " + i; });
+                .text(function(d, i) { return vis.settings.axisNames.x[i]; });
 
             function row(row) {
                 /*
@@ -91,6 +108,8 @@ var SetVis = (function(my) {
                 */
 
 
+                //draw rectangle
+
                 var cell = d3.select(this).selectAll(".cell")
                     .data(row.cells)
                     .enter()
@@ -102,11 +121,62 @@ var SetVis = (function(my) {
                     .attr("width", x.rangeBand())
                     //.attr("height", cellSize)
                     .attr("height", x.rangeBand())
-                    //.style("fill", "rgb(243,243,243)");
-                    .style("fill", function(d) { return c(d.items.length); });
+                    .style("fill", "rgb(243,243,243)");
+                    //.style("fill", function(d) { return c(d.items.length); });
 
 
-                console.log("row ", row);
+                //draw circle
+                var circle = d3.select(this).selectAll(".cell-item")
+                    .data(row.cells)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "cell-item")
+                    .attr("cx", function(d, i) { return x(i) + x.rangeBand() / 2; })
+                    .attr("cy", function(d, i) { return x.rangeBand() / 2; })
+                    .attr("r", function(d, i) { return x.rangeBand() / 5; })
+                    .style("fill", function(d) { return c(d.items.length); })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
+
+            }
+
+            function mouseover(cell) {
+                var itemCount = cell.items.length,
+                    degree = gridData[cell.rowIndex].degree,
+                    text = "",
+                    circleSize = parseFloat(d3.select(this).attr("r")),
+                    xPos = parseFloat(d3.select(this).attr("cx")),
+                    yPos = parseFloat(d3.select(this).attr("cy")) + (cell.rowIndex + 1) * x.rangeBand() + circleSize * 2;
+
+                d3.selectAll(".row text").classed("active", function(d, i) { return i == cell.rowIndex; });
+                d3.selectAll(".column text").classed("active", function(d, i) { return i == cell.colIndex; });
+
+                if (degree > 0) {
+                    text = "Items shared with " + degree + " other sets: " + itemCount + " items";
+                } else {
+                    text = "Unique items in this set: " + itemCount + " items";
+                }
+
+                //tooltips
+                d3.select('#tooltip')
+                    .style("left", xPos + "px")
+                    .style("top", yPos + "px")
+                    //.select('#value')
+                    .text(text);
+
+                d3.select('#tooltip')
+                    .classed("hidden", false);
+
+                console.log(text);
+            }
+
+            function mouseout() {
+                d3.selectAll("text")
+                    .classed("active", false);
+
+                //tooltip
+                d3.select('#tooltip')
+                    .classed("hidden", true);
             }
 
         },
@@ -274,7 +344,13 @@ var SetVis = (function(my) {
                         }
 
                         return intValue;
+                    } else {
+                        //TODO: this has to be configurable -> now the first col will be used as set name
+                        if (colIndex == 0) {
+                            vis.settings.axisNames.x.push(col);
+                        }
                     }
+
                     return null;
                 }).filter(function(val) {
                     return val !== null;
@@ -291,8 +367,6 @@ var SetVis = (function(my) {
 
             function createGrid(matrix) {
 
-                var grid = [];
-
                 function Header(items) {
                     this.items  = items;
                 }
@@ -302,9 +376,9 @@ var SetVis = (function(my) {
                     this.cells = [];
                 }
 
-                function Cell(rowIndex, cellIndex) {
+                function Cell(rowIndex, colIndex) {
                     this.rowIndex = rowIndex;
-                    this.cellIndex = cellIndex;
+                    this.colIndex = colIndex;
                     this.items = [];
                 }
 
@@ -320,7 +394,7 @@ var SetVis = (function(my) {
                 }
                 */
 
-                grid = matrix.map(function(row, rowIndex) {
+                var grid = matrix.map(function(row, rowIndex) {
                     var degreeRow = new DegreeRow({ degree: rowIndex });
                     return degreeRow;
                 });
@@ -343,6 +417,7 @@ var SetVis = (function(my) {
                         item = undefined;
 
                     //faster than for loop
+                    /*
                     var i = row.length;
                     do {
                         if (row[i] == 1 && degreeList[i] == degreeValue) {
@@ -350,8 +425,8 @@ var SetVis = (function(my) {
                             result.push(item);
                         }
                     } while (--i);
+                    */
 
-                    /*
                     for (var i = 0, len = row.length; i < len; i++) {
                         if (row[i] == 1 && degreeList[i] == degreeValue) {
                             item = headerData[i];
@@ -359,7 +434,6 @@ var SetVis = (function(my) {
                             result.push(item);
                         }
                     }
-                    */
 
                     return result;
 
@@ -412,6 +486,6 @@ var SetVis = (function(my) {
         }
     };
 
-    return my;
+    return vis;
 
 })(SetVis || {});
