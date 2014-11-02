@@ -8,6 +8,10 @@ var SetVis = (function(vis) {
         axisNames: {
             x: [],
             y: []
+        },
+        data: {
+            min: 0,
+            max: 0
         }
     };
 
@@ -31,11 +35,13 @@ var SetVis = (function(vis) {
             });
         },
         draw_new: function(gridData) {
-
             var margin = {top: 80, right: 0, bottom: 10, left: 80},
                 width = 720,
                 height = 720,
                 cellSize = 20,
+                cellsPerRow = gridData[0].cells.length, //rows x cols
+                minValue = vis.settings.data.min,
+                maxValue = vis.settings.data.max,
                 svg = d3.select("#main").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
@@ -44,10 +50,13 @@ var SetVis = (function(vis) {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
             var x = d3.scale.ordinal().rangeBands([0, width]);
-            var c = d3.scale.category10().domain(d3.range(10));
+            //var c = d3.scale.category10().domain(d3.range(10));
 
-            var totalCells = gridData.length * gridData[0].cells.length; //rows x cols
-            x.domain(d3.range(totalCells));
+            var colorScale = d3.scale.linear()
+                .domain([minValue, maxValue])
+                .range(['#FFF7FB', '#023858']);
+
+            x.domain(d3.range(cellsPerRow));
 
             svg.append("rect")
                 .attr("class", "background")
@@ -92,6 +101,8 @@ var SetVis = (function(vis) {
                 //.text(function(d, i) { return "Set " + i; });
                 .text(function(d, i) { return vis.settings.axisNames.x[i]; });
 
+            //createLegend();
+
             function row(row) {
                 /*
                 var cell = d3.select(this).selectAll(".cell")
@@ -126,15 +137,16 @@ var SetVis = (function(vis) {
 
 
                 //draw circle
-                var circle = d3.select(this).selectAll(".cell-item")
+                var circle = d3.select(this).selectAll(".subset")
                     .data(row.cells)
                     .enter()
                     .append("circle")
-                    .attr("class", "cell-item")
+                    .attr("class", "subset")
                     .attr("cx", function(d, i) { return x(i) + x.rangeBand() / 2; })
-                    .attr("cy", function(d, i) { return x.rangeBand() / 2; })
-                    .attr("r", function(d, i) { return x.rangeBand() / 5; })
-                    .style("fill", function(d) { return c(d.items.length); })
+                    .attr("cy", function(d) { return x.rangeBand() / 2; })
+                    .attr("r", function(d) { return x.rangeBand() / 5; })
+                    //.style("fill", function(d) { return c(d.items.length); })
+                    .style("fill", function(d) { return colorScale(d.items.length); })
                     .on("mouseover", mouseover)
                     .on("mouseout", mouseout);
 
@@ -144,9 +156,11 @@ var SetVis = (function(vis) {
                 var itemCount = cell.items.length,
                     degree = gridData[cell.rowIndex].degree,
                     text = "",
-                    circleSize = parseFloat(d3.select(this).attr("r")),
+                    circleRadius = parseFloat(d3.select(this).attr("r")),
                     xPos = parseFloat(d3.select(this).attr("cx")),
-                    yPos = parseFloat(d3.select(this).attr("cy")) + (cell.rowIndex + 1) * x.rangeBand() + circleSize * 2;
+                    //yPos = parseFloat(d3.select(this).attr("cy")) + (cell.rowIndex + 1) * x.rangeBand() + circleRadius * 2;
+                    //yPos = x(cell.rowIndex + 1) + margin.top;
+                    yPos = jQuery(this).offset().top + (circleRadius * 2);
 
                 d3.selectAll(".row text").classed("active", function(d, i) { return i == cell.rowIndex; });
                 d3.selectAll(".column text").classed("active", function(d, i) { return i == cell.colIndex; });
@@ -161,13 +175,11 @@ var SetVis = (function(vis) {
                 d3.select('#tooltip')
                     .style("left", xPos + "px")
                     .style("top", yPos + "px")
-                    //.select('#value')
+                    .style("margin-top", 8 + "px") //move tooltip below circle
                     .text(text);
 
                 d3.select('#tooltip')
                     .classed("hidden", false);
-
-                console.log(text);
             }
 
             function mouseout() {
@@ -177,6 +189,40 @@ var SetVis = (function(vis) {
                 //tooltip
                 d3.select('#tooltip')
                     .classed("hidden", true);
+            }
+
+            function createLegend() {
+                var legend = svg.selectAll('g.legendEntry')
+                    .data(color.range().reverse())
+                    .enter()
+                    .append('g').attr('class', 'legendEntry');
+
+                legend
+                    .append('rect')
+                    .attr("x", width - 780)
+                    .attr("y", function(d, i) {
+                        return i * 20;
+                    })
+                    .attr("width", 10)
+                    .attr("height", 10)
+                    .style("stroke", "black")
+                    .style("stroke-width", 1)
+                    .style("fill", function(d){return d;});
+                //the data objects are the fill colors
+
+                legend
+                    .append('text')
+                    .attr("x", width - 765) //leave 5 pixel space after the <rect>
+                    .attr("y", function(d, i) {
+                        return i * 20;
+                    })
+                    .attr("dy", "0.8em") //place text one line *below* the x,y point
+                    .text(function(d,i) {
+                        var extent = color.invertExtent(d);
+                        //extent will be a two-element array, format it however you want:
+                        var format = d3.format("0.2f");
+                        return format(+extent[0]) + " - " + format(+extent[1]);
+                    });
             }
 
         },
@@ -267,7 +313,8 @@ var SetVis = (function(vis) {
         };
         */
 
-        this.datGrid = undefined;
+        this.datGrid = [];
+
     }
 
     Converter.prototype = {
@@ -278,9 +325,9 @@ var SetVis = (function(vis) {
             }
 
             function onDescriptionLoaded(setDescriptor) {
-                self.processDataSet(setDescriptor, function(sets, subsets) {
+                self.processDataSet(setDescriptor, function(gridData) {
                     if (callback) {
-                        callback.call(this, sets, subsets);
+                        callback.call(this, gridData);
                     }
                 });
             }
@@ -359,13 +406,11 @@ var SetVis = (function(vis) {
 
             var degrees = helpers.computeDegrees(matrix);
 
-            //console.log("degrees ", degrees);
-
             /***** STABLE TIL HERE *****/
 
-            this.dataGrid = createGrid(matrix);
+            this.dataGrid = createGrid(matrix, degrees);
 
-            function createGrid(matrix) {
+            function createGrid(matrix, degrees) {
 
                 function Header(items) {
                     this.items  = items;
@@ -407,6 +452,16 @@ var SetVis = (function(vis) {
                         degreeValue = rowIndex + 1;
                         cellItems = getItems(matrix[i], degrees.col, headerData, degreeValue);
                         cell.items = cellItems;
+
+                        //compute min and max values of the final grid
+                        if (cell.items.length > vis.settings.data.max) {
+                            vis.settings.data.max = cell.items.length;
+                        }
+
+                        if (cell.items.length < vis.settings.data.min) {
+                            vis.settings.data.min = cell.items.length;
+                        }
+
                         gridRow.cells.push(cell);
                     }
                     return gridRow;
