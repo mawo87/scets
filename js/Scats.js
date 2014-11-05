@@ -8,11 +8,13 @@ var SetVis = (function(vis) {
         axisNames: {
             x: [],
             y: []
-        },
-        data: {
-            min: 0,
-            max: 0
         }
+    };
+
+    vis.data = {
+        min: 0,
+        max: 0,
+        grid: []
     };
 
     var config = {
@@ -35,26 +37,28 @@ var SetVis = (function(vis) {
             });
         },
         draw_new: function(gridData) {
-            var margin = {top: 80, right: 0, bottom: 10, left: 80},
+            var self = this,
+                margin = {top: 80, right: 0, bottom: 10, left: 80},
                 width = 720,
                 height = 720,
                 cellSize = 20,
                 cellsPerRow = gridData[0].cells.length, //rows x cols
-                minValue = vis.settings.data.min,
-                maxValue = vis.settings.data.max,
+                minValue = vis.data.min,
+                maxValue = vis.data.max,
                 svg = d3.select("#main").append("svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .style("margin-left", -margin.left + "px")
                     .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+                colorRange = ['#FFF7FB', '#023858'];
 
             var x = d3.scale.ordinal().rangeBands([0, width]);
             //var c = d3.scale.category10().domain(d3.range(10));
 
             var colorScale = d3.scale.linear()
                 .domain([minValue, maxValue])
-                .range(['#FFF7FB', '#023858']);
+                .range(colorRange);
 
             x.domain(d3.range(cellsPerRow));
 
@@ -101,7 +105,7 @@ var SetVis = (function(vis) {
                 //.text(function(d, i) { return "Set " + i; });
                 .text(function(d, i) { return vis.settings.axisNames.x[i]; });
 
-            //createLegend();
+            self.createLegend(colorRange);
 
             function row(row) {
                 /*
@@ -145,14 +149,16 @@ var SetVis = (function(vis) {
                     .attr("cx", function(d, i) { return x(i) + x.rangeBand() / 2; })
                     .attr("cy", function(d) { return x.rangeBand() / 2; })
                     .attr("r", function(d) { return x.rangeBand() / 5; })
+                    //.attr("data-col-index", function(d, i) { return i; })
                     //.style("fill", function(d) { return c(d.items.length); })
                     .style("fill", function(d) { return colorScale(d.items.length); })
-                    .on("mouseover", mouseover)
-                    .on("mouseout", mouseout);
+                    .on("mouseover", onMouseover)
+                    .on("mouseout", onMouseout);
+                    //.on("click", onClick);
 
             }
 
-            function mouseover(cell) {
+            function onMouseover(cell) {
                 var itemCount = cell.items.length,
                     degree = gridData[cell.rowIndex].degree,
                     text = "",
@@ -182,7 +188,7 @@ var SetVis = (function(vis) {
                     .classed("hidden", false);
             }
 
-            function mouseout() {
+            function onMouseout() {
                 d3.selectAll("text")
                     .classed("active", false);
 
@@ -191,40 +197,107 @@ var SetVis = (function(vis) {
                     .classed("hidden", true);
             }
 
-            function createLegend() {
-                var legend = svg.selectAll('g.legendEntry')
-                    .data(color.range().reverse())
-                    .enter()
-                    .append('g').attr('class', 'legendEntry');
+            function onClick(cell) {
+                console.log("cell clicked ", cell);
+                var result = [],
+                    colIndex = cell.colIndex,
+                    rowIndex = cell.rowIndex,
+                    columns = gridData[rowIndex].cells,
+                    items = cell.items,
+                    tmp = [];
 
-                legend
-                    .append('rect')
-                    .attr("x", width - 780)
-                    .attr("y", function(d, i) {
-                        return i * 20;
-                    })
-                    .attr("width", 10)
-                    .attr("height", 10)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("fill", function(d){return d;});
-                //the data objects are the fill colors
+                console.log("columns ", columns);
 
-                legend
-                    .append('text')
-                    .attr("x", width - 765) //leave 5 pixel space after the <rect>
-                    .attr("y", function(d, i) {
-                        return i * 20;
-                    })
-                    .attr("dy", "0.8em") //place text one line *below* the x,y point
-                    .text(function(d,i) {
-                        var extent = color.invertExtent(d);
-                        //extent will be a two-element array, format it however you want:
-                        var format = d3.format("0.2f");
-                        return format(+extent[0]) + " - " + format(+extent[1]);
-                    });
+                for (var i = 0, col = undefined, len = columns.length; i < len; i++) {
+                    if (i != colIndex) {
+                        col = columns[i];
+                        console.log("col ", col);
+                        tmp = jQuery.map(col.items, function(el){
+                            return $.inArray(el, items) < 0 ? null : col;
+                        })
+                        .filter(function(item) {
+                            if (item != null) {
+                                result.push(item);
+                                console.log("d3.select(item) ", d3.select(item));
+
+                                selectCircle(rowIndex, item.colIndex);
+
+                            }
+                            return item != null;
+                        });
+                        console.log("result ", result);
+                    }
+                }
+
+                function selectCircle(row, col) {
+                    //jQuery.find('.row[row-')
+                    var $row = jQuery.find('.row:nth-child(' + row +')')[0];
+                    console.log("$row ", $row);
+                    var $circle = jQuery($row).find('.subset:nth-child(' + col + ')');
+
+                    $circle.addClass("selected");
+                    console.log("$circle ", $circle);
+                }
+
             }
 
+        },
+        createLegend: function(colorRange) {
+            var margin = { top: 0, left: 0, bottom: 0, right: 0 };
+                w = 300,
+                h = 50,
+                from = colorRange[0],
+                to = colorRange[1];
+
+            var legend = d3.select("#main")
+                .append("div")
+                .attr("id", "legend")
+
+            var title = legend.append("h3")
+                .attr("class", "legend-title")
+                .text("Legend");
+
+            var svg = legend.append("svg:svg")
+                .attr("width", w + margin.left + margin.right)
+                .attr("height", h + margin.top + margin.bottom);
+
+            var gradient = svg.append("svg:defs")
+                .append("svg:linearGradient")
+                .attr("id", "gradient")
+                .attr("x1", "0%")
+                .attr("y1", "50%")
+                .attr("x2", "100%")
+                .attr("y2", "50%")
+                .attr("spreadMethod", "pad");
+
+            gradient.append("svg:stop")
+                .attr("offset", "0%")
+                .attr("stop-color", from)
+                .attr("stop-opacity", 1);
+
+            gradient.append("svg:stop")
+                .attr("offset", "100%")
+                .attr("stop-color", to)
+                .attr("stop-opacity", 1);
+
+            svg.append("svg:rect")
+                .attr("width", w)
+                .attr("height", h / 2)
+                .style("fill", "url(#gradient)");
+
+            svg.append("text")
+                .attr("x", 0)
+                .attr("y", h / 2 + 10)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "start")
+                .text(vis.data.min + " items");
+
+            svg.append("text")
+                .attr("x", w)
+                .attr("y", h / 2 + 10)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "end")
+                .text(vis.data.max + " items");
         },
         draw: function(gridData) {
             var width = 300,
@@ -387,7 +460,7 @@ var SetVis = (function(vis) {
                         var intValue = parseInt(col, 10);
 
                         if (isNaN(intValue)) {
-                            console.error('Unable to convert "' + value + '" to integer (row ' + rowIndex + ', column ' + columnIndex + ')');
+                            console.error('Unable to convert "' + value + '" to integer (row ' + rowIndex + ', column ' + colIndex + ')');
                         }
 
                         return intValue;
@@ -409,6 +482,8 @@ var SetVis = (function(vis) {
             /***** STABLE TIL HERE *****/
 
             this.dataGrid = createGrid(matrix, degrees);
+
+            vis.data.grid = this.dataGrid;
 
             function createGrid(matrix, degrees) {
 
@@ -454,12 +529,12 @@ var SetVis = (function(vis) {
                         cell.items = cellItems;
 
                         //compute min and max values of the final grid
-                        if (cell.items.length > vis.settings.data.max) {
-                            vis.settings.data.max = cell.items.length;
+                        if (cell.items.length > vis.data.max) {
+                            vis.data.max = cell.items.length;
                         }
 
-                        if (cell.items.length < vis.settings.data.min) {
-                            vis.settings.data.min = cell.items.length;
+                        if (cell.items.length < vis.data.min) {
+                            vis.data.min = cell.items.length;
                         }
 
                         gridRow.cells.push(cell);

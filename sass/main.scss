@@ -12,6 +12,11 @@
     fill: #FFFFFF;
   }
 
+  rect.set-background {
+    stroke: #333333;
+    stroke-width: 1;
+  }
+
   circle.subset {
     -moz-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
@@ -43,7 +48,11 @@
   /*******
   * LEGEND
   ********/
-
+  #legend {
+    h3.legend-title {
+      font-size: 0.8em;
+    }
+  }
 
   /*********
   * TOOLTIPS
