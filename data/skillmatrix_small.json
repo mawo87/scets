@@ -1,5 +1,5 @@
 {
-    "file": "../data/skillmatrix_10.csv",
+    "file": "../data/skillmatrix_20.csv",
     "name": "Employee Skills",
     "separator": ",",
     "header": 0,

@@ -7,13 +7,13 @@ var SetVis = (function(vis) {
         this.settings = {
             canvas: {
                 margin: {
-                    top: 80,
+                    top: 60,
                     right: 80,
                     bottom: 10,
-                    left: 80
+                    left: 60
                 },
                 width: 900,
-                height: 600
+                height: 700
             },
             set: {
                 margin: { right: 2 },
@@ -24,12 +24,41 @@ var SetVis = (function(vis) {
             subset: {
                 r: 6
             },
+            color: {
+                range: ['#FFF7FB', '#023858']
+            },
             bins: vis.data.maxDegree
         };
-        this.data = new vis.Parser().helpers.transpose(vis.data.grid);
+        this.max_sets_per_group = 0;
+        this.xScale = undefined;
+        this.yScale = undefined;
+        this.colorScale = undefined;
+        this.data = [];
+        this.init();
     }
 
     Renderer.prototype = {
+        init: function() {
+            var self = this;
+            this.data = new vis.Parser().helpers.transpose(vis.data.grid);
+            this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
+
+            initScales();
+
+            function initScales() {
+                self.colorScale = d3.scale.linear()
+                    .domain([vis.data.min, vis.data.max])
+                    .range(self.settings.color.range);
+
+                self.xScale = d3.scale.ordinal()
+                    .rangeBands([0, self.settings.canvas.width])
+                    .domain(d3.range(self.max_sets_per_group));
+
+                self.yScale = d3.scale.ordinal()
+                    .rangeBands([0, self.getSetInnerHeight()])
+                    .domain(d3.range(self.settings.bins));
+            }
+        },
         render: function() {
             var self = this,
                 width = this.settings.canvas.width,
@@ -47,48 +76,63 @@ var SetVis = (function(vis) {
         getTotalSetWidth: function() {
             return this.settings.set.width + 2 * this.settings.set.stroke + this.settings.set.margin.right;
         },
-        getTotalSetHeight: function() {
-            return this.settings.bins * this.settings.set.height + 2 * this.settings.set.stroke;
+        getSetInnerHeight: function() {
+            return this.settings.bins * this.settings.set.height;
+        },
+        getSetOuterHeight: function() {
+            return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
         },
         renderSets: function() {
-            //calculate number of set groups needed
-            var self = this,
-                max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth(),
-                number_of_sets = this.data.length,
-                data = number_of_sets > max_sets_per_group ? vis.helpers.chunk(this.data, max_sets_per_group) : [this.data];
-
             //TODO: remove --> just added for testing
-            //data = vis.helpers.chunk(this.data, 6);
+            //this.max_sets_per_group = 10,
 
-            console.log("max_sets_per_group ", max_sets_per_group);
-            console.log("data ", data);
-
-            var colorRange = ['#FFF7FB', '#023858'];
-
-            var colorScale = d3.scale.linear()
-                .domain([vis.data.min, vis.data.max])
-                .range(colorRange);
+            var self = this,
+                //calculate number of set groups needed
+                data = vis.helpers.chunk(this.data, Math.ceil(this.max_sets_per_group)); //this will just wrap the data array into another level
 
             var setGroups = this.svg.selectAll('.set-group')
                 .data(data)
                 .enter().append("g")
                 .attr("class", "set-group")
-                .attr("transform", function(d, i) { return "translate(0," + i * self.getTotalSetHeight() + ")"; });
-
-            //creates an array from 0 to maxDegree
-            var data_x_axis = vis.helpers.createZeroToNArray(vis.data.maxDegree);
-
-            this.svg.selectAll('.y-label')
-                .data(data_x_axis)
-                .enter().append("text")
-                .attr("class", "y-label")
-                .attr("x", -6)
-                .attr("y", function(d, i) { return i * self.settings.set.height + self.settings.subset.r + 3; })
-                .attr("dy", ".32em")
-                .attr("text-anchor", "end")
-                .text(function(d, i) { return "Degree " + i; });
+                .attr("transform", function(d, i) {
+                    var top_offset = i > 0 ? 40 : 0;
+                    return "translate(0," + (i * self.getSetOuterHeight() + top_offset) + ")";
+                });
 
             setGroups.each(renderSetsNew);
+            setGroups.each(renderLabels);
+
+            function renderLabels(setGroup, index) {
+                //creates an array from 0 to maxDegree
+                var data_y_axis = vis.helpers.createZeroToNArray(vis.data.maxDegree),
+                    data_x_axis = vis.data.setNames.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
+
+                //render labels for y axis (add labels to given group)
+                d3.select(this).selectAll('.y-label')
+                    .data(data_y_axis)
+                    .enter().append("text")
+                    .attr("class", "y-label")
+                    .attr("x", -6)
+                    .attr("y", function(d, i) { return i * self.settings.set.height + self.settings.subset.r + 3; })
+                    .attr("dy", ".32em")
+                    .attr("text-anchor", "end")
+                    .text(function(d, i) { return i; });
+
+                //render labels for x axis
+                d3.select(this).selectAll('.x-label')
+                    .data(data_x_axis)
+                    .enter().append("text")
+                    .attr("class", "x-label")
+                    .attr("transform", function(d, i) {
+                        return "rotate(-90)";
+                    })
+                    .attr("x", 6)
+                    //.attr("y", function(d, i) { return i * self.getTotalSetWidth() + 7; })
+                    .attr("y", function(d, i) { return self.xScale(i) + 7; })
+                    .attr("dy", ".32em")
+                    .attr("text-anchor", "start")
+                    .text(function(d, i) { return d; });
+            }
 
             function renderSetsNew(d, i) {
                 var sets = d3.select(this).selectAll(".set")
@@ -96,7 +140,8 @@ var SetVis = (function(vis) {
                     .enter().append("g")
                     .attr("class", "set")
                     .attr("transform", function(d, i) {
-                        return "translate(" + i * self.getTotalSetWidth()  +  ", 0)";
+                        //return "translate(" + i * self.getTotalSetWidth()  +  ", 0)";
+                        return "translate(" + self.xScale(i) + ", 0)";
                     });
 
                 sets.each(drawSets);
@@ -127,9 +172,10 @@ var SetVis = (function(vis) {
                     .append("circle")
                     .attr("class", "subset")
                     .attr("cx", self.settings.set.width/2)
-                    .attr("cy", function(d, i) { return i * self.settings.set.height + self.settings.set.height/2; })
+                    //.attr("cy", function(d, i) { return i * self.settings.set.height + self.settings.set.height/2; })
+                    .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
                     .attr("r", self.settings.subset.r)
-                    .style("fill", function(d) { return colorScale(d); })
+                    .style("fill", function(d) { return self.colorScale(d); })
                     .on("mouseover", onMouseover)
                     .on("mouseout", onMouseout);
 

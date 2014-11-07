@@ -1,0 +1,13 @@
+{
+    "file": "../data/skillmatrix_final.csv",
+    "name": "Employee Skills",
+    "separator": ",",
+    "header": 0,
+    "set": {
+        "start": 1,
+        "end": 20,
+        "format": "binary"
+    },
+    "author": "Martin Wortschack",
+    "source": ""
+}

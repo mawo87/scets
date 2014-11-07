@@ -8,6 +8,7 @@ var SetVis = (function(vis) {
     }
 
     vis.data = {
+        setNames: [],
         grid: [],
         degreeVector: [],
         max: 0,
@@ -82,6 +83,8 @@ var SetVis = (function(vis) {
                 dsv = d3.dsv(self.setDescription.separator, "text/plain"),
                 file = dsv.parseRows(rawFile),
                 header = file[self.setDescription.header];
+
+            vis.data.setNames = header.slice(self.setDescription.set.start, self.setDescription.set.end + 1);
 
             //remove header from file
             file.splice(self.setDescription.header, 1);
