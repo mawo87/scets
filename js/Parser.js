@@ -8,16 +8,28 @@ var SetVis = (function(vis) {
     }
 
     vis.data = {
-        setNames: [],
+        sets: [],
+        elements: [],
+
         grid: [],
+        fullGrid: [],
         degreeVector: [],
         max: 0,
         min: 0,
-        magDegree: 0
+        maxDegree: 0
     };
 
     Parser.prototype = {
         helpers: {
+            createSets: function(header, setDescription) {
+                var result = [];
+                for (var i = 0, len = header.length; i < len; i++) {
+                    if (i >= setDescription.set.start && i <= setDescription.set.end) {
+                        result.push(new vis.Set(header[i]));
+                    }
+                }
+                return result;
+            },
             //creates a grid of rows x cols where all cols are filled with 0
             initGrid: function(rows, cols) {
                 return d3.range(rows).map(function(j) {
@@ -48,6 +60,30 @@ var SetVis = (function(vis) {
                 }
 
                 return grid;
+            },
+            //this will create the full create where each cell contains an array of elements instead of an int value only
+            createFullGrid: function() {
+                var result = [],
+                    setName = "",
+                    degree = 0,
+                    subset = undefined;
+
+                for (var i = 0, len = vis.data.sets.length; i < len; i++) {
+                    var row = [];
+                    setName = vis.data.sets[i].name;
+                    for (var j = 0; j < vis.data.maxDegree; j++) {
+                        degree = j + 1;
+                        subset = new vis.SubSet(setName, degree);
+                        subset.elements = vis.data.elements.filter(function(d, i) {
+                            return d.getSets().indexOf(setName) != -1 && d.degree == degree;
+                        });
+                        subset.count = subset.elements.length;
+                        row.push(subset);
+                    }
+                    result.push(row);
+                }
+
+                return result;
             },
             transpose: function(a) {
                 return a[0].map(function (_, c) { return a.map(function (r) { return r[c]; }); });
@@ -84,7 +120,9 @@ var SetVis = (function(vis) {
                 file = dsv.parseRows(rawFile),
                 header = file[self.setDescription.header];
 
-            vis.data.setNames = header.slice(self.setDescription.set.start, self.setDescription.set.end + 1);
+            //vis.data.sets = self.helpers.createSets(header, self.setDescription);
+
+            radSetAlgo(file, this.setDescription);
 
             //remove header from file
             file.splice(self.setDescription.header, 1);
@@ -119,15 +157,70 @@ var SetVis = (function(vis) {
             vis.data.degreeVector = degreeVector;
             vis.data.maxDegree = maxDegree;
 
-            console.log("degreeVector ", degreeVector);
-            console.log("maxDegree ", maxDegree);
-            console.log("setCount ", setCount);
+            //console.log("degreeVector ", degreeVector);
+            //console.log("maxDegree ", maxDegree);
+            //console.log("setCount ", setCount);
 
             //create grid and store in global variable making it accessible
             vis.data.grid = self.helpers.createGrid(reducedFile, degreeVector, maxDegree, setCount);
 
+            vis.data.fullGrid = self.helpers.createFullGrid();
+
         }
     };
+
+    function radSetAlgo(file, setDescription) {
+
+        var header = [],
+            headerIdxAndCatIdx = [],
+            id = 0;
+
+        for (var i = 0, len = file.length; i < len; i++) {
+            var row = file[i],
+                element = null;
+
+            for (var j = 0, l = row.length; j < l; j++) {
+                var col = row[j];
+
+                //header
+                if (i === 0) {
+                    header.push(col);
+                }
+
+                //new set
+                if (i === 0 && j !== 0 ) {
+                    if (j >= setDescription.set.start && j <= setDescription.set.end) {
+                        var set = new vis.Set(col);
+                        vis.data.sets.push(set);
+                        headerIdxAndCatIdx[j] = vis.data.sets.length - 1;
+                    }
+                } else if (i !== 0 && j === 0) {
+                    id = vis.data.elements.length;
+                    element = new vis.Element(id, col);
+                } else if (i !== 0 && j !== 0) {
+                    var head = header[j];
+                    if (j >= setDescription.set.start && j <= setDescription.set.end) {
+                        if (col === "1") {
+                            var catIndex = headerIdxAndCatIdx[j];
+                            if (catIndex !== undefined) {
+                                var cat = vis.data.sets[catIndex];
+                                element.sets.push(cat.name);
+                                vis.data.sets[catIndex].count += 1;
+                            }
+                        }
+                    } else {
+                        element[head] = col;
+                    }
+                }
+            }
+            if (element !== null) {
+                element.degree = element.sets.length;
+                if (element.degree > 0) {
+                    vis.data.elements.push(element);
+                }
+            }
+        }
+    }
 
     vis.Parser = Parser;
 
