@@ -1,0 +1,13 @@
+{
+    "file": "../data/skillmat.csv",
+    "name": "Employee Skills",
+    "separator": " ",
+    "header": 0,
+    "set": {
+        "start": 1,
+        "end": 162,
+        "format": "binary"
+    },
+    "author": "Bilal Alsallakh",
+    "source": ""
+}
