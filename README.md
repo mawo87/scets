@@ -2,6 +2,8 @@ scats
 ======
 A scalable visualization of set-typed data
 
+Deployment
+----------
 
 Install Gulp:
 sudo npm install -g gulp
