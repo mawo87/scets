@@ -73,6 +73,7 @@ var SetVis = (function(vis) {
                 .attr("transform", "translate(" + self.settings.canvas.margin.left + "," + self.settings.canvas.margin.top + ")");
 
             this.renderSets();
+            this.updateCanvasHeight();
             this.drawDegreeHistogram(vis.data.elements);
 
         },
@@ -110,8 +111,8 @@ var SetVis = (function(vis) {
                 .enter().append("g")
                 .attr("class", "set-group")
                 .attr("transform", function(d, i) {
-                    var top_offset = i > 0 ? 40 : 0;
-                    return "translate(0," + (i * self.getSetOuterHeight() + top_offset) + ")";
+                    var top_offset = self.settings.canvas.margin.top;
+                    return "translate(0," + (i * (self.getSetOuterHeight() + top_offset)) + ")";
                 });
 
             setGroups.each(renderSetsNew);
@@ -274,6 +275,7 @@ var SetVis = (function(vis) {
 
             });
         },
+        /* deprecated */
         selectSubset: function(subset, rowIndex) {
             var elements = subset.getElementNames(),
                 degree = rowIndex + 1,
@@ -350,6 +352,12 @@ var SetVis = (function(vis) {
                 });
 
             }
+        },
+        updateCanvasHeight: function() {
+            var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
+                newHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
+            
+            d3.select('#canvas svg').attr("height", newHeight);
         },
         drawDegreeHistogram: function(elements) {
 
