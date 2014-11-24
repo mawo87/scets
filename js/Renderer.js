@@ -356,7 +356,7 @@ var SetVis = (function(vis) {
         updateCanvasHeight: function() {
             var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
                 newHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
-            
+
             d3.select('#canvas svg').attr("height", newHeight);
         },
         drawDegreeHistogram: function(elements) {
