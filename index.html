@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>SetVis</title>
     <script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="lib/d3.v3.js"></script>
     <script type="text/javascript" src="lib/colorbrewer/colorbrewer.js"></script>
     <!--
@@ -28,23 +29,14 @@
     <div class="ui-container">
         <div class="ui-row"></div>
             <div class="ui-column ui-layout-center">
-                <div class="ui-controls">controls go here</div>
+                <div class="ui-controls">
+                    <button class="btn btn-primary btn-sm btn-edit-binning" data-toggle="modal">Edit Binning</button>
+                </div>
                 <div id="canvas">
                     <div id="tooltip" class="hidden"></div>
                 </div>
             </div>
             <div class="ui-column ui-layout-east" style="width:400px;">
-                <div class="grid simple" style="margin-bottom:10px;">
-                    <div class="grid-title">
-                        <h4>No. of elements per degree</h4>
-                    </div>
-                    <div class="grid-body">
-                        <div id="degree-hist">
-                            <ul></ul>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="grid simple">
                     <div class="grid-title">
                         <h4>Selected <span class="semi-bold">Subset</span></h4>
@@ -56,5 +48,7 @@
             </div>
         </div>
     </div>
+
+    <div id="binningViewModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true"></div>
 </body>
 </html>

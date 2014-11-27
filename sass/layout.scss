@@ -9,7 +9,6 @@ body {
 }
 
 .ui-header {
-  /* background: #22262E; */
   height: 48px;
   padding: 10px 30px;
 }
@@ -17,8 +16,6 @@ body {
 .ui-container {
   display: table;
   width: 100%;
-  /* margin-top: -30px; */
-  /* padding-top: 30px; */
   min-height: 100%;
   height: auto !important;
   height: 100%;
@@ -41,6 +38,16 @@ body {
   padding-top: 10px;
   padding-left: 10px;
   padding-right: 10px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 10px 0;
+  font-family: 'Open Sans';
+  font-weight: 300;
+}
+
+.semi-bold {
+  font-weight: 600;
 }
 
 .table-bordered {
