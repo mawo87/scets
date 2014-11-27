@@ -43,6 +43,29 @@ var SetVis = (function(vis) {
             }
 
             return set_occurrence_map;
+        },
+        getElementsPerDegree: function(arr) {
+            var result = [],
+                maxEntriesCount = 0,
+                sum;
+
+            for (var i = 0, len = arr.length; i < len; i++) {
+                sum = 0;
+                for (var j = 0, l = arr[i].length; j < l; j++) {
+                    sum += arr[i][j];
+                }
+
+                if (sum > maxEntriesCount) {
+                    maxEntriesCount = sum;
+                }
+
+                result.push(sum);
+            }
+
+            return {
+                getList: function() { return result; },
+                getMaxEntriesCount: function() { return maxEntriesCount; }
+            };
         }
     };
 

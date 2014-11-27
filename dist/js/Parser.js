@@ -137,7 +137,7 @@ var SetVis = (function(vis) {
                         var intValue = parseInt(col, 10);
 
                         if (isNaN(intValue)) {
-                            console.error('Unable to convert "' + value + '" to integer (row ' + rowIndex + ', column ' + colIndex + ')');
+                            console.error('Unable to convert "' + col + '" to integer (row ' + rowIndex + ', column ' + colIndex + ')');
                         } else {
                             //increase the degree as we iterate over the cols
                             degreeVector[rowIndex] = degreeVector[rowIndex] + intValue;

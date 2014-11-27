@@ -44,6 +44,13 @@ var SetVis = (function(vis) {
             this.data = vis.data.fullGrid;
             this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
 
+            this.binningView = new BinningView({
+                setRenderer: this,
+                container: "#binningViewModal"
+            });
+
+            this.setupControls();
+
             initScales();
 
             function initScales() {
@@ -60,6 +67,18 @@ var SetVis = (function(vis) {
                     .domain(d3.range(self.settings.bins));
             }
         },
+        setupControls: function() {
+            var self = this;
+
+            //setup modal window for binning
+            $('#binningViewModal').modal({ show: false });
+
+            $('.ui-controls .btn-edit-binning').on("click", function() {
+                self.binningView.render();
+
+                $('#binningViewModal').modal('show');
+            });
+        },
         render: function() {
             var self = this,
                 width = this.settings.canvas.width,
@@ -74,7 +93,7 @@ var SetVis = (function(vis) {
 
             this.renderSets();
             this.updateCanvasHeight();
-            this.drawDegreeHistogram(vis.data.elements);
+            this.binning();
 
         },
         getTotalSetWidth: function() {
@@ -85,17 +104,6 @@ var SetVis = (function(vis) {
         },
         getSetOuterHeight: function() {
             return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
-        },
-        getDegreeList: function(entries) {
-            var result = [];
-            for (var i = entries.length - 1; i >= 0; i--) {
-                if (result[entries[i].degree] === undefined) {
-                    result[entries[i].degree] = { degree: entries[i].degree, count: 1 };
-                } else {
-                    result[entries[i].degree].count++;
-                }
-            }
-            return result;
         },
         renderSets: function() {
             //TODO: remove --> just added for testing
@@ -178,6 +186,8 @@ var SetVis = (function(vis) {
             }
 
             function drawSubsets(set) {
+                var delay;
+
                 var circle = d3.select(this).selectAll('.subset')
                     .data(set)
                     .enter()
@@ -185,7 +195,8 @@ var SetVis = (function(vis) {
                     .attr("class", "subset")
                     .attr("cx", self.settings.set.width/2)
                     .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
-                    .attr("r", self.settings.subset.r)
+                    .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
+                    .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
                     //.style("fill", function(d) { return self.colorScale(d); })
                     .style("fill", function(d) { return self.colorScale(d.count); })
                     .on("mouseover", onMouseover)
@@ -193,31 +204,37 @@ var SetVis = (function(vis) {
                     .on("click", onClick);
 
                 function onMouseover(d, i) {
-                    var $tooltip = $('#tooltip'),
-                        //itemCount = d,
-                        itemCount = d.count,
-                        degree = i,
-                        text = "",
-                        //xPos = parseFloat($(this).offset().left - ($tooltip.width() / 2 - self.settings.subset.r / 2)),
-                        xPos = parseFloat($(this).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-                        yPos = parseFloat($(this).offset().top) + 3 * self.settings.subset.r;
+                    var that = this;
 
-                    if (degree > 0) {
-                        text = "Items shared with " + degree + " other sets: " + itemCount;
-                    } else {
-                        text = "Unique items in this set: " + itemCount;
-                    }
+                    //delay mouseover event for 500ms
+                    delay = setTimeout(function() {
+                        var $tooltip = $('#tooltip'),
+                            //itemCount = d,
+                            itemCount = d.count,
+                            degree = i,
+                            text = "",
+                            //xPos = parseFloat($(this).offset().left - ($tooltip.width() / 2 - self.settings.subset.r / 2)),
+                            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-                    //tooltips
-                    d3.select('#tooltip')
-                        .style("left", xPos + "px")
-                        .style("top", yPos + "px")
-                        .text(text)
-                        .classed("hidden", false);
+                        if (degree > 0) {
+                            text = "Items shared with " + degree + " other sets: " + itemCount;
+                        } else {
+                            text = "Unique items in this set: " + itemCount;
+                        }
 
+                        //tooltips
+                        d3.select('#tooltip')
+                            .style("left", xPos + "px")
+                            .style("top", yPos + "px")
+                            .text(text)
+                            .classed("hidden", false);
+
+                    }, 500);
                 }
 
                 function onMouseout() {
+                    clearTimeout(delay);
                     d3.select('#tooltip')
                         .classed("hidden", true);
                 }
@@ -356,41 +373,170 @@ var SetVis = (function(vis) {
         updateCanvasHeight: function() {
             var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
                 newHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
-            
+
             d3.select('#canvas svg').attr("height", newHeight);
         },
-        drawDegreeHistogram: function(elements) {
+        binning: function() {
 
-            var $container = $('#degree-hist'),
-                degreeList = this.getDegreeList(elements),
-                sorted = degreeList.sort(function (a, b) {
-                    return (a.degree - b.degree);
-                }),
-                maxEntriesCount = 0,
-                arr = [];
+            var list = getDegreeToElementMap().getMap(),
+                k = 3, //number of total bins
+                n = getDegreeToElementMap().getTotalCount(), //total elements in all row (degrees)
+                s = Math.ceil(n/k), //number of elements per bin
+                bins = [];
 
-            for (var i = 0; i < sorted.length; i++) {
-                if (sorted[i] !== undefined) {
-                    if (maxEntriesCount < sorted[i].count) {
-                        maxEntriesCount = sorted[i].count;
+            console.log("list ", list, "n ", n);
+
+            function getDegreeToElementMap() {
+                var result = [],
+                    total = 0,
+                    sum;
+
+                for (var i = 0, len = vis.data.grid.length; i < len; i++) {
+                    sum = 0;
+                    for (var j = 0, l = vis.data.grid[i].length; j < l; j++) {
+                        sum+= vis.data.grid[i][j];
+                        total+= vis.data.grid[i][j];
                     }
+                    result.push({ degree: i + 1, count: sum });
                 }
+                return {
+                    getMap: function() { return result; },
+                    getTotalCount: function() { return total; }
+                };
             }
 
-            for (var i = 0, len = sorted.length; i < len; i++) {
-                var deg = sorted[i];
-                if (deg !== undefined) {
-                    var per = deg.count / maxEntriesCount * 100;
-                    arr.push('<li>');
-                    arr.push(deg.degree + '<div class="meter"><span class="Degree-' + deg.degree + '" style="width: ' + per.toFixed(2) + '%">');
-                    arr.push('<span class="inner-meter"></span>');
-                    arr.push('</li>');
-                }
+            //TODO: remove --> just for testing
+            /*
+            list = [
+                { degree: 1, count: 2000 },
+                { degree: 2, count: 1 },
+                { degree: 3, count: 1 },
+                { degree: 4, count: 1878 },
+                { degree: 5, count: 1 }
+            ];
+            */
+
+            function Bin() {
+                this.degrees = [];
+                this.count = 0;
             }
 
-            $container.find('ul').append(arr.join(''));
+            //initialize bins
+            for (var i = 0; i < k; i++) {
+                bins.push(new Bin);
+            }
 
-            return sorted;
+            //populate bins
+            var currentDegree = 0;
+            for (var i = 0, sum, len = bins.length; i < len; i++) {
+                sum = 0;
+                //console.log("bin ", i + 1);
+                //console.log("sum ", sum);
+
+                while (sum <= s && list[currentDegree] !== undefined) {
+                    //console.log("degreeList[currentDegree] ", list[currentDegree]);
+                    //console.log("currentDegree ", currentDegree);
+                    if (list[currentDegree].count >= s) {
+                        sum += list[currentDegree].count;
+                        bins[i].degrees.push(list[currentDegree].degree);
+                        currentDegree++;
+                    } else if (sum + list[currentDegree].count <= s) {
+                        sum += list[currentDegree].count;
+                        bins[i].degrees.push(list[currentDegree].degree);
+                        currentDegree++;
+                    } else {
+                        currentDegree++;
+                    }
+                    //console.log("sum is now ", sum);
+                }
+
+                bins[i].count = sum;
+            }
+
+            console.log("bins ", bins);
+
+        }
+    };
+
+    function BinningView(initializer) {
+        this.setRenderer = initializer.setRenderer;
+        this.container = initializer.container;
+    }
+
+    BinningView.prototype = {
+        render: function() {
+            var html = '<div class="modal-dialog modal-lg">' +
+                         '<div class="modal-content">' +
+                           '<div class="modal-header">' +
+                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+                             '<h4 class="modal-title">Edit <span class="semi-bold">Binning</span></h4>' +
+                           '</div>' +
+                           '<div class="modal-body">' +
+                             '<div class="ui-container">' +
+                               '<div class="ui-row">' +
+                                  '<div class="ui-column degree-hist"><h5>Elements <span class="semi-bold">per Degree</span></h5></div>'+
+                                  '<div class="ui-column custom-bins"></div>' +
+                               '</div>' +
+                             '</div>' +
+                           '</div>' +
+                         '</div>' +
+                       '</div>';
+            $(this.container)
+                .empty()
+                .html(html);
+
+            this.renderHistogram();
+        },
+        renderHistogram: function() {
+            var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
+                data = elements_per_degree.getList();
+
+            var margin = { left: 20, top: 10  },
+                width = 420,
+                barHeight = 20,
+                height = barHeight * data.length;
+
+            var xScale = d3.scale.linear()
+                .domain([0, d3.max(data)])
+                .range([0, width - margin.left]);
+
+            var yScale = d3.scale.linear()
+                .domain([0, data.length])
+                .range([0, height]);
+
+            var chart = d3.select(".degree-hist")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", barHeight * data.length + margin.top)
+                .append("g")
+                .attr("transform", function(d, i) { return "translate(" + margin.left + ", " + margin.top + ")"; });
+
+            var bar = chart.selectAll("g")
+                .data(data)
+                .enter().append("g")
+                .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+            bar.append("rect")
+                .attr("width", xScale)
+                .attr("height", barHeight - 1)
+                .attr("y", -barHeight / 2);
+
+            bar.append("text")
+                .attr("x", function(d) { return xScale(d) - 3; })
+                .attr("dy", ".35em")
+                .text(function(d) { return d > 0 ? d : ""; });
+
+            var	yAxis = d3.svg.axis()
+                .orient('left')
+                .scale(yScale)
+                .tickSize(2)
+                .tickFormat(function(d, i){ return i + 1; })
+                .tickValues(d3.range(data.length));
+
+            chart.append('g')
+                .attr("transform", "translate(0,0)")
+                .attr('class','yaxis')
+                .call(yAxis);
 
         }
     };
