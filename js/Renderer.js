@@ -91,10 +91,17 @@ var SetVis = (function(vis) {
                 .append("g")
                 .attr("transform", "translate(" + self.settings.canvas.margin.left + "," + self.settings.canvas.margin.top + ")");
 
-            this.renderSets();
-            this.updateCanvasHeight();
-            this.binning();
+            //this.binning();
+            //this.primitiveBinning();
 
+            this.renderSets_New();
+
+            //this.renderSets();
+
+            var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
+                canvasHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
+
+            this.setCanvasHeight(canvasHeight);
         },
         getTotalSetWidth: function() {
             return this.settings.set.width + 2 * this.settings.set.stroke + this.settings.set.margin.right;
@@ -370,11 +377,11 @@ var SetVis = (function(vis) {
 
             }
         },
-        updateCanvasHeight: function() {
-            var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
-                newHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
-
-            d3.select('#canvas svg').attr("height", newHeight);
+        getCanvasHeight: function() {
+            return parseInt(d3.select('#canvas svg').attr("height"));
+        },
+        setCanvasHeight: function(height) {
+            d3.select('#canvas svg').attr("height", height);
         },
         binning: function() {
 
@@ -455,6 +462,332 @@ var SetVis = (function(vis) {
 
             console.log("bins ", bins);
 
+        },
+        primitiveBinning: function() {
+            var list = getDegreeToElementMap().getMap(),
+                k = 5, //number of desired bins
+                n = list.length; //number of degrees
+                s = Math.floor(n/k), //number of elements per bin
+                r = n % k; //the remainder
+                bins = [];
+
+            function getDegreeToElementMap() {
+                var result = [],
+                    total = 0,
+                    sum;
+
+                for (var i = 0, len = vis.data.grid.length; i < len; i++) {
+                    sum = 0;
+                    for (var j = 0, l = vis.data.grid[i].length; j < l; j++) {
+                        sum+= vis.data.grid[i][j];
+                        total+= vis.data.grid[i][j];
+                    }
+                    result.push({ degree: i + 1, count: sum });
+                }
+                return {
+                    getMap: function() { return result; },
+                    getTotalCount: function() { return total; }
+                };
+            }
+
+            var currentBin = [];
+            for (var i = 0; i < n; i++) {
+                if (i == 0) {
+                    currentBin.push(list[i].degree);
+                } else {
+                    if (i % s == 0) {
+                        console.log(" i ", i, "creating a new bin");
+                        bins.push(currentBin);
+                        currentBin = [];
+                    }
+                    console.log("i ", list[i]);
+                    currentBin.push(list[i].degree);
+                }
+            }
+
+            console.log("s ", s);
+            console.log("n ", n);
+            console.log("bins ", bins);
+
+        },
+        renderSets_New: function() {
+
+            //TODO: remove --> just added for testing
+            //this.max_sets_per_group = 10;
+
+            var self = this,
+                data_y_axis = [],
+                data = pseudoBinning(vis.data.grid), //do binning
+                transposed = vis.helpers.transpose(data),
+                data_chunks = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group));
+
+            //pseudo binning
+            function pseudoBinning(data) {
+                var k = 5, //desired bins
+                    split_data = split(data, k),
+                    result = d3.range(split_data.length).map(function(j) {
+                        return Array.apply(null, new Array(vis.data.grid[0].length)).map(Number.prototype.valueOf, 0);
+                    });
+
+                console.log("split_data ", split_data);
+
+                function split(a, n) {
+                    var len = a.length, out = [], i = 0;
+                    while (i < len) {
+                        var size = Math.ceil((len - i) / n--);
+                        out.push(a.slice(i, i += size));
+                    }
+                    return out;
+                }
+
+                for (var i = 0, len = split_data.length; i < len; i++) {
+                    var current_block = split_data[i];
+                    for (var j = 0, l = current_block.length; j < l; j++) {
+                        for (var x = 0, innerlength = current_block[j].length; x < innerlength; x++) {
+                            result[i][x] += current_block[j][x];
+                        }
+                    }
+                }
+
+                self.settings.bins = k; //update number of bins
+                //data_y_axis = createYAxisLabelData(split_data);
+                data_y_axis = split(vis.helpers.createNumbersArray(1, vis.data.maxDegree), k);
+
+                return result;
+            }
+
+            function createYAxisLabelData(bins) {
+                var result = [],
+                    lower_range = 0,
+                    upper_range = 0;
+
+                for (var i = 0, len = bins.length; i < len; i++) {
+                    upper_range = upper_range + bins[i].length;
+                    lower_range = upper_range - bins[i].length + 1;
+                    result.push([lower_range, upper_range]);
+                }
+
+                return result;
+            }
+
+            console.log("data_chunks ", data_chunks);
+
+            var setGroups = this.svg.selectAll('.set-group')
+                .data(data_chunks)
+                .enter().append("g")
+                .attr("class", "set-group")
+                .attr("transform", function(d, i) {
+                    var top_offset = self.settings.canvas.margin.top;
+                    return "translate(0," + (i * (self.getSetOuterHeight() + top_offset)) + ")";
+                });
+
+            setGroups.each(renderSets);
+            setGroups.each(renderLabels);
+
+            function renderSets(d, i) {
+                var sets = d3.select(this).selectAll(".set")
+                    .data(data_chunks[i])
+                    .enter().append("g")
+                    .attr("class", "set")
+                    .attr("transform", function(d, i) {
+                        return "translate(" + self.xScale(i) + ", 0)";
+                    });
+
+                sets.each(drawSets);
+                sets.each(drawSubsets);
+            }
+
+            function drawSets(d, i) {
+                d3.select(this)
+                    .append("rect")
+                    .attr("class", "set-background")
+                    .attr("x", 0)
+                    .attr("width", self.settings.set.width)
+                    .attr("height", function(d, i) {
+                        return self.settings.bins * self.settings.set.height;
+                    });
+            }
+
+            function drawSubsets(set) {
+                var delay;
+
+                var circle = d3.select(this).selectAll('.subset')
+                    .data(set)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "subset")
+                    .attr("cx", self.settings.set.width/2)
+                    .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
+                    .attr("r", function(d) { return d > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
+                    .attr("display", function(d) { return d > 0 ? null : "none"; }) //don't show subsets with 0 elements
+                    .style("fill", function(d) { return self.colorScale(d); })
+                    .on("mouseover", onMouseover)
+                    .on("mouseout", onMouseout)
+                    .on("click", selectHandler);
+
+                function onMouseover(d, i) {
+                    var that = this;
+
+                    //delay mouseover event for 500ms
+                    delay = setTimeout(function() {
+                        var $tooltip = $('#tooltip'),
+                            itemCount = d,
+                            degree = i,
+                            text = "",
+                            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
+
+                        if (degree > 0) {
+                            text = "Items shared with " + degree + " other sets: " + itemCount;
+                        } else {
+                            text = "Unique items in this set: " + itemCount;
+                        }
+
+                        //tooltips
+                        d3.select('#tooltip')
+                            .style("left", xPos + "px")
+                            .style("top", yPos + "px")
+                            .text(text)
+                            .classed("hidden", false);
+
+                    }, 500);
+                }
+
+                function onMouseout() {
+                    clearTimeout(delay);
+                    d3.select('#tooltip')
+                        .classed("hidden", true);
+                }
+
+                function selectHandler(d, i) {
+                    console.log("d ", d, "i ", i);
+
+                    //TODO: implement
+                }
+            }
+
+            function renderLabels(setGroup, index) {
+                var data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
+
+                //render labels for y axis (add labels to given group)
+                d3.select(this).selectAll('.y-label')
+                    .data(data_y_axis)
+                    .enter().append("text")
+                    .attr("class", "y-label")
+                    .classed("collapsed", true)
+                    .attr("x", -6)
+                    .attr("y", function(d, i) { return i * self.settings.set.height + self.settings.subset.r + 3; })
+                    .attr("dy", ".32em")
+                    .attr("text-anchor", "end")
+                    .text(function(d, i) { return "[" + d[0] + " - " + d[d.length - 1] + "]" ; })
+                    .on("click", binClickHandler);
+
+                //render labels for x axis
+                d3.select(this).selectAll('.x-label')
+                    .data(data_x_axis)
+                    .enter().append("text")
+                    .attr("class", "x-label")
+                    .attr("transform", function(d, i) {
+                        return "rotate(-90)";
+                    })
+                    .attr("x", 6)
+                    .attr("y", function(d, i) { return self.xScale(i) + 7; })
+                    .attr("dy", ".32em")
+                    .attr("text-anchor", "start")
+                    .text(function(d, i) { return d.name; });
+
+                function binClickHandler(d, i) {
+                    console.log("d ", d, "i ", i);
+
+                    var degree_count = d.length,
+                        yPos = parseInt(d3.select(this).attr("y")),
+                        additional_height = self.settings.set.height * degree_count;
+
+                    console.log("additional_height ", additional_height);
+
+                    //expand row
+                    if (d3.select(this).attr("class").indexOf("expanded") == -1) {
+
+                        d3.selectAll('.set-background')
+                            .attr("height", function(d, i) {
+                                return parseInt(d3.select(this).attr("height")) + additional_height;
+                            });
+
+                        d3.selectAll('.set-group')
+                            .attr("transform", function(d, i) {
+                                var top_offset = self.settings.canvas.margin.top + additional_height;
+                                return "translate(0," + (i * (self.getSetOuterHeight() + top_offset)) + ")";
+                            });
+
+                        d3.selectAll('.y-label')
+                            .attr("y", function(d, i) {
+                                if (parseInt(d3.select(this).attr("y")) > yPos) {
+                                    return parseInt(d3.select(this).attr("y")) + additional_height;
+                                } else {
+                                    return parseInt(d3.select(this).attr("y"));
+                                }
+                            });
+
+                        d3.selectAll('.subset')
+                            .attr("cy", function(d, i) {
+                                console.log("i ", i);
+
+                                if (parseInt(d3.select(this).attr("cy")) > yPos) {
+                                    return parseInt(d3.select(this).attr("cy")) + additional_height;
+                                } else {
+                                    return parseInt(d3.select(this).attr("cy"));
+                                }
+                            });
+
+                        //update canvas height
+                        self.setCanvasHeight(self.getCanvasHeight() + additional_height);
+
+                        d3.select(this)
+                            .classed("expanded", true)
+                            .classed("collapsed", false);
+
+                    } else {
+                        //collapse row
+                        d3.selectAll('.set-background')
+                            .attr("height", function(d, i) {
+                                return parseInt(d3.select(this).attr("height")) - additional_height;
+                            });
+
+                        d3.selectAll('.set-group')
+                            .attr("transform", function(d, i) {
+                                var top_offset = self.settings.canvas.margin.top;
+                                return "translate(0," + (i * (self.getSetInnerHeight() + top_offset)) + ")";
+                            });
+
+                        d3.selectAll('.y-label')
+                            .attr("y", function(d, i) {
+                                if (parseInt(d3.select(this).attr("y")) > yPos) {
+                                    return parseInt(d3.select(this).attr("y")) - additional_height;
+                                } else {
+                                    return parseInt(d3.select(this).attr("y"));
+                                }
+                            });
+
+                        d3.selectAll('.subset')
+                            .attr("cy", function(d, i) {
+                                console.log("i ", i);
+
+                                if (parseInt(d3.select(this).attr("cy")) > yPos) {
+                                    return parseInt(d3.select(this).attr("cy")) - additional_height;
+                                } else {
+                                    return parseInt(d3.select(this).attr("cy"));
+                                }
+                            });
+
+                        self.setCanvasHeight(self.getCanvasHeight() - additional_height);
+
+                        d3.select(this)
+                            .classed("expanded", false)
+                            .classed("collapsed", true);
+                    }
+                }
+            }
+
         }
     };
 
@@ -481,6 +814,7 @@ var SetVis = (function(vis) {
                            '</div>' +
                          '</div>' +
                        '</div>';
+
             $(this.container)
                 .empty()
                 .html(html);
