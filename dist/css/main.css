@@ -40,6 +40,8 @@
       stroke: orange;
       stroke-width: 3;
       */ }
+  #canvas .y-label:hover {
+    cursor: pointer; }
   #canvas text {
     font-size: 0.8em; }
     #canvas text.active {

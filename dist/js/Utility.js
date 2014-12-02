@@ -10,6 +10,13 @@ var SetVis = (function(vis) {
         createZeroToNArray: function(n) {
             return Array.apply(null, {length: n}).map(Number.call, Number);
         },
+        createNumbersArray: function(from, to) {
+            var result = [];
+            for (var i = from; i <= to; i++) {
+                result.push(i);
+            }
+            return result;
+        },
         /*
          * splits array into chunks of size n
          * see: http://stackoverflow.com/questions/8495687/split-array-into-chunks/10456644#10456644
@@ -66,6 +73,12 @@ var SetVis = (function(vis) {
                 getList: function() { return result; },
                 getMaxEntriesCount: function() { return maxEntriesCount; }
             };
+        },
+        /* swaps rows and cols in a matrix a */
+        transpose: function(a) {
+            return Object.keys(a[0]).map(
+                function (c) { return a.map(function (r) { return r[c]; }); }
+            );
         }
     };
 
