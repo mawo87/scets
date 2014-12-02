@@ -30,6 +30,7 @@ var SetVis = (function(vis) {
             bins: vis.data.maxDegree
         };
         this.max_sets_per_group = 0;
+        this.no_set_groups = 0;
         this.xScale = undefined;
         this.yScale = undefined;
         this.colorScale = undefined;
@@ -82,10 +83,10 @@ var SetVis = (function(vis) {
         render: function() {
             var self = this,
                 width = this.settings.canvas.width,
-                height = this.settings.canvas.height;   //TODO change
+                height = this.settings.canvas.height;
 
             this.svg = d3.select('#canvas').append("svg")
-                .attr("width", width)
+                .attr("width", width + self.settings.canvas.margin.left)
                 .attr("height", height)
                 .style("margin-left", -self.settings.canvas.margin.left + "px")
                 .append("g")
@@ -521,6 +522,9 @@ var SetVis = (function(vis) {
                 transposed = vis.helpers.transpose(data),
                 data_chunks = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group));
 
+            //set number of set groups
+            this.no_set_groups = data_chunks.length;
+
             //pseudo binning
             function pseudoBinning(data) {
                 var k = 5, //desired bins
@@ -620,6 +624,7 @@ var SetVis = (function(vis) {
                     .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
                     .attr("r", function(d) { return d > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
                     .attr("display", function(d) { return d > 0 ? null : "none"; }) //don't show subsets with 0 elements
+                    .attr("data-bin", function(d, i) { return i; })
                     .style("fill", function(d) { return self.colorScale(d); })
                     .on("mouseover", onMouseover)
                     .on("mouseout", onMouseout)
@@ -701,6 +706,7 @@ var SetVis = (function(vis) {
 
                     var degree_count = d.length,
                         yPos = parseInt(d3.select(this).attr("y")),
+                        labelIndex = i,
                         additional_height = self.settings.set.height * degree_count;
 
                     console.log("additional_height ", additional_height);
@@ -726,12 +732,18 @@ var SetVis = (function(vis) {
                                 } else {
                                     return parseInt(d3.select(this).attr("y"));
                                 }
+                            })
+                            .attr("class", function(d, i) {
+                                //sets the expanded resp. collapsed class for the given bin in all set groups
+                                if (Math.abs(labelIndex - i - self.settings.bins) % self.settings.bins == 0) {
+                                    return "y-label expanded";
+                                } else {
+                                    return d3.select(this).attr("class");
+                                }
                             });
 
-                        d3.selectAll('.subset')
+                        var subsets = d3.selectAll('.subset')
                             .attr("cy", function(d, i) {
-                                console.log("i ", i);
-
                                 if (parseInt(d3.select(this).attr("cy")) > yPos) {
                                     return parseInt(d3.select(this).attr("cy")) + additional_height;
                                 } else {
@@ -739,12 +751,17 @@ var SetVis = (function(vis) {
                                 }
                             });
 
-                        //update canvas height
-                        self.setCanvasHeight(self.getCanvasHeight() + additional_height);
+                        subsets = subsets.filter(function(d, i) {
+                            return parseInt(d3.select(this).attr("data-bin")) == labelIndex;
+                        });
 
-                        d3.select(this)
-                            .classed("expanded", true)
-                            .classed("collapsed", false);
+                        subsets.each(function(d, i) {
+                            console.log("d ", d, "i ", i);
+                        });
+
+                        //update canvas height
+                        self.setCanvasHeight(self.getCanvasHeight() + self.no_set_groups * additional_height);
+
 
                     } else {
                         //collapse row
@@ -761,16 +778,23 @@ var SetVis = (function(vis) {
 
                         d3.selectAll('.y-label')
                             .attr("y", function(d, i) {
+                                console.log("i ", i);
                                 if (parseInt(d3.select(this).attr("y")) > yPos) {
                                     return parseInt(d3.select(this).attr("y")) - additional_height;
                                 } else {
                                     return parseInt(d3.select(this).attr("y"));
                                 }
+                            })
+                            .attr("class", function(d, i) {
+                                if (Math.abs(labelIndex - i - 5) % 5 == 0) {
+                                    return "y-label collapsed";
+                                } else {
+                                    return d3.select(this).attr("class");
+                                }
                             });
 
                         d3.selectAll('.subset')
                             .attr("cy", function(d, i) {
-                                console.log("i ", i);
 
                                 if (parseInt(d3.select(this).attr("cy")) > yPos) {
                                     return parseInt(d3.select(this).attr("cy")) - additional_height;
@@ -781,9 +805,6 @@ var SetVis = (function(vis) {
 
                         self.setCanvasHeight(self.getCanvasHeight() - additional_height);
 
-                        d3.select(this)
-                            .classed("expanded", false)
-                            .classed("collapsed", true);
                     }
                 }
             }

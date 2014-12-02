@@ -54,6 +54,10 @@
     }
   }
 
+  .y-label:hover {
+    cursor: pointer;
+  }
+
   text {
     font-size: 0.8em;
     &.active {
