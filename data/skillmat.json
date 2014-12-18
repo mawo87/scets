@@ -5,7 +5,7 @@
     "header": 0,
     "set": {
         "start": 1,
-        "end": 256,
+        "end": 150,
         "format": "binary"
     },
     "author": "Bilal Alsallakh",
