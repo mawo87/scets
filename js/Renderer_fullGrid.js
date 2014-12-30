@@ -86,7 +86,7 @@ var SetVis = (function(vis) {
 								n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
 								b = vis.data.maxDegree; //max degree in histogram data
 
-		        console.log("H ", H, "n ", n , "b ", b);
+		        //console.log("H ", H, "n ", n , "b ", b);
 
 		        var ind = 0,
 			          leftElements = n,
@@ -111,15 +111,16 @@ var SetVis = (function(vis) {
 		        console.log("bins initialized ", this.bins);
 	      },
 	      classifyData: function() {
-		        for (var i = 0; i < this.bins.k; i++) {
-			          var counter = this.bins.start[i];
-			          while (counter <= this.bins.end[i]) {
-				            if (typeof this.bins.data[i] === "undefined") {
-					              this.bins.data[i] = [];
-				            }
-			              this.bins.data[i].push(vis.data.grid[counter]);
-			              counter++;
-			          }
+			      var gridData = vis.helpers.transpose(vis.data.fullGrid);
+			      for (var i = 0; i < this.bins.k; i++) {
+				        var counter = this.bins.start[i];
+				        while (counter <= this.bins.end[i]) {
+					          if (typeof this.bins.data[i] === "undefined") {
+						            this.bins.data[i] = [];
+					          }
+					          this.bins.data[i].push(gridData[counter]);
+					          counter++;
+				        }
 		        }
 	      },
         setupControls: function() {
@@ -145,9 +146,7 @@ var SetVis = (function(vis) {
                 .append("g")
                 .attr("transform", "translate(" + self.settings.canvas.margin.left + "," + self.settings.canvas.margin.top + ")");
 
-            this.renderSets_New();
-
-            //this.renderSets();
+            this.renderSets();
 
             var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
                 canvasHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
@@ -163,162 +162,16 @@ var SetVis = (function(vis) {
         getSetOuterHeight: function() {
             return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
         },
-
-	      /* deprecatd */
-        renderSets: function() {
-            //TODO: remove --> just added for testing
-            //this.max_sets_per_group = 10;
-
-            var self = this,
-                //data = vis.helpers.chunk(this.data, Math.ceil(this.max_sets_per_group)); //this will just wrap the data array into another level
-                //calculate number of set groups needed
-                data = vis.helpers.chunk(this.data, Math.ceil(this.max_sets_per_group));
-
-            var setGroups = this.svg.selectAll('.set-group')
-                .data(data)
-                .enter().append("g")
-                .attr("class", "set-group")
-                .attr("transform", function(d, i) {
-                    var top_offset = self.settings.canvas.margin.top;
-                    return "translate(0," + (i * (self.getSetOuterHeight() + top_offset)) + ")";
-                });
-
-            setGroups.each(renderSetsNew);
-            setGroups.each(renderLabels);
-
-            function renderLabels(setGroup, index) {
-                //creates an array from 0 to maxDegree
-                var data_y_axis = vis.helpers.createZeroToNArray(vis.data.maxDegree),
-                    data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
-
-                //render labels for y axis (add labels to given group)
-                d3.select(this).selectAll('.y-label')
-                    .data(data_y_axis)
-                    .enter().append("text")
-                    .attr("class", "y-label")
-                    .attr("x", -6)
-                    .attr("y", function(d, i) { return i * self.settings.set.height + self.settings.subset.r + 3; })
-                    .attr("dy", ".32em")
-                    .attr("text-anchor", "end")
-                    .text(function(d, i) { return i + 1 ; }); //start with degree 1 (not 0)
-
-                //render labels for x axis
-                d3.select(this).selectAll('.x-label')
-                    .data(data_x_axis)
-                    .enter().append("text")
-                    .attr("class", "x-label")
-                    .attr("transform", function(d, i) {
-                        return "rotate(-90)";
-                    })
-                    .attr("x", 6)
-                    .attr("y", function(d, i) { return self.xScale(i) + 7; })
-                    .attr("dy", ".32em")
-                    .attr("text-anchor", "start")
-                    .text(function(d, i) { return d.name; });
-            }
-
-            function renderSetsNew(d, i) {
-                var sets = d3.select(this).selectAll(".set")
-                    .data(data[i])
-                    .enter().append("g")
-                    .attr("class", "set")
-                    .attr("transform", function(d, i) {
-                        return "translate(" + self.xScale(i) + ", 0)";
-                    });
-
-                sets.each(drawSets);
-                sets.each(drawSubsets);
-            }
-
-            function drawSets(d, i) {
-                //console.log("d ", d, "i ", i);
-                //console.log(d3.select(this));
-
-                d3.select(this)
-                    .append("rect")
-                    .attr("class", "set-background")
-                    .attr("x", 0)
-                    .attr("width", self.settings.set.width)
-                    .attr("height", function(d, i) {
-                        return self.bins.k * self.settings.set.height;
-                    });
-            }
-
-            function drawSubsets(set) {
-                var delay;
-
-                var circle = d3.select(this).selectAll('.subset')
-                    .data(set)
-                    .enter()
-                    .append("circle")
-                    .attr("class", "subset")
-                    .attr("cx", self.settings.set.width/2)
-                    .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
-                    .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
-                    .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
-                    //.style("fill", function(d) { return self.colorScale(d); })
-                    .style("fill", function(d) { return self.colorScale(d.count); })
-                    .on("mouseover", onMouseover)
-                    .on("mouseout", onMouseout)
-                    .on("click", onClick);
-
-                function onMouseover(d, i) {
-                    var that = this;
-
-                    //delay mouseover event for 500ms
-                    delay = setTimeout(function() {
-                        var $tooltip = $('#tooltip'),
-                            //itemCount = d,
-                            itemCount = d.count,
-                            degree = i,
-                            text = "",
-                            //xPos = parseFloat($(this).offset().left - ($tooltip.width() / 2 - self.settings.subset.r / 2)),
-                            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
-
-                        if (degree > 0) {
-                            text = "Items shared with " + degree + " other sets: " + itemCount;
-                        } else {
-                            text = "Unique items in this set: " + itemCount;
-                        }
-
-                        //tooltips
-                        d3.select('#tooltip')
-                            .style("left", xPos + "px")
-                            .style("top", yPos + "px")
-                            .text(text)
-                            .classed("hidden", false);
-
-                    }, 500);
-                }
-
-                function onMouseout() {
-                    clearTimeout(delay);
-                    d3.select('#tooltip')
-                        .classed("hidden", true);
-                }
-
-                function onClick(subset, rowIndex) {
-                    console.log("subset ", subset, "rowIndex ", rowIndex);
-                    var degree = rowIndex + 1,
-                        //set_occurrence_map = subset.getSetOccurrenceMap(subset.set_name),
-                        elements = subset.getElementNames();
-
-                    //console.log("set_occurrence_map ", set_occurrence_map);
-
-                    //self.selectSubset(subset, rowIndex);
-                    self.selectSubset_New(subset, degree);
-
-                }
-            }
-
-            //console.log("setGroups ", setGroups);
-        },
         clearSelection: function() {
             d3.selectAll('.subset.selected').remove();
             d3.selectAll('.subset.hidden').classed("hidden", false);
         },
-        selectSubset_New: function(subset) {
+	      selectAggregate: function(aggregate) {
+		        console.log("aggregate ", aggregate);
+	      },
+        selectSubset: function(subset) {
+	          console.log("subset ", subset);
+
             var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset),
                 table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
 
@@ -329,7 +182,7 @@ var SetVis = (function(vis) {
 
             table.update(subset.elements);
 
-            d3.selectAll('.set-group').selectAll('.set .subset').each(function(d, i) {
+            d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
                 //console.log("d ", d, "i ", i);
 
                 if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
@@ -350,84 +203,6 @@ var SetVis = (function(vis) {
                 }
 
             });
-        },
-        /* deprecated */
-        selectSubset: function(subset, rowIndex) {
-            var elements = subset.getElementNames(),
-                degree = rowIndex + 1,
-                result = [];
-
-            console.log("subset ", subset);
-            console.log("all elements ", elements);
-
-            //first unselect all previously selected elements
-            this.clearSelection();
-
-            for (var i = 0, len = vis.data.fullGrid.length; i < len; i++) {
-                var col = vis.data.fullGrid[i],
-                    cell = col[rowIndex];
-
-                var filteredArr = cell.elements.filter(function(el) {
-                    if ($.inArray(subset.set_name, el.getSets().split(",")) != -1) {
-                        return el;
-                    }
-                }).map(function(el) {
-                    return el.name;
-                });
-
-                filteredArr = $.unique(filteredArr);
-                filteredArr = $(elements).filter(filteredArr);
-
-                result.push({ setIndex: i, elements: filteredArr });
-
-                //console.log("col ", col, "result ", result);
-            }
-
-            var newSelection = new vis.Selection(subset.set_name, subset.degree);
-            newSelection.elements = subset.elements;
-
-            var table = new vis.Table({ container: "#element-table", tableClass: "" });
-            table.update(subset.elements);
-
-            createSelection(result, rowIndex);
-
-            function createSelection(data, index) {
-                console.log("data ", data, "index ", index);
-
-                d3.selectAll('.set-group').selectAll('.set .subset').each(function(d, i) {
-                    ////console.log("d ", d, "i ", i);
-                    if (d.degree == index + 1 && d.elements.length > 0) {
-                        /*
-                        var c = document.createElement('circle');
-                        c.setAttribute("cx", this.getAttribute("cx"));
-                        c.setAttribute("cy", this.getAttribute("cy"));
-                        c.setAttribute("r", this.getAttribute("r"));
-                        c.setAttribute("style", "fill:rgb(0,0,0);");
-                        c.setAttribute("class", "subset");
-                        this.parentNode.insertBefore(c, this.nextSibling);
-                        */
-
-                        var cx = d3.select(this).attr("cx"),
-                            cy = d3.select(this).attr("cy"),
-                            r = d3.select(this).attr("r");
-
-                        d3.select(this.parentNode)
-                            /*
-                            .selectAll(".selected")
-                            .data(data)
-                            .enter()
-                            */
-                            .append("circle")
-                            .attr("class", "selected")
-                            .attr("cx", cx)
-                            .attr("cy", cy)
-                            .attr("r", r)
-                            .attr("fill", "orange");
-
-                    }
-                });
-
-            }
         },
         getCanvasHeight: function() {
             return parseInt(d3.select('#canvas svg').attr("height"));
@@ -459,13 +234,12 @@ var SetVis = (function(vis) {
 
 			      });
 	      },
-	      expandRow: function(d, i, data_per_bins, renderer) {
+	      expandRow: function(d, i, renderer) {
 	          var degree_count = d.length,
 			          label_yPos = parseInt(d3.select(this).attr("y")),
 			          labelIndex = i,
 			          additional_height = renderer.settings.set.height * degree_count;
 
-		        //console.log("data_per_bins ", data_per_bins);
 		        console.log("additional_height ", additional_height);
 
 			      d3.selectAll('.set-background')
@@ -475,12 +249,8 @@ var SetVis = (function(vis) {
 
 			      d3.selectAll('.set-group')
 					      .attr("transform", function(d, i) {
-					          //console.log(d3.transform(element.attr("transform")));
-							      var top_offset = renderer.settings.canvas.margin.top + additional_height,
-								        prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+							      var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
 
-					          console.log("prev ", prev);
-							      //return "translate(0," + (i * (renderer.getSetOuterHeight() + top_offset)) + ")";
 					          if (i > 0) {
 						            return "translate(0," + (prev + i * additional_height) + ")";
 					          } else {
@@ -508,60 +278,60 @@ var SetVis = (function(vis) {
 
 		        renderer.arrangeLabels();
 
-			      var subsets = d3.selectAll('.subset')
+			      var aggregates = d3.selectAll('.aggregate')
 				        .attr("cy", function(d, i) {
-					        if (parseInt(d3.select(this).attr("cy")) > label_yPos) {
-						          return parseInt(d3.select(this).attr("cy")) + additional_height;
-					        } else {
-						          return parseInt(d3.select(this).attr("cy"));
-					        }
+					          if (parseInt(d3.select(this).attr("cy")) > label_yPos) {
+						            return parseInt(d3.select(this).attr("cy")) + additional_height;
+					          } else {
+						            return parseInt(d3.select(this).attr("cy"));
+					          }
+				        })
+				        .attr("class", function(d, i) {
+										if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d.count > 0) {
+												var isExpanded = d3.select(this).classed("expanded");
+												if (!isExpanded) {
+														d3.select(this).classed("expanded", true);
+												}
+										}
+										return d3.select(this).attr("class");
 				        });
 
-	          /*
-	          subsets = subsets.filter(function(d, i) {
-		            return parseInt(d3.select(this).attr("data-bin")) == labelIndex;
+		        renderer.appendSubsets();
+
+			      //update canvas height
+			      renderer.setCanvasHeight(renderer.getCanvasHeight() + renderer.no_set_groups * additional_height);
+	      },
+	      appendSubsets: function() {
+		        var self = this;
+
+		        d3.selectAll('.subset')
+			          .remove();
+
+		        d3.selectAll('.aggregate.expanded').each(function(d, i) {
+
+			          var subset_y_pos = parseInt(d3.select(this).attr("cy")),
+				            subset_x_pos = parseInt(d3.select(this).attr("cx")),
+				            bin_entries = d3.select(this).data()[0].subsets;
+
+			          //console.log("this ", this);
+			          //console.log("bin_entries ", bin_entries);
+
+			          d3.select(this.parentNode).selectAll('.subset.level-' + i)
+				            .data(bin_entries)
+				            .enter()
+				            .append("circle")
+				            .attr("class", "subset level-" + i)
+				            .attr("cx", subset_x_pos)
+				            .attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
+				            .attr("r", self.settings.subset.r)
+				            .attr("fill", function(d) { return d.count > 0 ? self.colorScale(d.count) : "#FFFFFF"; });
 		        });
 
-			      subsets.each(function(d, i) {
-			          console.log("d ", d, "i ", i);
+		        //click handler for newly added subsets
+		        d3.selectAll('.subset').on("click", function(subset){
+				        self.selectSubset(subset);
 			      });
-			      */
 
-			      subsets.each(function(d, i) {
-					      //console.log("d ", d, "i ", i);
-
-					      if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d > 0) {
-						        //console.log("matched subset ", i);
-
-						        var subset_y_pos = parseInt(d3.select(this).attr("cy")),
-							          subset_x_pos = parseInt(d3.select(this).attr("cx")),
-							          setIndex = parseInt(d3.select(this.parentNode).attr("data-set")),
-							          bin_entries = getDataForSubset(data_per_bins[labelIndex], setIndex);
-
-						        d3.select(this.parentNode).selectAll('.subset-child')
-							          .data(bin_entries)
-							          .enter()
-							          .append("circle")
-							          .attr("class", "subset-child")
-							          .attr("data-parent-bin", labelIndex)
-							          .attr("cx", subset_x_pos)
-							          .attr("cy", function(d, i) { return subset_y_pos + (i + 1) * renderer.settings.set.height; })
-							          .attr("r", renderer.settings.subset.r)
-							          .attr("fill", function(d) { return d ? renderer.colorScale(d) : "#FFFFFF"; });
-			          }
-	          });
-
-			      function getDataForSubset(data, index) {
-				        //console.log("data ", data, "index ", index);
-				        var result = [];
-				        for (var i = 0, len = data.length; i < len; i++) {
-							      result.push(data[i][index]);
-					      }
-					      return result;
-			      }
-
-			        //update canvas height
-			        renderer.setCanvasHeight(renderer.getCanvasHeight() + renderer.no_set_groups * additional_height);
 	      },
 	      collapseRow: function(d, i, renderer) {
 		        var degree_count = d.length,
@@ -604,34 +374,37 @@ var SetVis = (function(vis) {
 
 		        renderer.arrangeLabels();
 
-			      d3.selectAll('.subset')
+			      d3.selectAll('.aggregate')
 				        .attr("cy", function(d, i) {
 					          if (parseInt(d3.select(this).attr("cy")) > label_yPos) {
 						            return parseInt(d3.select(this).attr("cy")) - additional_height;
 					          } else {
 						            return parseInt(d3.select(this).attr("cy"));
 					          }
-				        });
+				        })
+					      .attr("class", function(d, i) {
+						        if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d.count > 0) {
+							          var isExpanded = d3.select(this).classed("expanded");
+							          if (isExpanded) {
+								            d3.select(this).classed("expanded", false);
+							          }
+						        }
+						        return d3.select(this).attr("class");
+					      });
 
-			      d3.selectAll('.subset-child')
-				        .each(function(d, i) {
-					          if (parseInt(d3.select(this).attr("data-parent-bin")) == labelIndex) {
-						            d3.select(this).remove();
-					          }
-				        });
+		        renderer.appendSubsets();
 
 			      renderer.setCanvasHeight(renderer.getCanvasHeight() - additional_height);
 	      },
-        renderSets_New: function() {
+        renderSets: function() {
 
             //TODO: remove --> just added for testing
             //this.max_sets_per_group = 10;
 
             var self = this,
-	              aggregated_bin_data = aggregateBinData(this.bins.data),
+	              aggregated_bin_data = createAggregatedData(this.bins.data),
 	              transposed = vis.helpers.transpose(aggregated_bin_data),
-	              data_chunks = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
-	              data_per_bins = this.bins.data,
+	              data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
 	              data_y_axis = createYAxisLabelData();
 
 	          console.log("aggregated_bin_data ", aggregated_bin_data);
@@ -651,16 +424,35 @@ var SetVis = (function(vis) {
 		            return result;
 	          }
 
-	          function aggregateBinData(data) {
-		            var result = d3.range(data.length).map(function(j) {
-			                  return Array.apply(null, new Array(vis.data.grid[0].length)).map(Number.prototype.valueOf, 0);
+	          console.log("this.bins ", this.bins);
+
+	          function createAggregatedData(data) {
+		            function Aggregate() {
+			              this.count = 0;
+			              this.subsets = [];
+		            }
+
+		            Aggregate.prototype = {
+			              addSubset: function(subset) {
+				                this.subsets.push(subset);
+				                this.count += subset.count;
+			              }
+		            };
+
+		            var gridData = vis.helpers.transpose(vis.data.fullGrid),
+			              result = d3.range(data.length).map(function(i) {
+				                return Array.apply(null, new Array(gridData[0].length)).map(function(d) {
+					                  return new Aggregate();
+				                });
 		                });
 
-		            for (var i = 0, len = data.length; i < len; i++) {
-			              var current_block = data[i];
+		            console.log("data ", data);
+
+		            for (var i = 0, len = data.length, current_block; i < len; i++) {
+										current_block = data[i];
 			              for (var j = 0, l = current_block.length; j < l; j++) {
-				                for (var x = 0, innerlength = current_block[j].length; x < innerlength; x++) {
-					                  result[i][x] += current_block[j][x];
+				                for (var x = 0, innerLength = current_block[j].length; x < innerLength; x++) {
+					                  result[i][x].addSubset(current_block[j][x]);
 				                }
 			              }
 		            }
@@ -668,22 +460,15 @@ var SetVis = (function(vis) {
 		            return result;
 	          }
 
-		        function split(a, n) {
-			          var len = a.length, out = [], i = 0;
-			          while (i < len) {
-				            var size = Math.ceil((len - i) / n--);
-				            out.push(a.slice(i, i += size));
-			          }
-			          return out;
-		        }
+	          console.log("createAggregatedData ", createAggregatedData(this.bins.data));
 
 	          //set number of set groups
-	          this.no_set_groups = data_chunks.length;
+	          this.no_set_groups = data_per_setGroup.length;
 
-            console.log("data_chunks ", data_chunks);
+            console.log("data_per_setGroup ", data_per_setGroup);
 
             var setGroups = this.svg.selectAll('.set-group')
-                .data(data_chunks)
+                .data(data_per_setGroup)
                 .enter().append("g")
                 .attr("class", "set-group")
                 .attr("data-set-group", function(d, i) { return i; })
@@ -697,18 +482,20 @@ var SetVis = (function(vis) {
 
             function renderSets(d, i) {
                 var sets = d3.select(this).selectAll(".set")
-                    .data(data_chunks[i])
+                    .data(data_per_setGroup[i])
                     .enter().append("g")
                     .attr("class", "set")
                     .attr("transform", function(d, i) {
+		                    //console.log("d ", d, "i ", i);
                         return "translate(" + self.xScale(i) + ", 0)";
                     })
                     .attr("data-set", function(d, i) {
+		                    //console.log("d ", d, "i ", i);
                         return i + parseInt(d3.select(this.parentNode).attr("data-set-group")) * self.max_sets_per_group;
                     });
 
                 sets.each(drawSets);
-                sets.each(drawSubsets);
+                sets.each(drawAggregates);
             }
 
             function drawSets(d, i) {
@@ -720,20 +507,20 @@ var SetVis = (function(vis) {
                     .attr("height", self.bins.k * self.settings.set.height);
             }
 
-            function drawSubsets(set, setIndex) {
+            function drawAggregates(set) {
                 var delay;
-                var circle = d3.select(this).selectAll('.subset')
+                var circle = d3.select(this).selectAll('.aggregate')
                     .data(set)
                     .enter()
                     .append("circle")
-                    .attr("class", "subset")
+                    .attr("class", "aggregate")
                     .attr("cx", self.settings.set.width/2)
                     .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
-                    .attr("r", function(d) { return d > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
-                    .attr("display", function(d) { return d > 0 ? null : "none"; }) //don't show subsets with 0 elements
+                    .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
+                    .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
                     .attr("data-bin", function(d, i) { return i; })
                     //.attr("data-set", setIndex)
-                    .style("fill", function(d) { return self.colorScale(d); })
+                    .style("fill", function(d) { return self.colorScale(d.count); })
                     .on("mouseover", onMouseover)
                     .on("mouseout", onMouseout)
                     .on("click", selectHandler);
@@ -744,7 +531,7 @@ var SetVis = (function(vis) {
                     //delay mouseover event for 500ms
                     delay = setTimeout(function() {
                         var $tooltip = $('#tooltip'),
-                            itemCount = d,
+                            itemCount = d.count,
                             degree = i,
                             text = "",
                             xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
@@ -772,11 +559,15 @@ var SetVis = (function(vis) {
                         .classed("hidden", true);
                 }
 
-                function selectHandler(d, i) {
-                    console.log("d ", d, "i ", i);
+                function selectHandler(aggregate, rowIndex) {
+		                //console.log("aggregate ", aggregate, "rowIndex ", rowIndex);
 
-                    //TODO: implement
+		                var degree = rowIndex + 1;
+	                  //var elements = subset.getElementNames();
+
+		                self.selectAggregate(aggregate, degree);
                 }
+
             }
 
             function renderLabels(setGroup, index) {
@@ -811,8 +602,8 @@ var SetVis = (function(vis) {
 
                 function binClickHandler(d, i) {
                     //expand row
-                    if (d3.select(this).attr("class").indexOf("expanded") == -1) {
-	                      self.expandRow.call(this, d, i, data_per_bins, self);
+                    if (!d3.select(this).classed("expanded")) {
+	                      self.expandRow.call(this, d, i, self);
                     } else {
 										//collapse row
 	                      self.collapseRow.call(this, d, i, self);

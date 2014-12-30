@@ -33,6 +33,27 @@
     fill: #FFFFFF;
   }
 
+  circle.aggregate {
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+
+    &.selected {
+      fill: rgba(255, 165, 0, 0.5);
+    }
+
+    &:hover {
+      cursor: pointer;
+      /* opacity: 0.75; */
+      fill: orange !important;
+      /*
+      stroke: orange;
+      stroke-width: 3;
+      */
+    }
+  }
+
   circle.subset {
     -moz-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
@@ -53,6 +74,24 @@
       */
     }
   }
+
+  /* start deprecated */
+  circle.subset-child {
+    &.selected {
+      fill: rgba(255, 165, 0, 0.5);
+    }
+
+    &:hover {
+      cursor: pointer;
+      /* opacity: 0.75; */
+      fill: orange !important;
+      /*
+      stroke: orange;
+      stroke-width: 3;
+      */
+    }
+  }
+  /* end deprecated */
 
   .y-label:hover {
     cursor: pointer;
