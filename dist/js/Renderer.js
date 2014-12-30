@@ -26,8 +26,7 @@ var SetVis = (function(vis) {
             },
             color: {
                 range: ['#FFF7FB', '#023858']
-            },
-            bins: vis.data.maxDegree
+            }
         };
         this.max_sets_per_group = 0;
         this.no_set_groups = 0;
@@ -35,6 +34,13 @@ var SetVis = (function(vis) {
         this.yScale = undefined;
         this.colorScale = undefined;
         this.data = [];
+	      this.degreeHist = [];
+	      this.bins = {
+		        k: 5, //number of desired bins
+		        start: [],
+		        end: [],
+		        data: []
+	      };
         this.init();
     }
 
@@ -44,6 +50,13 @@ var SetVis = (function(vis) {
             //this.data = new vis.Parser().helpers.transpose(vis.data.grid);
             this.data = vis.data.fullGrid;
             this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
+
+	          //compute degree histogram
+	          var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid);
+		        this.degreeHist = elements_per_degree.getList();
+
+	          //initialize bins
+	          this.initializeBins();
 
             this.binningView = new BinningView({
                 setRenderer: this,
@@ -65,9 +78,50 @@ var SetVis = (function(vis) {
 
                 self.yScale = d3.scale.ordinal()
                     .rangeBands([0, self.getSetInnerHeight()])
-                    .domain(d3.range(self.settings.bins));
+                    .domain(d3.range(self.bins.k));
             }
         },
+	      initializeBins: function() {
+						var H = this.degreeHist, //histogram data
+								n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
+								b = vis.data.maxDegree; //max degree in histogram data
+
+		        console.log("H ", H, "n ", n , "b ", b);
+
+		        var ind = 0,
+			          leftElements = n,
+			          binSize,
+			          s;
+
+		        for (var bin = 0; bin < this.bins.k; bin++) {
+			          this.bins.start[bin] = ind;
+			          binSize = H[ind];
+			          s = leftElements / (this.bins.k - bin);
+			          while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
+				            ind++;
+				            binSize += H[ind];
+			          }
+			          this.bins.end[bin] = ind;
+			          leftElements -= binSize;
+			          ind++;
+		        }
+
+		        this.classifyData();
+
+		        console.log("bins initialized ", this.bins);
+	      },
+	      classifyData: function() {
+		        for (var i = 0; i < this.bins.k; i++) {
+			          var counter = this.bins.start[i];
+			          while (counter <= this.bins.end[i]) {
+				            if (typeof this.bins.data[i] === "undefined") {
+					              this.bins.data[i] = [];
+				            }
+			              this.bins.data[i].push(vis.data.grid[counter]);
+			              counter++;
+			          }
+		        }
+	      },
         setupControls: function() {
             var self = this;
 
@@ -76,7 +130,6 @@ var SetVis = (function(vis) {
 
             $('.ui-controls .btn-edit-binning').on("click", function() {
                 self.binningView.render();
-
                 $('#binningViewModal').modal('show');
             });
         },
@@ -92,8 +145,6 @@ var SetVis = (function(vis) {
                 .append("g")
                 .attr("transform", "translate(" + self.settings.canvas.margin.left + "," + self.settings.canvas.margin.top + ")");
 
-            //this.binning();
-
             this.renderSets_New();
 
             //this.renderSets();
@@ -107,11 +158,13 @@ var SetVis = (function(vis) {
             return this.settings.set.width + 2 * this.settings.set.stroke + this.settings.set.margin.right;
         },
         getSetInnerHeight: function() {
-            return this.settings.bins * this.settings.set.height;
+            return this.bins.k * this.settings.set.height;
         },
         getSetOuterHeight: function() {
             return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
         },
+
+	      /* deprecatd */
         renderSets: function() {
             //TODO: remove --> just added for testing
             //this.max_sets_per_group = 10;
@@ -174,7 +227,6 @@ var SetVis = (function(vis) {
                     });
 
                 sets.each(drawSets);
-
                 sets.each(drawSubsets);
             }
 
@@ -188,7 +240,7 @@ var SetVis = (function(vis) {
                     .attr("x", 0)
                     .attr("width", self.settings.set.width)
                     .attr("height", function(d, i) {
-                        return self.settings.bins * self.settings.set.height;
+                        return self.bins.k * self.settings.set.height;
                     });
             }
 
@@ -383,86 +435,6 @@ var SetVis = (function(vis) {
         setCanvasHeight: function(height) {
             d3.select('#canvas svg').attr("height", height);
         },
-        binning: function() {
-
-            var list = getDegreeToElementMap().getMap(),
-                k = 3, //number of total bins
-                n = getDegreeToElementMap().getTotalCount(), //total elements in all row (degrees)
-                s = Math.ceil(n/k), //number of elements per bin
-                bins = [];
-
-            console.log("list ", list, "n ", n);
-
-            function getDegreeToElementMap() {
-                var result = [],
-                    total = 0,
-                    sum;
-
-                for (var i = 0, len = vis.data.grid.length; i < len; i++) {
-                    sum = 0;
-                    for (var j = 0, l = vis.data.grid[i].length; j < l; j++) {
-                        sum+= vis.data.grid[i][j];
-                        total+= vis.data.grid[i][j];
-                    }
-                    result.push({ degree: i + 1, count: sum });
-                }
-                return {
-                    getMap: function() { return result; },
-                    getTotalCount: function() { return total; }
-                };
-            }
-
-            //TODO: remove --> just for testing
-            /*
-            list = [
-                { degree: 1, count: 2000 },
-                { degree: 2, count: 1 },
-                { degree: 3, count: 1 },
-                { degree: 4, count: 1878 },
-                { degree: 5, count: 1 }
-            ];
-            */
-
-            function Bin() {
-                this.degrees = [];
-                this.count = 0;
-            }
-
-            //initialize bins
-            for (var i = 0; i < k; i++) {
-                bins.push(new Bin);
-            }
-
-            //populate bins
-            var currentDegree = 0;
-            for (var i = 0, sum, len = bins.length; i < len; i++) {
-                sum = 0;
-                //console.log("bin ", i + 1);
-                //console.log("sum ", sum);
-
-                while (sum <= s && list[currentDegree] !== undefined) {
-                    //console.log("degreeList[currentDegree] ", list[currentDegree]);
-                    //console.log("currentDegree ", currentDegree);
-                    if (list[currentDegree].count >= s) {
-                        sum += list[currentDegree].count;
-                        bins[i].degrees.push(list[currentDegree].degree);
-                        currentDegree++;
-                    } else if (sum + list[currentDegree].count <= s) {
-                        sum += list[currentDegree].count;
-                        bins[i].degrees.push(list[currentDegree].degree);
-                        currentDegree++;
-                    } else {
-                        currentDegree++;
-                    }
-                    //console.log("sum is now ", sum);
-                }
-
-                bins[i].count = sum;
-            }
-
-            console.log("bins ", bins);
-
-        },
 	      arrangeLabels: function() {
 		      var self = this,
 			        yLabels = d3.selectAll('.y-label.expanded');
@@ -527,7 +499,7 @@ var SetVis = (function(vis) {
 					      })
 					      .attr("class", function(d, i) {
 						        //sets the expanded resp. collapsed class for the given bin in all set groups
-						        if (Math.abs(labelIndex - i - renderer.settings.bins) % renderer.settings.bins == 0) {
+						        if (Math.abs(labelIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
 							          return "y-label expanded";
 						        } else {
 							          return d3.select(this).attr("class");
@@ -656,66 +628,57 @@ var SetVis = (function(vis) {
             //this.max_sets_per_group = 10;
 
             var self = this,
-                data_y_axis = [],
-                data_per_bins = [],
-                data = pseudoBinning(vis.data.grid), //do binning
-                transposed = vis.helpers.transpose(data),
-                data_chunks = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group));
+	              aggregated_bin_data = aggregateBinData(this.bins.data),
+	              transposed = vis.helpers.transpose(aggregated_bin_data),
+	              data_chunks = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
+	              data_per_bins = this.bins.data,
+	              data_y_axis = createYAxisLabelData();
 
-            //set number of set groups
-            this.no_set_groups = data_chunks.length;
+	          console.log("aggregated_bin_data ", aggregated_bin_data);
 
-            //pseudo binning
-            function pseudoBinning(data) {
-                var k = 5, //desired bins
-                    split_data = split(data, k),
-                    result = d3.range(split_data.length).map(function(j) {
-                        return Array.apply(null, new Array(vis.data.grid[0].length)).map(Number.prototype.valueOf, 0);
-                    });
+	          function createYAxisLabelData() {
+		            var result = [];
+		            for (var i = 0; i < self.bins.k; i++) {
+			              var arr = [],
+				                counter = self.bins.start[i];
+			              while (counter <= self.bins.end[i]) {
+				                arr.push(counter+1);
+				                counter++;
+			              }
+			              result.push(arr);
+		            }
 
-                function split(a, n) {
-                    var len = a.length, out = [], i = 0;
-                    while (i < len) {
-                        var size = Math.ceil((len - i) / n--);
-                        out.push(a.slice(i, i += size));
-                    }
-                    return out;
-                }
+		            return result;
+	          }
 
-                //aggregate data
-                for (var i = 0, len = split_data.length; i < len; i++) {
-                    var current_block = split_data[i];
-                    for (var j = 0, l = current_block.length; j < l; j++) {
-                        for (var x = 0, innerlength = current_block[j].length; x < innerlength; x++) {
-                            result[i][x] += current_block[j][x];
-                        }
-                    }
-                }
+	          function aggregateBinData(data) {
+		            var result = d3.range(data.length).map(function(j) {
+			                  return Array.apply(null, new Array(vis.data.grid[0].length)).map(Number.prototype.valueOf, 0);
+		                });
 
-                data_per_bins = split_data; //set data_per_bins (declared outside function)
-                self.settings.bins = k; //update number of bins
+		            for (var i = 0, len = data.length; i < len; i++) {
+			              var current_block = data[i];
+			              for (var j = 0, l = current_block.length; j < l; j++) {
+				                for (var x = 0, innerlength = current_block[j].length; x < innerlength; x++) {
+					                  result[i][x] += current_block[j][x];
+				                }
+			              }
+		            }
 
-                console.log("data_per_bins ", data_per_bins);
+		            return result;
+	          }
 
-                //data_y_axis = createYAxisLabelData(split_data);
-                data_y_axis = split(vis.helpers.createNumbersArray(1, vis.data.maxDegree), k);
+		        function split(a, n) {
+			          var len = a.length, out = [], i = 0;
+			          while (i < len) {
+				            var size = Math.ceil((len - i) / n--);
+				            out.push(a.slice(i, i += size));
+			          }
+			          return out;
+		        }
 
-                return result;
-            }
-
-            function createYAxisLabelData(bins) {
-                var result = [],
-                    lower_range = 0,
-                    upper_range = 0;
-
-                for (var i = 0, len = bins.length; i < len; i++) {
-                    upper_range = upper_range + bins[i].length;
-                    lower_range = upper_range - bins[i].length + 1;
-                    result.push([lower_range, upper_range]);
-                }
-
-                return result;
-            }
+	          //set number of set groups
+	          this.no_set_groups = data_chunks.length;
 
             console.log("data_chunks ", data_chunks);
 
@@ -754,7 +717,7 @@ var SetVis = (function(vis) {
                     .attr("class", "set-background")
                     .attr("x", 0)
                     .attr("width", self.settings.set.width)
-                    .attr("height", self.settings.bins * self.settings.set.height);
+                    .attr("height", self.bins.k * self.settings.set.height);
             }
 
             function drawSubsets(set, setIndex) {
