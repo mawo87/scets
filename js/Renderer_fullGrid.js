@@ -323,7 +323,8 @@ var SetVis = (function(vis) {
 				            .attr("class", "subset level-" + i)
 				            .attr("cx", subset_x_pos)
 				            .attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
-				            .attr("r", self.settings.subset.r)
+				            .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
+				            .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
 				            .attr("fill", function(d) { return d.count > 0 ? self.colorScale(d.count) : "#FFFFFF"; });
 		        });
 
@@ -516,10 +517,9 @@ var SetVis = (function(vis) {
                     .attr("class", "aggregate")
                     .attr("cx", self.settings.set.width/2)
                     .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
-                    .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
-                    .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
+                    .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for aggregates with 0 elements
+                    .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show aggregates with 0 elements
                     .attr("data-bin", function(d, i) { return i; })
-                    //.attr("data-set", setIndex)
                     .style("fill", function(d) { return self.colorScale(d.count); })
                     .on("mouseover", onMouseover)
                     .on("mouseout", onMouseout)
