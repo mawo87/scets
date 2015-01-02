@@ -567,44 +567,10 @@ var SetVis = (function(vis) {
                     //delay mouseover event for 500ms
                     delay = setTimeout(function() {
                         var $tooltip = $('#tooltip'),
-                            itemCount = d.count,
-                            degree = i,
-                            text = "",
                             xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
                             yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-                        if (degree > 0) {
-                            text = "Items shared with " + degree + " other sets: " + itemCount;
-                        } else {
-                            text = "Unique items in this set: " + itemCount;
-                        }
-
 	                      $('#tooltip').empty();
-
-
-	                      /*
-	                      var list = d3.select('#tooltip')
-		                                  .append('ul')
-		                                  .attr("class", "degree-list list-unstyled");
-
-	                      var bars = list.selectAll('.degree-item')
-		                        .data(d.subsets)
-		                        .enter()
-		                        .append("li")
-		                        .attr("class", "degree-item");
-
-		                    bars
-			                    .append("span")
-			                    .attr("class", "bar")
-			                    .style("width", function(d) {
-															return $tooltip.width() / 100 * d.count + "px";
-	                        });
-
-	                      bars
-	                        .append("span")
-	                        .text(function(d) { return d.count; })
-	                        .attr("class", "degree-label");
-                        */
 
 	                      var bars = d3.select('#tooltip').selectAll("bar-horizontal")
 		                                  .data(d.subsets)
