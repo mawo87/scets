@@ -103,6 +103,28 @@
       left: 96px; }
     #canvas #tooltip.hidden {
       display: none; }
+    #canvas #tooltip .bar-horizontal {
+      width: 180px;
+      /* 200px - 2*10px padding */ }
+      #canvas #tooltip .bar-horizontal span {
+        display: inline-block; }
+      #canvas #tooltip .bar-horizontal .bar-label {
+        text-align: right;
+        width: 50px;
+        font-size: 9px; }
+      #canvas #tooltip .bar-horizontal .bar-level-wrapper {
+        margin-left: 10px;
+        /* width: 90px; */ }
+        #canvas #tooltip .bar-horizontal .bar-level-wrapper .bar-level {
+          height: 10px;
+          background: lightcoral; }
+      #canvas #tooltip .bar-horizontal .bar-value {
+        margin-left: 5px;
+        font-size: 11px;
+        font-weight: bold;
+        height: 20px;
+        /* margin-bottom: 5px; */
+        width: 25px; }
 
 /******************
 * DEGREE HISTOGRAM
