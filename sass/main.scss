@@ -150,6 +150,39 @@
     &.hidden {
       display: none;
     }
+
+    .bar-horizontal {
+      width: 180px; /* 200px - 2*10px padding */
+
+      span {
+        display: inline-block;
+      }
+
+      .bar-label {
+        text-align: right;
+        width: 50px;
+        font-size: 9px;
+      }
+
+      .bar-level-wrapper {
+        margin-left: 10px;
+        /* width: 90px; */
+        .bar-level {
+          height: 10px;
+          background: lightcoral;
+        }
+      }
+
+      .bar-value {
+        margin-left: 5px;
+        font-size: 11px;
+        font-weight: bold;
+        height: 20px;
+        /* margin-bottom: 5px; */
+        width: 25px;
+      }
+    }
+
   }
 }
 

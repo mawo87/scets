@@ -67,6 +67,8 @@ var SetVis = (function(vis) {
 
             initScales();
 
+	          this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
+
             function initScales() {
                 self.colorScale = d3.scale.linear()
                     .domain([vis.data.min, vis.data.max])
@@ -172,15 +174,14 @@ var SetVis = (function(vis) {
         selectSubset: function(subset) {
 	          console.log("subset ", subset);
 
-            var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset),
-                table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
+            var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset);
 
             //console.log("vis.helpers.getElementsGroupedBySetAndDegree ", vis.helpers.getElementsGroupedBySetAndDegree(subset));
 
             //first unselect all previously selected elements
             this.clearSelection();
 
-            table.update(subset.elements);
+            this.table.update(subset.elements);
 
             d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
                 //console.log("d ", d, "i ", i);
@@ -328,10 +329,43 @@ var SetVis = (function(vis) {
 				            .attr("fill", function(d) { return d.count > 0 ? self.colorScale(d.count) : "#FFFFFF"; });
 		        });
 
-		        //click handler for newly added subsets
-		        d3.selectAll('.subset').on("click", function(subset){
-				        self.selectSubset(subset);
-			      });
+		        //handler for newly added subsets
+		        d3.selectAll('.subset')
+			          .on("mouseover", function(d, i) {
+				            console.log("d ", d);
+				            var that = this;
+
+				            //delay mouseover event for 500ms
+				            delay = setTimeout(function() {
+							          var $tooltip = $('#tooltip'),
+								            itemCount = d.count,
+								            degree = d.degree,
+								            text = "",
+								            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+								            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
+
+						            if (degree > 0) {
+					                  text = "Items shared with " + degree + " other sets: " + itemCount;
+							          } else {
+								            text = "Unique items in this set: " + itemCount;
+							          }
+
+							          //tooltips
+							          d3.select('#tooltip')
+								            .style("left", xPos + "px")
+								            .style("top", yPos + "px")
+								            .text(text)
+								            .classed("hidden", false);
+				            }, 500);
+			          })
+			          .on("mouseout", function(d, i) {
+				            clearTimeout(delay);
+				            d3.select('#tooltip')
+					              .classed("hidden", true);
+			          })
+			          .on("click", function(subset){
+				            self.selectSubset(subset);
+			          });
 
 	      },
 	      collapseRow: function(d, i, renderer) {
@@ -508,10 +542,10 @@ var SetVis = (function(vis) {
                     .attr("height", self.bins.k * self.settings.set.height);
             }
 
-            function drawAggregates(set) {
+            function drawAggregates(aggregate) {
                 var delay;
                 var circle = d3.select(this).selectAll('.aggregate')
-                    .data(set)
+                    .data(aggregate)
                     .enter()
                     .append("circle")
                     .attr("class", "aggregate")
@@ -526,6 +560,8 @@ var SetVis = (function(vis) {
                     .on("click", selectHandler);
 
                 function onMouseover(d, i) {
+	                  //console.log("d ", d);
+
                     var that = this;
 
                     //delay mouseover event for 500ms
@@ -543,18 +579,70 @@ var SetVis = (function(vis) {
                             text = "Unique items in this set: " + itemCount;
                         }
 
-                        //tooltips
-                        d3.select('#tooltip')
-                            .style("left", xPos + "px")
-                            .style("top", yPos + "px")
-                            .text(text)
-                            .classed("hidden", false);
+	                      $('#tooltip').empty();
+
+
+	                      /*
+	                      var list = d3.select('#tooltip')
+		                                  .append('ul')
+		                                  .attr("class", "degree-list list-unstyled");
+
+	                      var bars = list.selectAll('.degree-item')
+		                        .data(d.subsets)
+		                        .enter()
+		                        .append("li")
+		                        .attr("class", "degree-item");
+
+		                    bars
+			                    .append("span")
+			                    .attr("class", "bar")
+			                    .style("width", function(d) {
+															return $tooltip.width() / 100 * d.count + "px";
+	                        });
+
+	                      bars
+	                        .append("span")
+	                        .text(function(d) { return d.count; })
+	                        .attr("class", "degree-label");
+                        */
+
+	                      var bars = d3.select('#tooltip').selectAll("bar-horizontal")
+		                                  .data(d.subsets)
+	                                    .enter()
+		                                  .append("div")
+		                                  .attr("class", function(d) { return d.count > 0 ? "bar-horizontal" : "bar-horizontal hidden"; });
+
+	                      bars
+	                        .append("span")
+	                        .attr("class", "bar-label")
+	                        .text(function(d, i) { return "Degree " + d.degree; });
+
+	                      var barLevels = bars
+                              .append("span")
+                              .attr("class", "bar-level-wrapper");
+
+	                      barLevels
+		                      .append("span")
+		                      .attr("class", "bar-level")
+		                      .style("width", function(d, i) { return $tooltip.width() / 100 * d.count + "px"; });
+
+	                      bars
+		                      .append("span")
+		                      .attr("class", "bar-value")
+		                      .text(function(d) { return d.count; });
+
+	                      //tooltips
+	                      d3.select('#tooltip')
+		                        .style("left", xPos + "px")
+		                        .style("top", yPos + "px")
+		                        .classed("hidden", false);
 
                     }, 500);
                 }
 
                 function onMouseout() {
                     clearTimeout(delay);
+
                     d3.select('#tooltip')
                         .classed("hidden", true);
                 }
