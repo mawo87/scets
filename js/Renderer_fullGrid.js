@@ -165,8 +165,11 @@ var SetVis = (function(vis) {
             return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
         },
         clearSelection: function() {
-            d3.selectAll('.subset.selected').remove();
-            d3.selectAll('.subset.hidden').classed("hidden", false);
+            //d3.selectAll('.subset.highlighted').remove();
+            //d3.selectAll('.subset.hidden').classed("hidden", false);
+
+	          d3.selectAll('.subset.selected').classed("selected", false);
+	          d3.selectAll('.subset.highlighted').classed("highlighted", false);
         },
 	      selectAggregate: function(aggregate) {
 		        console.log("aggregate ", aggregate);
@@ -174,34 +177,49 @@ var SetVis = (function(vis) {
         selectSubset: function(subset) {
 	          console.log("subset ", subset);
 
-            var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset);
+            var self = this,
+	              set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset);
 
             //console.log("vis.helpers.getElementsGroupedBySetAndDegree ", vis.helpers.getElementsGroupedBySetAndDegree(subset));
 
-            //first unselect all previously selected elements
+            //first unselect all previously highlighted elements
             this.clearSelection();
 
+	          console.log("event ", event);
+
+	          //update selection in table
             this.table.update(subset.elements);
 
             d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
                 //console.log("d ", d, "i ", i);
 
-                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
-                    //console.log("is ok ", this);
+	            var cx = d3.select(this).attr("cx"),
+		              cy = d3.select(this).attr("cy"),
+		              r = d3.select(this).attr("r");
 
-                    var cx = d3.select(this).attr("cx"),
-                        cy = d3.select(this).attr("cy"),
-                        r = d3.select(this).attr("r");
+	              //mark the clicked element as selected
+								if (d.set_name == subset.set_name && d.degree == subset.degree) {
+										d3.select(this)
+												.classed("selected", true);
+								} else {
+		                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
+		                    //console.log("is ok ", this);
 
-                    d3.select(this).classed("hidden", true);
+			                  /*
+		                    d3.select(this).classed("hidden", true);
 
-                    d3.select(this.parentNode)
-                        .append("circle")
-                        .attr("class", "subset selected")
-                        .attr("cx", cx)
-                        .attr("cy", cy)
-                        .attr("r", r);
-                }
+		                    d3.select(this.parentNode)
+		                        .append("circle")
+		                        .attr("class", "subset highlighted")
+		                        .attr("cx", cx)
+		                        .attr("cy", cy)
+		                        .attr("r", r);
+                        */
+
+			                  d3.select(this)
+				                    .classed("highlighted", true);
+		                }
+								}
 
             });
         },
@@ -324,7 +342,7 @@ var SetVis = (function(vis) {
 				            .attr("class", "subset level-" + i)
 				            .attr("cx", subset_x_pos)
 				            .attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
-				            .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for subsets with 0 elements
+				            .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
 				            .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
 				            .attr("fill", function(d) { return d.count > 0 ? self.colorScale(d.count) : "#FFFFFF"; });
 		        });
@@ -363,7 +381,7 @@ var SetVis = (function(vis) {
 				            d3.select('#tooltip')
 					              .classed("hidden", true);
 			          })
-			          .on("click", function(subset){
+			          .on("click", function(subset) {
 				            self.selectSubset(subset);
 			          });
 
