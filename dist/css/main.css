@@ -35,8 +35,7 @@
     #canvas circle.aggregate.selected {
       fill: rgba(255, 165, 0, 0.5); }
     #canvas circle.aggregate:hover {
-      cursor: pointer;
-      /* opacity: 0.75; */
+      /* cursor: pointer; */
       fill: orange !important;
       /*
       stroke: orange;
@@ -48,6 +47,8 @@
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out; }
     #canvas circle.subset.selected {
+      fill: orange; }
+    #canvas circle.subset.highlighted {
       fill: rgba(255, 165, 0, 0.5); }
     #canvas circle.subset:hover {
       cursor: pointer;
