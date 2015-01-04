@@ -567,68 +567,34 @@ var SetVis = (function(vis) {
                     //delay mouseover event for 500ms
                     delay = setTimeout(function() {
                         var $tooltip = $('#tooltip'),
-                            itemCount = d.count,
-                            degree = i,
-                            text = "",
                             xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
+                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r,
+                            maxValue = Math.max.apply(Math, d.subsets.map(function(element) {
+                                return element.count;
+                            }));
 
-                        if (degree > 0) {
-                            text = "Items shared with " + degree + " other sets: " + itemCount;
-                        } else {
-                            text = "Unique items in this set: " + itemCount;
-                        }
+	                      $('#tooltip')
+		                      .empty()
+		                      .append("<div class='shared-items-note'>Shared items / degree</div>");
 
-	                      $('#tooltip').empty();
-
-
-	                      /*
 	                      var list = d3.select('#tooltip')
-		                                  .append('ul')
-		                                  .attr("class", "degree-list list-unstyled");
+		                      .append("ul")
+		                      .attr("class", "list-unstyled");
 
-	                      var bars = list.selectAll('.degree-item')
-		                        .data(d.subsets)
-		                        .enter()
-		                        .append("li")
-		                        .attr("class", "degree-item");
-
-		                    bars
-			                    .append("span")
-			                    .attr("class", "bar")
-			                    .style("width", function(d) {
-															return $tooltip.width() / 100 * d.count + "px";
-	                        });
+	                      var bars = list.selectAll(".bar-horizontal")
+		                      .data(d.subsets)
+		                      .enter()
+                          .append("li")
+		                      .attr("class", function(d) { return d.count > 0 ? "bar-horizontal" : "bar-horizontal hidden"; });
 
 	                      bars
-	                        .append("span")
-	                        .text(function(d) { return d.count; })
-	                        .attr("class", "degree-label");
-                        */
-
-	                      var bars = d3.select('#tooltip').selectAll("bar-horizontal")
-		                                  .data(d.subsets)
-	                                    .enter()
-		                                  .append("div")
-		                                  .attr("class", function(d) { return d.count > 0 ? "bar-horizontal" : "bar-horizontal hidden"; });
-
-	                      bars
-	                        .append("span")
-	                        .attr("class", "bar-label")
-	                        .text(function(d, i) { return "Degree " + d.degree; });
-
-	                      var barLevels = bars
-                              .append("span")
-                              .attr("class", "bar-level-wrapper");
-
-	                      barLevels
-		                      .append("span")
-		                      .attr("class", "bar-level")
-		                      .style("width", function(d, i) { return $tooltip.width() / 100 * d.count + "px"; });
+		                      .append("em")
+		                      .text(function(d) { return "Degree " + d.degree; });
 
 	                      bars
 		                      .append("span")
-		                      .attr("class", "bar-value")
+		                      //.style("padding-right", function(d, i) { return 20 + "%"; })
+		                      .style("padding-right", function(d, i) { return (d.count / maxValue) * 50 + "%"; })
 		                      .text(function(d) { return d.count; });
 
 	                      //tooltips

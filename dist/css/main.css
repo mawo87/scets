@@ -90,7 +90,8 @@
     font-family: sans-serif;
     font-size: 11px;
     line-height: 20px;
-    color: #FFFFFF; }
+    color: #FFFFFF;
+    /* degree table */ }
     #canvas #tooltip:before {
       border: solid;
       border-color: #333333 transparent;
@@ -103,28 +104,30 @@
       left: 96px; }
     #canvas #tooltip.hidden {
       display: none; }
-    #canvas #tooltip .bar-horizontal {
-      width: 180px;
-      /* 200px - 2*10px padding */ }
-      #canvas #tooltip .bar-horizontal span {
-        display: inline-block; }
-      #canvas #tooltip .bar-horizontal .bar-label {
-        text-align: right;
-        width: 50px;
+    #canvas #tooltip .shared-items-note {
+      padding-left: 60px;
+      font-weight: bold; }
+    #canvas #tooltip ul {
+      list-style-type: none;
+      margin: 0; }
+      #canvas #tooltip ul li {
+        width: 180px;
+        margin-bottom: 0;
+        line-height: 12px;
         font-size: 9px; }
-      #canvas #tooltip .bar-horizontal .bar-level-wrapper {
-        margin-left: 10px;
-        /* width: 90px; */ }
-        #canvas #tooltip .bar-horizontal .bar-level-wrapper .bar-level {
-          height: 10px;
-          background: lightcoral; }
-      #canvas #tooltip .bar-horizontal .bar-value {
-        margin-left: 5px;
-        font-size: 11px;
+      #canvas #tooltip ul em {
+        text-align: right;
+        display: inline-block;
+        font-style: normal;
+        padding: 4px 8px 4px 0;
+        width: 60px; }
+      #canvas #tooltip ul span {
+        color: white;
         font-weight: bold;
-        height: 20px;
-        /* margin-bottom: 5px; */
-        width: 25px; }
+        background: lightcoral;
+        display: inline-block;
+        padding: 0 4px;
+        width: 30px; }
 
 /******************
 * DEGREE HISTOGRAM
