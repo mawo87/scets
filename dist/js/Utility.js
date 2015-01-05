@@ -4,6 +4,16 @@
 var SetVis = (function(vis) {
 
     vis.helpers = {
+	      /*
+	       * calculates the intersection of two arrays a and b
+	       */
+	      intersect: function(a, b) {
+						var t;
+						if (b.length > a.length) t = b, b = a, a = t; // indexOf to loop over shorter
+						return a.filter(function (e) {
+								if (b.indexOf(e) !== -1) return true;
+						});
+				},
         /*
          * creates an array of length n, starting from 0 to n
          */
@@ -79,7 +89,15 @@ var SetVis = (function(vis) {
             return Object.keys(a[0]).map(
                 function (c) { return a.map(function (r) { return r[c]; }); }
             );
-        }
+        },
+	      /* calculates the percentage of the colored circle segment for a selected subset and a given neighboring element */
+	      calcSegmentPercentage: function(subset, neighbor) {
+		      var subset_elements = subset.elements.map(function(el) { return el.name; }),
+		          neighbor_elements = neighbor.elements.map(function(el) { return el.name; }),
+			        intersection = vis.helpers.intersect(subset_elements, neighbor_elements);
+
+		      return intersection.length / neighbor_elements.length;
+	      }
     };
 
     return vis;
