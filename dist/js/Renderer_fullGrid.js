@@ -168,10 +168,16 @@ var SetVis = (function(vis) {
             //d3.selectAll('.subset.highlighted').remove();
             //d3.selectAll('.subset.hidden').classed("hidden", false);
 
+	          //remove circle segments
 	          d3.selectAll('.highlight-segment').remove();
 
+	          //remove highlighted class from selected and highlighted subsets
 	          d3.selectAll('.subset.selected').classed("selected", false);
 	          d3.selectAll('.subset.highlighted').classed("highlighted", false);
+
+	          //remove highlighted class from x-axis labels and degree labels
+	          d3.selectAll('.x-label.highlighted').classed("highlighted", false);
+	          d3.selectAll('.degree-label.highlighted').classed("highlighted", false);
         },
 	      selectAggregate: function(aggregate) {
 		        console.log("aggregate ", aggregate);
@@ -186,7 +192,8 @@ var SetVis = (function(vis) {
 	              cx = 0,
 	              cy = 0,
 	              r = 0,
-	              segment_percentage = 0;
+	              segment_percentage = 0,
+	              set_ids = [];
 
             console.log("set_occurrence_map ", set_occurrence_map);
 
@@ -207,6 +214,8 @@ var SetVis = (function(vis) {
 								if (d.set_name == subset.set_name && d.degree == subset.degree) {
 										d3.select(this)
 												.classed("selected", true);
+
+										set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
 								} else {
 		                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
 		                    //console.log("is ok ", this);
@@ -241,10 +250,15 @@ var SetVis = (function(vis) {
 			                  d3.select(this)
 				                    .classed("highlighted", true);
 		                    */
+
+			                  set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
 		                }
 								}
 
             });
+
+	          this.highlightSetLabels(set_ids);
+	          this.highlightDegreeLabel(subset.degree);
         },
         getCanvasHeight: function() {
             return parseInt(d3.select('#canvas svg').attr("height"));
@@ -471,6 +485,24 @@ var SetVis = (function(vis) {
 		        renderer.appendSubsets();
 
 			      renderer.setCanvasHeight(renderer.getCanvasHeight() - additional_height);
+	      },
+	      highlightSetLabels: function(set_ids) {
+						d3.selectAll('.x-label')
+								.attr("class", function(d, i) {
+										if ($.inArray(i, set_ids) != -1) {
+												d3.select(this).classed("highlighted", true);
+										}
+										return d3.select(this).attr("class");
+								});
+	      },
+	      highlightDegreeLabel: function(degree) {
+		        d3.selectAll('.degree-label')
+			          .attr("class", function(d) {
+				            if (d == degree) {
+					              d3.select(this).classed("highlighted", true);
+				            }
+				            return d3.select(this).attr("class");
+			          });
 	      },
         renderSets: function() {
 

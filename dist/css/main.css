@@ -22,6 +22,10 @@
   *********/ }
   #canvas .background {
     fill: #FFFFFF; }
+  #canvas .x-label.highlighted {
+    fill: orange; }
+  #canvas .degree-label.highlighted {
+    fill: orange; }
   #canvas rect.set-background {
     stroke: #333333;
     stroke-width: 1;
