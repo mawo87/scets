@@ -30,9 +30,12 @@ var SetVis = (function(vis) {
         };
         this.max_sets_per_group = 0;
         this.no_set_groups = 0;
-        this.xScale = undefined;
-        this.yScale = undefined;
-        this.colorScale = undefined;
+	      this.scales = {
+		        x: undefined,
+		        y: undefined,
+		        color: undefined,
+		        radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
+	      };
         this.data = [];
 	      this.degreeHist = [];
 	      this.bins = {
@@ -70,17 +73,17 @@ var SetVis = (function(vis) {
 	          this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
 
             function initScales() {
-                self.colorScale = d3.scale.linear()
-                    .domain([vis.data.min, vis.data.max])
-                    .range(self.settings.color.range);
-
-                self.xScale = d3.scale.ordinal()
+                self.scales.x = d3.scale.ordinal()
                     .rangeBands([0, self.settings.canvas.width])
                     .domain(d3.range(self.max_sets_per_group));
 
-                self.yScale = d3.scale.ordinal()
+                self.scales.y = d3.scale.ordinal()
                     .rangeBands([0, self.getSetInnerHeight()])
                     .domain(d3.range(self.bins.k));
+
+	              self.scales.color = d3.scale.linear()
+		                .domain([vis.data.min, vis.data.max])
+		                .range(self.settings.color.range);
             }
         },
 	      initializeBins: function() {
@@ -165,9 +168,6 @@ var SetVis = (function(vis) {
             return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
         },
         clearSelection: function() {
-            //d3.selectAll('.subset.highlighted').remove();
-            //d3.selectAll('.subset.hidden').classed("hidden", false);
-
 	          //remove circle segments
 	          d3.selectAll('.highlight-segment').remove();
 
@@ -187,7 +187,6 @@ var SetVis = (function(vis) {
 
             var self = this,
 	              set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset),
-                pi = Math.PI,
                 arc = d3.svg.arc(),
 	              cx = 0,
 	              cy = 0,
@@ -220,36 +219,18 @@ var SetVis = (function(vis) {
 		                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
 		                    //console.log("is ok ", this);
 
-			                  segment_percentage = vis.helpers.calcSegmentPercentage(subset, d);
-
-			                  //console.log("segment_percentage ", segment_percentage);
-
-			                  /*
-		                    d3.select(this).classed("hidden", true);
-
-		                    d3.select(this.parentNode)
-		                        .append("circle")
-		                        .attr("class", "subset highlighted")
-		                        .attr("cx", cx)
-		                        .attr("cy", cy)
-		                        .attr("r", r);
-                        */
+			                  segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
 
 			                  arc
 			                    .innerRadius(4)
 			                    .outerRadius(6)
 				                  .startAngle(0)
-				                  .endAngle(2 * pi * segment_percentage);
+				                  .endAngle(self.scales.radianToPercent(segment_percentage));
 
 			                  d3.select(this.parentNode).append("path")
 				                    .attr("d", arc)
 				                    .attr("class", "highlight-segment")
 				                    .attr("transform", "translate(8," + cy + ")");
-
-			                  /*
-			                  d3.select(this)
-				                    .classed("highlighted", true);
-		                    */
 
 			                  set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
 		                }
@@ -381,7 +362,7 @@ var SetVis = (function(vis) {
 				            .attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
 				            .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
 				            .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
-				            .attr("fill", function(d) { return d.count > 0 ? self.colorScale(d.count) : "#FFFFFF"; });
+				            .attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; });
 		        });
 
 		        //handler for newly added subsets
@@ -595,7 +576,7 @@ var SetVis = (function(vis) {
                     .attr("class", "set")
                     .attr("transform", function(d, i) {
 		                    //console.log("d ", d, "i ", i);
-                        return "translate(" + self.xScale(i) + ", 0)";
+                        return "translate(" + self.scales.x(i) + ", 0)";
                     })
                     .attr("data-set", function(d, i) {
 		                    //console.log("d ", d, "i ", i);
@@ -623,11 +604,11 @@ var SetVis = (function(vis) {
                     .append("circle")
                     .attr("class", "aggregate")
                     .attr("cx", self.settings.set.width/2)
-                    .attr("cy", function(d, i) { return self.yScale(i) + self.settings.set.height / 2; })
+                    .attr("cy", function(d, i) { return self.scales.y(i) + self.settings.set.height / 2; })
                     .attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for aggregates with 0 elements
                     .attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show aggregates with 0 elements
                     .attr("data-bin", function(d, i) { return i; })
-                    .style("fill", function(d) { return self.colorScale(d.count); })
+                    .style("fill", function(d) { return self.scales.color(d.count); })
                     .on("mouseover", onMouseover)
                     .on("mouseout", onMouseout)
                     .on("click", selectHandler);
@@ -722,7 +703,7 @@ var SetVis = (function(vis) {
                         return "rotate(-90)";
                     })
                     .attr("x", 6)
-                    .attr("y", function(d, i) { return self.xScale(i) + 7; })
+                    .attr("y", function(d, i) { return self.scales.x(i) + 7; })
                     .attr("dy", ".32em")
                     .attr("text-anchor", "start")
                     .text(function(d, i) { return d.name; });
@@ -812,7 +793,7 @@ var SetVis = (function(vis) {
 
             var	yAxis = d3.svg.axis()
                 .orient('left')
-                .scale(yScale)
+                .scale(scales.y)
                 .tickSize(2)
                 .tickFormat(function(d, i){ return i + 1; })
                 .tickValues(d3.range(data.length));
