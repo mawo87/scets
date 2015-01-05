@@ -137,7 +137,10 @@ var SetVis = (function(vis) {
             this.$container.find('tbody')
                 .empty()
                 .html(arr.join(""));
-        }
+        },
+	      clear: function() {
+		        this.$container.find('tbody').empty();
+	      }
     };
 
     return $.extend(vis, {

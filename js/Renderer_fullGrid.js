@@ -44,6 +44,7 @@ var SetVis = (function(vis) {
 		        end: [],
 		        data: []
 	      };
+	      this.selectedSubset = undefined;
         this.init();
     }
 
@@ -155,6 +156,13 @@ var SetVis = (function(vis) {
 												self.collapseRow.call(this, d, i, self);
 										}
 								})
+	          });
+
+	          //setup clear selection button
+	          $('.ui-controls .btn-remove-selection').on("click", function() {
+		            self.selectedSubset = undefined;
+		            self.clearSelection();
+		            self.table.clear();
 	          });
         },
         render: function() {
@@ -295,7 +303,10 @@ var SetVis = (function(vis) {
 			          labelIndex = i,
 			          additional_height = renderer.settings.set.height * degree_count;
 
-		        console.log("additional_height ", additional_height);
+		        //console.log("additional_height ", additional_height);
+
+		        //clear selection first otherwise selection gets messed up during row expanding
+		        renderer.clearSelection();
 
 			      d3.selectAll('.set-background')
 				        .attr("height", function(d, i) {
@@ -355,6 +366,11 @@ var SetVis = (function(vis) {
 
 			      //update canvas height
 			      renderer.setCanvasHeight(renderer.getCanvasHeight() + renderer.no_set_groups * additional_height);
+
+		        //re-add selection if one exists
+		        if (renderer.selectedSubset) {
+			          renderer.selectSubset(renderer.selectedSubset);
+		        }
 	      },
 	      appendSubsets: function() {
 		        var self = this;
@@ -418,6 +434,7 @@ var SetVis = (function(vis) {
 					              .classed("hidden", true);
 			          })
 			          .on("click", function(subset) {
+				            self.selectedSubset = subset;
 				            self.selectSubset(subset);
 			          });
 
@@ -427,6 +444,9 @@ var SetVis = (function(vis) {
 			          label_yPos = parseInt(d3.select(this).attr("y")),
 			          labelIndex = i,
 			          additional_height = renderer.settings.set.height * degree_count;
+
+		        //clear selection first otherwise selection gets messed up during row expanding
+		        renderer.clearSelection();
 
 			      d3.selectAll('.set-background')
 				        .attr("height", function(d, i) {
@@ -484,6 +504,11 @@ var SetVis = (function(vis) {
 		        renderer.appendSubsets();
 
 			      renderer.setCanvasHeight(renderer.getCanvasHeight() - additional_height);
+
+		        //re-add selection if one exists
+		        if (renderer.selectedSubset) {
+			          renderer.selectSubset(renderer.selectedSubset);
+		        }
 	      },
 	      highlightSetLabels: function(set_ids) {
 						d3.selectAll('.x-label')
