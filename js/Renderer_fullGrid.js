@@ -168,6 +168,8 @@ var SetVis = (function(vis) {
             //d3.selectAll('.subset.highlighted').remove();
             //d3.selectAll('.subset.hidden').classed("hidden", false);
 
+	          d3.selectAll('.highlight-segment').remove();
+
 	          d3.selectAll('.subset.selected').classed("selected", false);
 	          d3.selectAll('.subset.highlighted').classed("highlighted", false);
         },
@@ -178,14 +180,18 @@ var SetVis = (function(vis) {
 	          console.log("subset ", subset);
 
             var self = this,
-	              set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset);
+	              set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset),
+                pi = Math.PI,
+                arc = d3.svg.arc(),
+	              cx = 0,
+	              cy = 0,
+	              r = 0,
+	              segment_percentage = 0;
 
-            //console.log("vis.helpers.getElementsGroupedBySetAndDegree ", vis.helpers.getElementsGroupedBySetAndDegree(subset));
+            console.log("set_occurrence_map ", set_occurrence_map);
 
             //first unselect all previously highlighted elements
             this.clearSelection();
-
-	          console.log("event ", event);
 
 	          //update selection in table
             this.table.update(subset.elements);
@@ -193,9 +199,9 @@ var SetVis = (function(vis) {
             d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
                 //console.log("d ", d, "i ", i);
 
-	            var cx = d3.select(this).attr("cx"),
-		              cy = d3.select(this).attr("cy"),
-		              r = d3.select(this).attr("r");
+	              cx = d3.select(this).attr("cx"),
+		            cy = d3.select(this).attr("cy"),
+	              r = d3.select(this).attr("r");
 
 	              //mark the clicked element as selected
 								if (d.set_name == subset.set_name && d.degree == subset.degree) {
@@ -204,6 +210,10 @@ var SetVis = (function(vis) {
 								} else {
 		                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
 		                    //console.log("is ok ", this);
+
+			                  segment_percentage = vis.helpers.calcSegmentPercentage(subset, d);
+
+			                  //console.log("segment_percentage ", segment_percentage);
 
 			                  /*
 		                    d3.select(this).classed("hidden", true);
@@ -216,8 +226,21 @@ var SetVis = (function(vis) {
 		                        .attr("r", r);
                         */
 
+			                  arc
+			                    .innerRadius(4)
+			                    .outerRadius(6)
+				                  .startAngle(0)
+				                  .endAngle(2 * pi * segment_percentage);
+
+			                  d3.select(this.parentNode).append("path")
+				                    .attr("d", arc)
+				                    .attr("class", "highlight-segment")
+				                    .attr("transform", "translate(8," + cy + ")");
+
+			                  /*
 			                  d3.select(this)
 				                    .classed("highlighted", true);
+		                    */
 		                }
 								}
 
@@ -350,7 +373,7 @@ var SetVis = (function(vis) {
 		        //handler for newly added subsets
 		        d3.selectAll('.subset')
 			          .on("mouseover", function(d, i) {
-				            console.log("d ", d);
+				            //console.log("d ", d);
 				            var that = this;
 
 				            //delay mouseover event for 500ms

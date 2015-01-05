@@ -82,6 +82,10 @@ $numberWidth: 30px;
     }
   }
 
+  path.highlight-segment {
+    fill: rgba(255, 165, 0, 1);
+  }
+
   /* start deprecated */
   circle.subset-child {
     &.selected {
