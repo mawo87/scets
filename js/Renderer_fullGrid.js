@@ -138,6 +138,24 @@ var SetVis = (function(vis) {
                 self.binningView.render();
                 $('#binningViewModal').modal('show');
             });
+
+	          //setup expand-all button
+	          $('.ui-controls .btn-expand-all').on("click", function() {
+		            d3.select('.set-group').selectAll('.y-label').each(function(d, i) {
+			              if (!d3.select(this).classed("expanded")) {
+				                self.expandRow.call(this, d, i, self);
+			              }
+		            });
+	          });
+
+	          //setup collapse-all button
+	          $('.ui-controls .btn-collapse-all').on("click", function() {
+								d3.select('.set-group').selectAll('.y-label').each(function(d, i) {
+										if (d3.select(this).classed("expanded")) {
+												self.collapseRow.call(this, d, i, self);
+										}
+								})
+	          });
         },
         render: function() {
             var self = this,
@@ -793,7 +811,7 @@ var SetVis = (function(vis) {
 
             var	yAxis = d3.svg.axis()
                 .orient('left')
-                .scale(scales.y)
+                .scale(yScale)
                 .tickSize(2)
                 .tickFormat(function(d, i){ return i + 1; })
                 .tickValues(d3.range(data.length));
