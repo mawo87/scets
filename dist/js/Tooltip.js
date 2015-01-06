@@ -29,20 +29,44 @@ SetVis = (function(vis) {
 					.append("span")
 					.style("padding-right", function(d, i) { return (d.count / maxValue) * 50 + "%"; })
 					.text(function(d) { return d.count; });
-
-				//tooltip position
-				d3Tooltip
-					.style("left", data.xPos + "px")
-					.style("top", data.yPos + "px");
 			},
 			"subset": function(data) {
 				var text = data.subset.degree > 0 ? ("Items shared with " + data.subset.degree + " other sets: " + data.subset.count) : ("Unique items in this set: " + data.subset.count);
 
-				//tooltips
 				d3.select(this.container)
-					.style("left", data.xPos + "px")
-					.style("top", data.yPos + "px")
 					.text(text);
+			},
+			"subset_highlight": function(data) {
+				this.templates["subset"].call(this, data);
+
+				var width = this.getWidth(),
+					height = 80,
+					innerRadius = 20,
+					outerRadius = 30,
+					svg = d3.select(this.container)
+						.append("svg")
+						.attr("width", width)
+						.attr("height", height);
+
+				var arc = d3.svg.arc()
+					.innerRadius(innerRadius)
+					.outerRadius(outerRadius)
+					.startAngle(0)
+					.endAngle(data.segmentPercentage);
+
+				//append circle
+				svg.append("circle")
+					.attr("class", "subset")
+					.attr("cx", width / 2)
+					.attr("cy", 40)
+					.attr("r", innerRadius)
+					.attr("fill", data.subsetFill);
+
+				//append circle segment
+				svg.append("path")
+					.attr("d", arc)
+					.attr("fill", "orange")
+					.attr("transform", "translate(" + (width / 2) + ", " + height / 2 + ")");
 			}
 		}
 	}
@@ -58,7 +82,8 @@ SetVis = (function(vis) {
 
 			return this;
 		},
-		show: function() {
+		show: function(x, y) {
+			this.position(x, y);
 			d3.select(this.container).classed("hidden", false);
 			return this;
 		},
@@ -68,6 +93,11 @@ SetVis = (function(vis) {
 		},
 		getWidth: function() {
 			return $(this.container).width();
+		},
+		position: function(left, top) {
+			d3.select(this.container)
+				.style("left", left + "px")
+				.style("top", top + "px");
 		}
 	};
 
