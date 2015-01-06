@@ -71,7 +71,13 @@ var SetVis = (function(vis) {
 
             initScales();
 
+	          //initialize table
 	          this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
+
+	          //initialize tooltip
+	          this.tooltip = new vis.Tooltip({
+		            container: "#tooltip"
+	          });
 
             function initScales() {
                 self.scales.x = d3.scale.ordinal()
@@ -247,6 +253,9 @@ var SetVis = (function(vis) {
 
 			                  segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
 
+			                  //add class to subset for advanced tooltips
+			                  d3.select(this).classed("tooltip-segment", true);
+
 			                  arc
 			                    .innerRadius(4)
 			                    .outerRadius(6)
@@ -255,7 +264,7 @@ var SetVis = (function(vis) {
 
 			                  d3.select(this.parentNode).append("path")
 				                    .attr("d", arc)
-				                    .attr("class", "highlight-segment")
+				                    .attr("class", "highlight-segment tooltip-segment")
 				                    .attr("transform", "translate(8," + cy + ")");
 
 			                  set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
@@ -399,7 +408,7 @@ var SetVis = (function(vis) {
 				            .attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; });
 		        });
 
-		        //handler for newly added subsets
+		        //handler for appended subsets
 		        d3.selectAll('.subset')
 			          .on("mouseover", function(d, i) {
 				            //console.log("d ", d);
@@ -407,31 +416,25 @@ var SetVis = (function(vis) {
 
 				            //delay mouseover event for 500ms
 				            delay = setTimeout(function() {
-							          var $tooltip = $('#tooltip'),
-								            itemCount = d.count,
-								            degree = d.degree,
-								            text = "",
-								            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+							          var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
 								            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-						            if (degree > 0) {
-					                  text = "Items shared with " + degree + " other sets: " + itemCount;
-							          } else {
-								            text = "Unique items in this set: " + itemCount;
-							          }
+					              if (d3.select(that).classed("tooltip-segment")) {
+						                console.log("this subset has a highlighted segment");
+					              }
 
-							          //tooltips
-							          d3.select('#tooltip')
-								            .style("left", xPos + "px")
-								            .style("top", yPos + "px")
-								            .text(text)
-								            .classed("hidden", false);
+					              self.tooltip.update({
+						                subset: d,
+						                xPos: xPos,
+						                yPos: yPos
+					                }, "subset")
+					                .show();
+
 				            }, 500);
 			          })
 			          .on("mouseout", function(d, i) {
 				            clearTimeout(delay);
-				            d3.select('#tooltip')
-					              .classed("hidden", true);
+				            self.tooltip.hide();
 			          })
 			          .on("click", function(subset) {
 				            self.selectedSubset = subset;
@@ -663,51 +666,22 @@ var SetVis = (function(vis) {
 
                     //delay mouseover event for 500ms
                     delay = setTimeout(function() {
-                        var $tooltip = $('#tooltip'),
-                            xPos = parseFloat($(that).offset().left) - ($tooltip.width()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r,
-                            maxValue = Math.max.apply(Math, d.subsets.map(function(element) {
-                                return element.count;
-                            }));
+                        var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+                            yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-	                      $('#tooltip')
-		                      .empty()
-		                      .append("<div class='shared-items-note'>Shared items / degree</div>");
-
-	                      var list = d3.select('#tooltip')
-		                      .append("ul")
-		                      .attr("class", "list-unstyled");
-
-	                      var bars = list.selectAll(".bar-horizontal")
-		                      .data(d.subsets)
-		                      .enter()
-                          .append("li")
-		                      .attr("class", function(d) { return d.count > 0 ? "bar-horizontal" : "bar-horizontal hidden"; });
-
-	                      bars
-		                      .append("em")
-		                      .text(function(d) { return "Degree " + d.degree; });
-
-	                      bars
-		                      .append("span")
-		                      //.style("padding-right", function(d, i) { return 20 + "%"; })
-		                      .style("padding-right", function(d, i) { return (d.count / maxValue) * 50 + "%"; })
-		                      .text(function(d) { return d.count; });
-
-	                      //tooltips
-	                      d3.select('#tooltip')
-		                        .style("left", xPos + "px")
-		                        .style("top", yPos + "px")
-		                        .classed("hidden", false);
+	                      self.tooltip.update({
+														aggregate: d,
+		                        xPos: xPos,
+		                        yPos: yPos
+	                        }, "aggregate")
+		                      .show();
 
                     }, 500);
                 }
 
                 function onMouseout() {
                     clearTimeout(delay);
-
-                    d3.select('#tooltip')
-                        .classed("hidden", true);
+										self.tooltip.hide();
                 }
 
                 function selectHandler(aggregate, rowIndex) {
