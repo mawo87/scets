@@ -210,6 +210,9 @@ var SetVis = (function(vis) {
 			//remove highlighted class from x-axis labels and degree labels
 			d3.selectAll('.x-label.highlighted').classed("highlighted", false);
 			d3.selectAll('.degree-label.highlighted').classed("highlighted", false);
+
+			//remove segment-tooltip class from all highlighted subsets
+			d3.selectAll('.subset.segment-tooltip').classed("segment-tooltip", false);
 		},
 		selectAggregate: function(aggregate) {
 			console.log("aggregate ", aggregate);
@@ -237,9 +240,9 @@ var SetVis = (function(vis) {
 			d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
 				//console.log("d ", d, "i ", i);
 
-				cx = d3.select(this).attr("cx"),
-					cy = d3.select(this).attr("cy"),
-					r = d3.select(this).attr("r");
+				cx = d3.select(this).attr("cx");
+				cy = d3.select(this).attr("cy");
+				r = d3.select(this).attr("r");
 
 				//mark the clicked element as selected
 				if (d.set_name == subset.set_name && d.degree == subset.degree) {
@@ -251,10 +254,10 @@ var SetVis = (function(vis) {
 					if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
 						//console.log("is ok ", this);
 
-						segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
+						//add additional class for advanced tooltip
+						d3.select(this).classed("segment-tooltip", true);
 
-						//add class to subset for advanced tooltips
-						d3.select(this).classed("tooltip-segment", true);
+						segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
 
 						arc
 							.innerRadius(4)
@@ -264,7 +267,7 @@ var SetVis = (function(vis) {
 
 						d3.select(this.parentNode).append("path")
 							.attr("d", arc)
-							.attr("class", "highlight-segment tooltip-segment")
+							.attr("class", "highlight-segment")
 							.attr("transform", "translate(8," + cy + ")");
 
 						set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
@@ -419,16 +422,25 @@ var SetVis = (function(vis) {
 						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
 							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-						if (d3.select(that).classed("tooltip-segment")) {
-							console.log("this subset has a highlighted segment");
-						}
+						//tooltip showing text and selection
+						if (d3.select(that).classed("segment-tooltip")) {
+							var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
 
-						self.tooltip.update({
-							subset: d,
-							xPos: xPos,
-							yPos: yPos
-						}, "subset")
-							.show();
+							self.tooltip.update({
+									subset: d,
+									segmentPercentage: self.scales.radianToPercent(segment_percentage),
+									subsetFill: d3.select(that).attr("fill")
+								}, "subset_highlight")
+								.show(xPos, yPos);
+
+						//tooltip with text only
+						} else {
+
+							self.tooltip.update({
+								subset: d
+							}, "subset")
+							.show(xPos, yPos);
+						}
 
 					}, 500);
 				})
@@ -469,7 +481,7 @@ var SetVis = (function(vis) {
 
 			d3.selectAll('.y-label')
 				.attr("y", function(d, i) {
-					console.log("i ", i);
+					//console.log("i ", i);
 					if (parseInt(d3.select(this).attr("y")) > label_yPos) {
 						return parseInt(d3.select(this).attr("y")) - additional_height;
 					} else {
@@ -670,11 +682,9 @@ var SetVis = (function(vis) {
 							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
 						self.tooltip.update({
-							aggregate: d,
-							xPos: xPos,
-							yPos: yPos
+							aggregate: d
 						}, "aggregate")
-							.show();
+							.show(xPos, yPos);
 
 					}, 500);
 				}
