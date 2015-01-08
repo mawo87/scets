@@ -82,6 +82,18 @@ var SetVis = (function(vis) {
 		}
 	};
 
+	function Aggregate() {
+		this.count = 0;
+		this.subsets = [];
+	}
+
+	Aggregate.prototype = {
+		addSubset: function(subset) {
+			this.subsets.push(subset);
+			this.count += subset.count;
+		}
+	};
+
 	function Selection(set, degree) {
 		this.set = (set === undefined) ? "" : set;
 		this.degree = (degree === undefined) ? -1 : degree;
@@ -98,7 +110,8 @@ var SetVis = (function(vis) {
 		Element: Element,
 		Set: Set,
 		SubSet: SubSet,
-		Selection: Selection
+		Selection: Selection,
+		Aggregate: Aggregate
 	});
 
 })(SetVis || vis);

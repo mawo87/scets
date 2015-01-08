@@ -27,6 +27,24 @@
     fill: #FFFFFF; }
   #canvas .x-label.highlighted {
     fill: orange; }
+  #canvas .y-label-group rect.btn-background {
+    fill: #666666; }
+  #canvas .y-label-group .icon-expand {
+    font-family: "FontAwesome";
+    font-size: 8px;
+    fill: #FFFFFF;
+    pointer-events: none; }
+  #canvas .y-label-group .icon-collapse {
+    font-family: "FontAwesome";
+    font-size: 8px;
+    fill: #FFFFFF;
+    pointer-events: none; }
+  #canvas .y-label-group.expanded .icon-expand {
+    display: none; }
+  #canvas .y-label-group.collapsed .icon-collapse {
+    display: none; }
+  #canvas .y-label-group:hover {
+    cursor: pointer; }
   #canvas .degree-label.highlighted {
     fill: orange; }
   #canvas rect.set-background {
@@ -77,8 +95,6 @@
     stroke: orange;
     stroke-width: 3;
     */ }
-  #canvas .y-label:hover {
-    cursor: pointer; }
   #canvas text {
     font-size: 0.8em; }
     #canvas text.active {

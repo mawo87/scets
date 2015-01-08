@@ -10,7 +10,7 @@ var SetVis = (function(vis) {
 					top: 60,
 					right: 80,
 					bottom: 10,
-					left: 60
+					left: 80
 				},
 				width: 900,
 				height: 700
@@ -26,6 +26,16 @@ var SetVis = (function(vis) {
 			},
 			color: {
 				range: ['#FFF7FB', '#023858']
+			},
+			labelButton: {
+				width: 14,
+				height: 14,
+				rx: 5,
+				ry: 5,
+				margin: {
+					right: 4,
+					left: 4
+				}
 			}
 		};
 		this.max_sets_per_group = 0;
@@ -148,7 +158,7 @@ var SetVis = (function(vis) {
 
 			//setup expand-all button
 			$('.ui-controls .btn-expand-all').on("click", function() {
-				d3.select('.set-group').selectAll('.y-label').each(function(d, i) {
+				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (!d3.select(this).classed("expanded")) {
 						self.expandRow.call(this, d, i, self);
 					}
@@ -157,7 +167,7 @@ var SetVis = (function(vis) {
 
 			//setup collapse-all button
 			$('.ui-controls .btn-collapse-all').on("click", function() {
-				d3.select('.set-group').selectAll('.y-label').each(function(d, i) {
+				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (d3.select(this).classed("expanded")) {
 						self.collapseRow.call(this, d, i, self);
 					}
@@ -287,12 +297,12 @@ var SetVis = (function(vis) {
 		},
 		arrangeLabels: function() {
 			var self = this,
-				yLabels = d3.selectAll('.y-label.expanded');
+				yLabelGroups = d3.selectAll('.y-label-group.expanded');
 
 			d3.selectAll('.degree-label')
 				.remove();
 
-			yLabels.each(function(d, i) {
+			yLabelGroups.each(function(d, i) {
 				var lbl = this;
 				d3.select(this.parentNode).selectAll('.degree-label' + ' bin-' + (i + 1))
 					.data(d3.select(this).data()[0])
@@ -301,7 +311,7 @@ var SetVis = (function(vis) {
 					.attr("class", "degree-label bin-" + (i+1))
 					.attr("x", -6)
 					.attr("y", function(d, i) {
-						return parseInt(d3.select(lbl).attr("y")) + (i + 1) * self.settings.set.height;
+						return parseInt(d3.transform(d3.select(lbl).attr("transform")).translate[1]) + (i + 1) * self.settings.set.height;
 					})
 					.attr("dy", ".32em")
 					.attr("text-anchor", "end")
@@ -311,11 +321,12 @@ var SetVis = (function(vis) {
 		},
 		expandRow: function(d, i, renderer) {
 			var degree_count = d.length,
-				label_yPos = parseInt(d3.select(this).attr("y")),
-				labelIndex = i,
+				label_yPos = d3.transform(d3.select(this).attr("transform")).translate[1],
+				binIndex = i,
 				additional_height = renderer.settings.set.height * degree_count;
 
 			//console.log("additional_height ", additional_height);
+			console.log("binIndex ", binIndex);
 
 			//clear selection first otherwise selection gets messed up during row expanding
 			renderer.clearSelection();
@@ -336,19 +347,20 @@ var SetVis = (function(vis) {
 					}
 				});
 
+			var yLabelGroups = d3.selectAll('.y-label-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
 
-			var yLabels = d3.selectAll('.y-label')
-				.attr("y", function(d, i) {
-					if (parseInt(d3.select(this).attr("y")) > label_yPos) {
-						return parseInt(d3.select(this).attr("y")) + additional_height;
+					if (prev > label_yPos) {
+						return "translate(0," + (prev + additional_height) + ")";
 					} else {
-						return parseInt(d3.select(this).attr("y"));
+						return "translate(0," + prev + ")";
 					}
 				})
 				.attr("class", function(d, i) {
 					//sets the expanded resp. collapsed class for the given bin in all set groups
-					if (Math.abs(labelIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
-						return "y-label expanded";
+					if (Math.abs(binIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
+						return "y-label-group expanded";
 					} else {
 						return d3.select(this).attr("class");
 					}
@@ -365,7 +377,7 @@ var SetVis = (function(vis) {
 					}
 				})
 				.attr("class", function(d, i) {
-					if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d.count > 0) {
+					if (parseInt(d3.select(this).attr("data-bin")) == binIndex && d.count > 0) {
 						var isExpanded = d3.select(this).classed("expanded");
 						if (!isExpanded) {
 							d3.select(this).classed("expanded", true);
@@ -456,8 +468,8 @@ var SetVis = (function(vis) {
 		},
 		collapseRow: function(d, i, renderer) {
 			var degree_count = d.length,
-				label_yPos = parseInt(d3.select(this).attr("y")),
-				labelIndex = i,
+				label_yPos = d3.transform(d3.select(this).attr("transform")).translate[1],
+				binIndex = i,
 				additional_height = renderer.settings.set.height * degree_count;
 
 			//clear selection first otherwise selection gets messed up during row expanding
@@ -479,18 +491,19 @@ var SetVis = (function(vis) {
 					}
 				});
 
-			d3.selectAll('.y-label')
-				.attr("y", function(d, i) {
-					//console.log("i ", i);
-					if (parseInt(d3.select(this).attr("y")) > label_yPos) {
-						return parseInt(d3.select(this).attr("y")) - additional_height;
+			var yLabelGroups = d3.selectAll('.y-label-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+
+					if (prev > label_yPos) {
+						return "translate(0," + (prev - additional_height) + ")";
 					} else {
-						return parseInt(d3.select(this).attr("y"));
+						return "translate(0," + prev + ")";
 					}
 				})
 				.attr("class", function(d, i) {
-					if (Math.abs(labelIndex - i - 5) % 5 == 0) {
-						return "y-label collapsed";
+					if (Math.abs(binIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
+						return "y-label-group collapsed";
 					} else {
 						return d3.select(this).attr("class");
 					}
@@ -507,7 +520,7 @@ var SetVis = (function(vis) {
 					}
 				})
 				.attr("class", function(d, i) {
-					if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d.count > 0) {
+					if (parseInt(d3.select(this).attr("data-bin")) == binIndex && d.count > 0) {
 						var isExpanded = d3.select(this).classed("expanded");
 						if (isExpanded) {
 							d3.select(this).classed("expanded", false);
@@ -574,22 +587,11 @@ var SetVis = (function(vis) {
 			console.log("this.bins ", this.bins);
 
 			function createAggregatedData(data) {
-				function Aggregate() {
-					this.count = 0;
-					this.subsets = [];
-				}
-
-				Aggregate.prototype = {
-					addSubset: function(subset) {
-						this.subsets.push(subset);
-						this.count += subset.count;
-					}
-				};
 
 				var gridData = vis.helpers.transpose(vis.data.fullGrid),
 					result = d3.range(data.length).map(function(i) {
 						return Array.apply(null, new Array(gridData[0].length)).map(function(d) {
-							return new Aggregate();
+							return new vis.Aggregate();
 						});
 					});
 
@@ -625,7 +627,8 @@ var SetVis = (function(vis) {
 				});
 
 			setGroups.each(renderSets);
-			setGroups.each(renderLabels);
+			setGroups.each(renderXaxisLabels);
+			setGroups.each(renderYaxisLabels);
 
 			function renderSets(d, i) {
 				var sets = d3.select(this).selectAll(".set")
@@ -705,21 +708,9 @@ var SetVis = (function(vis) {
 
 			}
 
-			function renderLabels(setGroup, index) {
+			function renderXaxisLabels(setGroup, index) {
+				//x axis data depends on set group whereas the y labels remain the same for each set group
 				var data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
-
-				//render labels for y axis (add labels to given group)
-				d3.select(this).selectAll('.y-label')
-					.data(data_y_axis)
-					.enter().append("text")
-					.attr("class", "y-label")
-					.classed("collapsed", true)
-					.attr("x", -6)
-					.attr("y", function(d, i) { return i * self.settings.set.height + self.settings.subset.r + 3; })
-					.attr("dy", ".32em")
-					.attr("text-anchor", "end")
-					.text(function(d, i) { return "[" + d[0] + " - " + d[d.length - 1] + "]" ; })
-					.on("click", binClickHandler);
 
 				//render labels for x axis
 				d3.select(this).selectAll('.x-label')
@@ -734,16 +725,69 @@ var SetVis = (function(vis) {
 					.attr("dy", ".32em")
 					.attr("text-anchor", "start")
 					.text(function(d, i) { return d.name; });
+			}
 
-				function binClickHandler(d, i) {
+			function renderYaxisLabels(setGroup, index) {
+				var labelGroups = d3.select(this).selectAll('.y-label-group')
+					.data(data_y_axis)
+					.enter().append("g")
+					.attr("class", "y-label-group collapsed")
+					.attr("data-set-group", function(d) { return index; })
+					.attr("transform", function(d, i) {
+						return "translate(0," + (i * self.settings.set.height + self.settings.subset.r + 2) + ")";
+					});
+
+				labelGroups.each(function(group, idx) {
+					//console.log("group ", group, "idx ", idx);
+
+					//append button background
+					d3.select(this).append("rect")
+						.attr("class", "btn-background")
+						.attr("width", self.settings.labelButton.width)
+						.attr("height", self.settings.labelButton.height)
+						.attr("x", -(self.settings.labelButton.width + self.settings.labelButton.margin.right))
+						.attr("y", -(self.settings.labelButton.width/2))
+						.attr("rx", self.settings.labelButton.rx)
+						.attr("ry", self.settings.labelButton.ry);
+
+					//append expand icon
+					d3.select(this).append("text")
+						.attr("class", "icon-expand")
+						.attr("x", -(self.settings.labelButton.width + self.settings.labelButton.margin.right - 4))
+						.attr("y", 3)
+						.html("&#xf067");
+
+					//append collapse icon
+					d3.select(this).append("text")
+						.attr("class", "icon-collapse")
+						.attr("x", -(self.settings.labelButton.width + self.settings.labelButton.margin.right - 4))
+						.attr("y", 3)
+						.html("&#xf068");
+
+					//append label text
+					d3.select(this).append("text")
+						.attr("class", "y-label")
+						.attr("x", -(self.settings.labelButton.width + self.settings.labelButton.margin.right + self.settings.labelButton.margin.left))
+						.attr("y", 0)
+						.attr("dy", ".32em")
+						.attr("text-anchor", "end")
+						.text(function(d, i) { return "[" + group[0] + " - " + group[d.length - 1] + "]" ; });
+
+				});
+
+				//attach click handler
+				labelGroups.on("click", function(bin, idx) {
+					//console.log("bin ", bin, "idx ", idx);
+
 					//expand row
 					if (!d3.select(this).classed("expanded")) {
-						self.expandRow.call(this, d, i, self);
+						self.expandRow.call(this, bin, idx, self);
 					} else {
 						//collapse row
-						self.collapseRow.call(this, d, i, self);
+						self.collapseRow.call(this, bin, idx, self);
 					}
-				}
+				});
+
 			}
 
 		}
