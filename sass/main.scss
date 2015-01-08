@@ -42,6 +42,42 @@ $numberWidth: 30px;
     }
   }
 
+  .y-label-group {
+    rect.btn-background {
+      fill: #666666;
+    }
+
+    .icon-expand {
+      font-family: "FontAwesome";
+      font-size: 8px;
+      fill: #FFFFFF;
+      pointer-events: none;
+    }
+
+    .icon-collapse {
+      font-family: "FontAwesome";
+      font-size: 8px;
+      fill: #FFFFFF;
+      pointer-events: none;
+    }
+
+    &.expanded {
+      .icon-expand {
+        display: none;
+      }
+    }
+
+    &.collapsed {
+      .icon-collapse {
+        display: none;
+      }
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
   .degree-label {
     &.highlighted {
       fill: rgba(255, 165, 0, 1);
@@ -121,10 +157,6 @@ $numberWidth: 30px;
     }
   }
   /* end deprecated */
-
-  .y-label:hover {
-    cursor: pointer;
-  }
 
   text {
     font-size: 0.8em;
