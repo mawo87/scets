@@ -75,7 +75,7 @@ var SetVis = (function(vis) {
 						degree = j + 1;
 						subset = new vis.SubSet(setName, degree);
 						subset.elements = vis.data.elements.filter(function(d, i) {
-							return d.getSets().indexOf(setName) != -1 && d.degree == degree;
+							return $.inArray(setName, d.getSets().split(",")) != -1 && d.degree == degree;
 						});
 						subset.count = subset.elements.length;
 						row.push(subset);

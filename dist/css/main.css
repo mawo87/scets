@@ -130,6 +130,9 @@
       left: 96px; }
     #canvas #tooltip.hidden {
       display: none; }
+    #canvas #tooltip hr {
+      margin-top: 8px;
+      margin-bottom: 8px; }
     #canvas #tooltip .shared-items-note {
       padding-left: 60px;
       font-weight: bold; }
