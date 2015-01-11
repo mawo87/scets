@@ -82,7 +82,7 @@ var SetVis = (function(vis) {
 					}
 					result.push(row);
 				}
-				console.log("fullGrid result ", result);
+
 				return result;
 			},
 			transpose: function(a) {
