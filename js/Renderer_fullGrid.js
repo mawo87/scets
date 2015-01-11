@@ -46,7 +46,6 @@ var SetVis = (function(vis) {
 			color: undefined,
 			radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
 		};
-		this.data = [];
 		this.degreeHist = [];
 		this.bins = {
 			k: vis.data.grid.length >= 5 ? 5 : vis.data.grid.length,
@@ -69,7 +68,7 @@ var SetVis = (function(vis) {
 			}
 
 			//this.data = new vis.Parser().helpers.transpose(vis.data.grid);
-			this.data = vis.data.fullGrid;
+			//this.data = vis.data.fullGrid;
 			this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
 
 			//compute degree histogram
@@ -77,7 +76,7 @@ var SetVis = (function(vis) {
 			this.degreeHist = elements_per_degree.getList();
 
 			//initialize bins
-			this.initializeBins();
+			this.initBins();
 
 			this.binningView = new BinningView({
 				setRenderer: this,
@@ -110,7 +109,7 @@ var SetVis = (function(vis) {
 					.range(self.settings.color.range);
 			}
 		},
-		initializeBins: function() {
+		initBins: function() {
 			var H = this.degreeHist, //histogram data
 				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
 				b = vis.data.maxDegree, //max degree in histogram data
@@ -201,7 +200,7 @@ var SetVis = (function(vis) {
 
 			this.renderSets();
 
-			var no_of_set_groups = Math.ceil(this.data.length / this.max_sets_per_group),
+			var no_of_set_groups = Math.ceil(vis.data.fullGrid.length / this.max_sets_per_group),
 				canvasHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
 
 			this.setCanvasHeight(canvasHeight);
@@ -332,7 +331,6 @@ var SetVis = (function(vis) {
 				additional_height = renderer.settings.set.height * degree_count;
 
 			//console.log("additional_height ", additional_height);
-			console.log("binIndex ", binIndex);
 
 			//clear selection first otherwise selection gets messed up during row expanding
 			renderer.clearSelection();
