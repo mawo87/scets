@@ -39,6 +39,8 @@ SetVis = (function(vis) {
 			"subset_highlight": function(data) {
 				this.templates["subset"].call(this, data);
 
+				$(this.container).append("<hr>");
+
 				var width = this.getWidth(),
 					height = 80,
 					innerRadius = 20,
