@@ -3,10 +3,6 @@
  */
 var SetVis = (function(vis) {
 
-	function Parser() {
-		this.setDescription = undefined;
-	}
-
 	vis.data = {
 		sets: [],
 		elements: [],
@@ -18,6 +14,10 @@ var SetVis = (function(vis) {
 		min: 0,
 		maxDegree: 0
 	};
+
+	function Parser() {
+		this.setDescription = undefined;
+	}
 
 	Parser.prototype = {
 		helpers: {
