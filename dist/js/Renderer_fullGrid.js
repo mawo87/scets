@@ -46,6 +46,7 @@ var SetVis = (function(vis) {
 			color: undefined,
 			radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
 		};
+		/* deprecated
 		this.degreeHist = [];
 		this.bins = {
 			k: vis.data.grid.length >= 5 ? 5 : vis.data.grid.length,
@@ -53,6 +54,7 @@ var SetVis = (function(vis) {
 			end: [],
 			data: []
 		};
+		*/
 		this.selectedSubset = undefined;
 		this.init();
 	}
@@ -72,11 +74,13 @@ var SetVis = (function(vis) {
 			this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
 
 			//compute degree histogram
+			/* deprecated
 			var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid);
 			this.degreeHist = elements_per_degree.getList();
 
 			//initialize bins
 			this.initBins();
+			*/
 
 			this.binningView = new BinningView({
 				setRenderer: this,
@@ -102,13 +106,14 @@ var SetVis = (function(vis) {
 
 				self.scales.y = d3.scale.ordinal()
 					.rangeBands([0, self.getSetInnerHeight()])
-					.domain(d3.range(self.bins.k));
+					.domain(d3.range(vis.data.bins.k));
 
 				self.scales.color = d3.scale.linear()
 					.domain([vis.data.min, vis.data.max])
 					.range(self.settings.color.range);
 			}
 		},
+		/* deprecated
 		initBins: function() {
 			var H = this.degreeHist, //histogram data
 				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
@@ -150,6 +155,7 @@ var SetVis = (function(vis) {
 				}
 			}
 		},
+		*/
 		setupControls: function() {
 			var self = this;
 
@@ -209,7 +215,7 @@ var SetVis = (function(vis) {
 			return this.settings.set.width + 2 * this.settings.set.stroke + this.settings.set.margin.right;
 		},
 		getSetInnerHeight: function() {
-			return this.bins.k * this.settings.set.height;
+			return vis.data.bins.k * this.settings.set.height;
 		},
 		getSetOuterHeight: function() {
 			return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
@@ -363,7 +369,7 @@ var SetVis = (function(vis) {
 				})
 				.attr("class", function(d, i) {
 					//sets the expanded resp. collapsed class for the given bin in all set groups
-					if (Math.abs(binIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
+					if (Math.abs(binIndex - i - vis.data.bins.k) % vis.data.bins.k == 0) {
 						return "y-label-group expanded";
 					} else {
 						return d3.select(this).attr("class");
@@ -506,7 +512,7 @@ var SetVis = (function(vis) {
 					}
 				})
 				.attr("class", function(d, i) {
-					if (Math.abs(binIndex - i - renderer.bins.k) % renderer.bins.k == 0) {
+					if (Math.abs(binIndex - i - vis.data.bins.k) % vis.data.bins.k == 0) {
 						return "y-label-group collapsed";
 					} else {
 						return d3.select(this).attr("class");
@@ -566,7 +572,7 @@ var SetVis = (function(vis) {
 			//this.max_sets_per_group = 10;
 
 			var self = this,
-				aggregated_bin_data = createAggregatedData(this.bins.data),
+				aggregated_bin_data = createAggregatedData(vis.data.bins.data),
 				transposed = vis.helpers.transpose(aggregated_bin_data),
 				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
 				data_y_axis = createYAxisLabelData();
@@ -575,10 +581,10 @@ var SetVis = (function(vis) {
 
 			function createYAxisLabelData() {
 				var result = [];
-				for (var i = 0; i < self.bins.k; i++) {
+				for (var i = 0; i < vis.data.bins.k; i++) {
 					var arr = [],
-						counter = self.bins.start[i];
-					while (counter <= self.bins.end[i]) {
+						counter = vis.data.bins.start[i];
+					while (counter <= vis.data.bins.end[i]) {
 						arr.push(counter+1);
 						counter++;
 					}
@@ -588,7 +594,7 @@ var SetVis = (function(vis) {
 				return result;
 			}
 
-			console.log("this.bins ", this.bins);
+			console.log("vis.data.bins ", vis.data.bins);
 
 			function createAggregatedData(data) {
 
@@ -613,7 +619,7 @@ var SetVis = (function(vis) {
 				return result;
 			}
 
-			console.log("createAggregatedData ", createAggregatedData(this.bins.data));
+			console.log("createAggregatedData ", createAggregatedData(vis.data.bins.data));
 
 			//set number of set groups
 			this.no_set_groups = data_per_setGroup.length;
@@ -658,7 +664,7 @@ var SetVis = (function(vis) {
 					.attr("class", "set-background")
 					.attr("x", 0)
 					.attr("width", self.settings.set.width)
-					.attr("height", self.bins.k * self.settings.set.height);
+					.attr("height", vis.data.bins.k * self.settings.set.height);
 			}
 
 			function drawAggregates(aggregate) {

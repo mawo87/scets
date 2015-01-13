@@ -97,6 +97,48 @@ var SetVis = (function(vis) {
 				intersection = vis.helpers.intersect(subset_elements, neighbor_elements);
 
 			return intersection.length / neighbor_elements.length;
+		},
+		initBins: function() {
+			var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
+				H = elements_per_degree.getList(), //histogram data
+				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
+				b = vis.data.maxDegree, //max degree in histogram data
+				ind = 0,
+				leftElements = n,
+				binSize,
+				s;
+
+			//console.log("H ", H, "n ", n , "b ", b);
+
+			for (var bin = 0; bin < vis.data.bins.k; bin++) {
+				vis.data.bins.start[bin] = ind;
+				binSize = H[ind];
+				s = leftElements / (vis.data.bins.k - bin);
+				while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
+					ind++;
+					binSize += H[ind];
+				}
+				vis.data.bins.end[bin] = ind;
+				leftElements -= binSize;
+				ind++;
+			}
+
+			vis.helpers.classifyBinData();
+
+			console.log("bins initialized ", vis.data.bins);
+		},
+		classifyBinData: function() {
+			var gridData = vis.helpers.transpose(vis.data.fullGrid);
+			for (var i = 0; i < vis.data.bins.k; i++) {
+				var counter = vis.data.bins.start[i];
+				while (counter <= vis.data.bins.end[i]) {
+					if (typeof vis.data.bins.data[i] === "undefined") {
+						vis.data.bins.data[i] = [];
+					}
+					vis.data.bins.data[i].push(gridData[counter]);
+					counter++;
+				}
+			}
 		}
 	};
 

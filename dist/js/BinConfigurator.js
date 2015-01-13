@@ -18,7 +18,7 @@ var SetVis = (function(vis) {
     init: function() {
 	    console.log("initialize bin configurator");
 
-	    $(this.container).html("initialize bin configurator with bins ", JSON.parse(JSON.stringify(this.bins)));
+	    //$(this.container).html("initialize bin configurator with bins ", JSON.parse(JSON.stringify(this.bins)));
 
 	    /*
       for (var i = 0; i < this.bins.length; i++) {
