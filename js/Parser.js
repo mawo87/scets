@@ -12,7 +12,13 @@ var SetVis = (function(vis) {
 		degreeVector: [],
 		max: 0,
 		min: 0,
-		maxDegree: 0
+		maxDegree: 0,
+		bins: {
+			k: 5,
+			start: [],
+			end: [],
+			data: []
+		}
 	};
 
 	function Parser() {
@@ -161,10 +167,13 @@ var SetVis = (function(vis) {
 			//console.log("maxDegree ", maxDegree);
 			//console.log("setCount ", setCount);
 
-			//create grid and store in global variable making it accessible
+			//create grid and fullGrid
 			vis.data.grid = self.helpers.createGrid(reducedFile, degreeVector, maxDegree, setCount);
-
 			vis.data.fullGrid = self.helpers.createFullGrid();
+
+			//initialize bins
+			vis.data.bins.k = vis.data.grid.length >= vis.data.bins.k ? vis.data.bins.k : vis.data.grid.length;
+			vis.helpers.initBins();
 
 		}
 	};
