@@ -12,7 +12,7 @@ Install Gulp locally in the scats directory:
 npm install --save-dev gulp
 
 Install Gulp Plugins:
-npm install gulp-connect gulp-traceur gulp-sass --save-dev
+npm install gulp-connect gulp-traceur gulp-sass gulp-ruby-sass --save-dev
 
 Start:
 Switch to /scats and run
