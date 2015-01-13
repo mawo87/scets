@@ -800,6 +800,9 @@ var SetVis = (function(vis) {
 	function BinningView(initializer) {
 		this.setRenderer = initializer.setRenderer;
 		this.container = initializer.container;
+		this.binConfigurator = new vis.BinConfigurator({
+			container: '.custom-bins'
+		});
 	}
 
 	BinningView.prototype = {
@@ -824,6 +827,8 @@ var SetVis = (function(vis) {
 			$(this.container)
 				.empty()
 				.html(html);
+
+			this.binConfigurator.init();
 
 			this.renderHistogram();
 		},
