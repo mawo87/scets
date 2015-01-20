@@ -128,6 +128,10 @@ var SetVis = (function(vis) {
 			console.log("bins initialized ", vis.data.bins);
 		},
 		classifyBinData: function() {
+
+			//reset bin data first
+			vis.data.bins.data = [];
+
 			var gridData = vis.helpers.transpose(vis.data.fullGrid);
 			for (var i = 0; i < vis.data.bins.k; i++) {
 				var counter = vis.data.bins.start[i];
@@ -138,6 +142,15 @@ var SetVis = (function(vis) {
 					vis.data.bins.data[i].push(gridData[counter]);
 					counter++;
 				}
+			}
+		},
+		updateBinRanges: function(start, end) {
+			if (start && start.length > 0) {
+				vis.data.bins.start = start;
+			}
+
+			if (end && end.length > 0) {
+				vis.data.bins.end = end;
 			}
 		}
 	};
