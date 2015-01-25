@@ -112,6 +112,8 @@ var SetVis = (function(vis) {
 					.domain([vis.data.min, vis.data.max])
 					.range(self.settings.color.range);
 			}
+
+			return this;
 		},
 		/* deprecated
 		initBins: function() {
@@ -196,6 +198,9 @@ var SetVis = (function(vis) {
 			var self = this,
 				width = this.settings.canvas.width,
 				height = this.settings.canvas.height;
+
+			//empty canvas first
+			$('#canvas').empty();
 
 			this.svg = d3.select('#canvas').append("svg")
 				.attr("width", width + self.settings.canvas.margin.left)
@@ -804,10 +809,19 @@ var SetVis = (function(vis) {
 	};
 
 	function BinningView(initializer) {
+		var self = this;
 		this.setRenderer = initializer.setRenderer;
 		this.container = initializer.container;
 		this.binConfigurator = new vis.BinConfigurator({
-			container: '.custom-bins'
+			container: '.custom-bins',
+			bins: vis.data.bins,
+			onSaveCallback: function() {
+				console.log("save callback with renderer ", self.setRenderer);
+
+				self.setRenderer
+					.init()
+					.render();
+			}
 		});
 	}
 
