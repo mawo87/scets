@@ -17,7 +17,8 @@ var SetVis = (function(vis) {
 			k: 5,
 			start: [],
 			end: [],
-			data: []
+			data: [],
+			ranges: []
 		}
 	};
 

@@ -111,6 +111,8 @@ var SetVis = (function(vis) {
 			//console.log("H ", H, "n ", n , "b ", b);
 
 			for (var bin = 0; bin < vis.data.bins.k; bin++) {
+				vis.data.bins.ranges[bin] = {};
+				vis.data.bins.ranges[bin].start = ind;
 				vis.data.bins.start[bin] = ind;
 				binSize = H[ind];
 				s = leftElements / (vis.data.bins.k - bin);
@@ -119,6 +121,7 @@ var SetVis = (function(vis) {
 					binSize += H[ind];
 				}
 				vis.data.bins.end[bin] = ind;
+				vis.data.bins.ranges[bin].end = ind;
 				leftElements -= binSize;
 				ind++;
 			}
