@@ -113,14 +113,12 @@ var SetVis = (function(vis) {
 			for (var bin = 0; bin < vis.data.bins.k; bin++) {
 				vis.data.bins.ranges[bin] = {};
 				vis.data.bins.ranges[bin].start = ind;
-				vis.data.bins.start[bin] = ind;
 				binSize = H[ind];
 				s = leftElements / (vis.data.bins.k - bin);
 				while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
 					ind++;
 					binSize += H[ind];
 				}
-				vis.data.bins.end[bin] = ind;
 				vis.data.bins.ranges[bin].end = ind;
 				leftElements -= binSize;
 				ind++;
@@ -137,8 +135,8 @@ var SetVis = (function(vis) {
 
 			var gridData = vis.helpers.transpose(vis.data.fullGrid);
 			for (var i = 0; i < vis.data.bins.k; i++) {
-				var counter = vis.data.bins.start[i];
-				while (counter <= vis.data.bins.end[i]) {
+				var counter = vis.data.bins.ranges[i].start;
+				while (counter <= vis.data.bins.ranges[i].end) {
 					if (typeof vis.data.bins.data[i] === "undefined") {
 						vis.data.bins.data[i] = [];
 					}
@@ -147,13 +145,9 @@ var SetVis = (function(vis) {
 				}
 			}
 		},
-		updateBinRanges: function(start, end) {
-			if (start && start.length > 0) {
-				vis.data.bins.start = start;
-			}
-
-			if (end && end.length > 0) {
-				vis.data.bins.end = end;
+		updateBinRanges: function(ranges) {
+			if (ranges && ranges.length > 0) {
+				vis.data.bins.ranges = ranges;
 			}
 		}
 	};

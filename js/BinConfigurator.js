@@ -8,54 +8,111 @@ var SetVis = (function(vis) {
     this.defaults = this.defaults || initializer.bins;
     this.onSaveCallback = initializer.onSaveCallback;
     this.templates = {
+	    "totalBins": function(k) {
+		    return '<div class="form-horizontal">' +
+			    '<div class="form-group">' +
+			      '<label class="col-md-5 control-label">Number of bins:</label>' +
+			      '<div class="col-md-2">' +
+			        '<input type="text" class="bin-count form-control" value="' + k + '"/>' +
+			      '</div>' +
+			    '</div>' +
+		    '</div>';
+	    },
+	    "form": function() {
+		    return '<div class="row">' +
+			    '<div class="col-md-1"><label class="control-label">Bin</label></div>' +
+			    '<div class="col-md-3"><label class="control-label">From</label></div>' +
+			    '<div class="col-md-3"><label class="control-label">To</label></div>' +
+		    '</div>' +
+		    '<form class="form-horizontal" id="binForm"></form>';
+	    },
       "binRow": function(binIndex, startIdx, endIdx) {
-        return '<div class="bin-range">' +
-          '<span class="">' + (binIndex + 1) + '</span>' +
-          '<input class="bin-start" type="text" value="' + (startIdx + 1) + '"/>' +
-          '<input class="bin-end" type="text" value="' + (endIdx + 1) + '">' +
-          '</div>';
+        return '<div class="form-group bin-range">' +
+	        '<label class="col-md-1 control-label">' + (binIndex + 1) + '</label>' +
+          '<div class="col-md-3">' +
+            '<input class="bin-start form-control" type="text" value="' + (startIdx + 1) + '"/>' +
+          '</div>' +
+          '<div class="col-md-3">' +
+            '<input class="bin-end form-control" type="text" value="' + (endIdx + 1) + '">' +
+          '</div>' +
+        '</div>';
       }
     };
   }
 
   BinConfigurator.prototype = {
     init: function() {
-      var binRanges = createBinRanges(this.bins);
 
-      function createBinRanges(bins) {
-        var result = [];
-        for (var i = 0, len = bins.start.length, range; i < len; i++) {
-          range = {};
-          range.start = bins.start[i];
-          range.end = bins.end[i];
-          result.push(range);
-        }
-        return result;
-      }
+	    //append input for number of bins (k)
+      $(this.container).append(this.templates.totalBins(this.bins.k));
 
-      console.log("binRanges ", binRanges);
-
-      $(this.container).append("<strong>TODO: add bin size (k)</strong>");
-
-      for (var i = 0; i < binRanges.length; i++) {
-        this.appendBinRow(i, binRanges[i]);
+	    //append input ranges for bins
+	    $(this.container).append(this.templates.form());
+      for (var i = 0; i < this.bins.ranges.length; i++) {
+        this.appendBinRow(i, this.bins.ranges[i]);
       }
 
       //save and cancel buttons
-      $(this.container).append("<button class='btn btn-primary btn-sm' id='saveBtn'>Save Changes</button><button class='btn btn-sm btn-default' id='resetBtn'>Reset</button>");
+      //$(this.container).append("<button class='btn btn-primary btn-sm' id='saveBtn'>Save Changes</button><button class='btn btn-sm btn-default' id='resetBtn'>Reset</button>");
+	    $(this.container).append("<button class='btn btn-primary btn-sm' id='saveBtn'>Save Changes</button>");
 
       //attach handler
       this.attachEventHandler();
     },
     appendBinRow: function(index, bin) {
-      $(this.container).append(this.templates.binRow.call(this, index, bin.start, bin.end));
+      $(this.container).find('#binForm').append(this.templates.binRow.call(this, index, bin.start, bin.end));
     },
     attachEventHandler: function() {
       var self = this;
 
+	    //input for k
+	    $(this.container).find('.bin-count').on('change', function() {
+		    if (parseInt($(this).val()) !== self.bins.k) {
+					self.bins.k = parseInt($(this).val());
+			    self.bins.ranges = [];
+			    initBins();
+			    redrawBinRanges();
+		    }
+	    });
+
+	    function initBins() {
+		    var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
+			    H = elements_per_degree.getList(), //histogram data
+			    n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
+			    ind = 0,
+			    leftElements = n,
+			    binSize,
+			    s;
+
+		    //console.log("H ", H, "n ", n , "b ", b);
+
+		    for (var bin = 0; bin < self.bins.k; bin++) {
+			    self.bins.ranges[bin] = {};
+			    self.bins.ranges[bin].start = ind;
+			    binSize = H[ind];
+			    s = leftElements / (self.bins.k - bin);
+			    while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
+				    ind++;
+				    binSize += H[ind];
+			    }
+			    self.bins.ranges[bin].end = ind;
+			    leftElements -= binSize;
+			    ind++;
+		    }
+	    }
+
+	    function redrawBinRanges() {
+		    $(self.container).find('#binForm')
+			    .empty();
+
+		    for (var i = 0; i < self.bins.ranges.length; i++) {
+			    self.appendBinRow(i, self.bins.ranges[i]);
+		    }
+	    }
+
+	    //save button
       $(this.container).find('#saveBtn').on("click", function() {
-        var startArr = [],
-            endArr = [];
+        var ranges = [];
 
         console.log("save button clicked");
 
@@ -63,18 +120,17 @@ var SetVis = (function(vis) {
           var start = parseInt($(this).find('input.bin-start').val()) - 1,
               end = parseInt($(this).find('input.bin-end').val()) - 1;
 
-          startArr.push(start);
-          endArr.push(end);
+	        ranges.push({ start: start, end: end });
         });
 
         //update bin ranges
-        vis.helpers.updateBinRanges(startArr, endArr);
+        vis.helpers.updateBinRanges(ranges);
 
         //update number of bins
         vis.data.bins.k = $(self.container).find('.bin-range').length;
         vis.helpers.classifyBinData();
 
-        console.log("startArr ", startArr, "endArr ", endArr);
+        console.log("ranges ", ranges);
 
         if (self.onSaveCallback) {
           self.onSaveCallback.call(this);
@@ -85,10 +141,13 @@ var SetVis = (function(vis) {
 
       });
 
+	    //reset button
+	    /*
       $(this.container).find('#resetBtn').on("click", function() {
         //reset to default values
         
       });
+      */
     }
   };
 

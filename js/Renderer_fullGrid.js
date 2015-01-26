@@ -46,15 +46,6 @@ var SetVis = (function(vis) {
 			color: undefined,
 			radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
 		};
-		/* deprecated
-		this.degreeHist = [];
-		this.bins = {
-			k: vis.data.grid.length >= 5 ? 5 : vis.data.grid.length,
-			start: [],
-			end: [],
-			data: []
-		};
-		*/
 		this.selectedSubset = undefined;
 		this.init();
 	}
@@ -72,15 +63,6 @@ var SetVis = (function(vis) {
 			//this.data = new vis.Parser().helpers.transpose(vis.data.grid);
 			//this.data = vis.data.fullGrid;
 			this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
-
-			//compute degree histogram
-			/* deprecated
-			var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid);
-			this.degreeHist = elements_per_degree.getList();
-
-			//initialize bins
-			this.initBins();
-			*/
 
 			this.binningView = new BinningView({
 				setRenderer: this,
@@ -115,56 +97,22 @@ var SetVis = (function(vis) {
 
 			return this;
 		},
-		/* deprecated
-		initBins: function() {
-			var H = this.degreeHist, //histogram data
-				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
-				b = vis.data.maxDegree, //max degree in histogram data
-				ind = 0,
-				leftElements = n,
-				binSize,
-				s;
-
-			//console.log("H ", H, "n ", n , "b ", b);
-
-			for (var bin = 0; bin < this.bins.k; bin++) {
-				this.bins.start[bin] = ind;
-				binSize = H[ind];
-				s = leftElements / (this.bins.k - bin);
-				while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
-					ind++;
-					binSize += H[ind];
-				}
-				this.bins.end[bin] = ind;
-				leftElements -= binSize;
-				ind++;
-			}
-
-			this.classifyData();
-
-			console.log("bins initialized ", this.bins);
+		unbindEventHandlers: function() {
+			$('.ui-controls .btn-edit-binning').unbind('click');
+			$('.ui-controls .btn-expand-all').unbind('click');
+			$('.ui-controls .btn-collapse-all').unbind('click');
+			$('.ui-controls .btn-remove-selection').unbind('click');
 		},
-		classifyData: function() {
-			var gridData = vis.helpers.transpose(vis.data.fullGrid);
-			for (var i = 0; i < this.bins.k; i++) {
-				var counter = this.bins.start[i];
-				while (counter <= this.bins.end[i]) {
-					if (typeof this.bins.data[i] === "undefined") {
-						this.bins.data[i] = [];
-					}
-					this.bins.data[i].push(gridData[counter]);
-					counter++;
-				}
-			}
-		},
-		*/
 		setupControls: function() {
 			var self = this;
+
+			this.unbindEventHandlers();
 
 			//setup modal window for binning
 			$('#binningViewModal').modal({ show: false });
 
 			$('.ui-controls .btn-edit-binning').on("click", function() {
+				console.log("Edit Binning clicked");
 				self.binningView.render();
 				$('#binningViewModal').modal('show');
 			});
@@ -199,8 +147,10 @@ var SetVis = (function(vis) {
 				width = this.settings.canvas.width,
 				height = this.settings.canvas.height;
 
-			//empty canvas first
-			$('#canvas').empty();
+			//empty canvas first and append tooltip container
+			$('#canvas')
+				.empty()
+				.append('<div id="tooltip" class="hidden"></div>');
 
 			this.svg = d3.select('#canvas').append("svg")
 				.attr("width", width + self.settings.canvas.margin.left)
@@ -588,8 +538,8 @@ var SetVis = (function(vis) {
 				var result = [];
 				for (var i = 0; i < vis.data.bins.k; i++) {
 					var arr = [],
-						counter = vis.data.bins.start[i];
-					while (counter <= vis.data.bins.end[i]) {
+						counter = vis.data.bins.ranges[i].start;
+					while (counter <= vis.data.bins.ranges[i].end) {
 						arr.push(counter+1);
 						counter++;
 					}

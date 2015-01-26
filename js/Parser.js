@@ -15,8 +15,6 @@ var SetVis = (function(vis) {
 		maxDegree: 0,
 		bins: {
 			k: 5,
-			start: [],
-			end: [],
 			data: [],
 			ranges: []
 		}
