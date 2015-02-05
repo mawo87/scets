@@ -8,6 +8,9 @@
 
 .ui-controls .fa {
   margin-right: 5px; }
+.ui-controls #buttonBar {
+  float: left;
+  margin-top: 30px; }
 
 #canvas {
   /* margin: 1em auto 4em auto; */
@@ -17,16 +20,14 @@
   clear: both;
   /* start deprecated */
   /* end deprecated */
-  /*******
-  * LEGEND
-  ********/
   /*********
   * TOOLTIPS
   *********/ }
   #canvas .background {
     fill: #FFFFFF; }
   #canvas .x-label.highlighted {
-    fill: orange; }
+    fill: #2b8cbe;
+    font-weight: bold; }
   #canvas .y-label-group rect.btn-background {
     fill: #666666; }
   #canvas .y-label-group .icon-expand {
@@ -46,7 +47,8 @@
   #canvas .y-label-group:hover {
     cursor: pointer; }
   #canvas .degree-label.highlighted {
-    fill: orange; }
+    fill: #2b8cbe;
+    font-weight: bold; }
   #canvas rect.set-background {
     stroke: #333333;
     stroke-width: 1;
@@ -58,51 +60,36 @@
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out; }
     #canvas circle.aggregate.selected {
-      fill: rgba(255, 165, 0, 0.5); }
+      fill: rgba(43, 140, 190, 0.5); }
     #canvas circle.aggregate:hover {
-      /* cursor: pointer; */
-      fill: orange !important;
-      /*
-      stroke: orange;
-      stroke-width: 3;
-      */ }
+      /* cursor: pointer; */ }
   #canvas circle.subset {
     -moz-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out; }
     #canvas circle.subset.selected {
-      fill: orange; }
+      fill: #2b8cbe; }
     #canvas circle.subset.highlighted {
-      fill: rgba(255, 165, 0, 0.5); }
+      fill: rgba(43, 140, 190, 0.5); }
     #canvas circle.subset:hover {
       cursor: pointer;
       /* opacity: 0.75; */
-      fill: orange !important;
-      /*
-      stroke: orange;
-      stroke-width: 3;
-      */ }
+      fill: #2b8cbe !important; }
   #canvas path.highlight-segment {
-    fill: orange; }
+    fill: #2b8cbe; }
   #canvas circle.subset-child.selected {
-    fill: rgba(255, 165, 0, 0.5); }
+    fill: rgba(43, 140, 190, 0.5); }
   #canvas circle.subset-child:hover {
     cursor: pointer;
     /* opacity: 0.75; */
-    fill: orange !important;
-    /*
-    stroke: orange;
-    stroke-width: 3;
-    */ }
+    fill: #2b8cbe !important; }
   #canvas text {
     font-size: 0.8em; }
     #canvas text.active {
-      fill: orange; }
+      fill: #2b8cbe; }
   #canvas line.grid-line {
     stroke: #FFFFFF; }
-  #canvas #legend h3.legend-title {
-    font-size: 0.8em; }
   #canvas #tooltip {
     position: absolute;
     width: 200px;
@@ -175,6 +162,22 @@
     shape-rendering: crispEdges; }
   .degree-hist .yaxis text {
     fill: #000000; }
+
+/*******
+* LEGEND
+********/
+#legend {
+  /* padding: 1.5em 0 0 1.5em; */
+  width: 300px; }
+  #legend h3.legend-title {
+    font-size: 0.8em; }
+  #legend li.key {
+    border-top-width: 15px;
+    border-top-style: solid;
+    font-size: .75em;
+    /* width: 10%; */
+    padding-left: 0;
+    padding-right: 0; }
 
 /**************
 * ELEMENT-TABLE

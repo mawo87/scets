@@ -91,6 +91,11 @@ var SetVis = (function(vis) {
 		addSubset: function(subset) {
 			this.subsets.push(subset);
 			this.count += subset.count;
+		},
+		getTotalElements: function() {
+			return this.subsets.reduce(function(prev, current) {
+				return { count: prev.count + current.count };
+			}).count;
 		}
 	};
 
