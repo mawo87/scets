@@ -6,6 +6,7 @@ var SetVis = (function(vis) {
 	vis.data = {
 		sets: [],
 		elements: [],
+		aggregates: [],
 
 		grid: [],
 		fullGrid: [],

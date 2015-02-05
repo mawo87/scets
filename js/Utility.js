@@ -145,6 +145,63 @@ var SetVis = (function(vis) {
 				}
 			}
 		},
+		/* creates aggregate data for bins */
+		createAggregatedData: function(data) {
+
+			var gridData = vis.helpers.transpose(vis.data.fullGrid),
+				result = d3.range(data.length).map(function(i) {
+					return Array.apply(null, new Array(gridData[0].length)).map(function(d) {
+						return new vis.Aggregate();
+					});
+				});
+
+			console.log("data ", data);
+
+			for (var i = 0, len = data.length, current_block; i < len; i++) {
+				current_block = data[i];
+				for (var j = 0, l = current_block.length; j < l; j++) {
+					for (var x = 0, innerLength = current_block[j].length; x < innerLength; x++) {
+						result[i][x].addSubset(current_block[j][x]);
+						if (result[i][x].getTotalElements() > vis.data.max) {
+							vis.data.max = result[i][x].getTotalElements();
+						}
+					}
+				}
+			}
+
+			vis.data.aggregates = result;
+
+			return result;
+		},
+		/* creates a sorted array of unique values based on the elements and aggregates array */
+		computeSortedValuesArray: function(elements, aggregates) {
+			var result = elements.map(function(el) {
+					return el.degree;
+				});
+
+			for (var i = 0, len = aggregates.length; i < len; i++) {
+				for (var j = 0, l = aggregates[i].length; j < l; j++) {
+					if (result.indexOf(aggregates[i][j].count) != -1) {
+						result.push(aggregates[i][j].count);
+					}
+				}
+			}
+
+			//eliminate duplicates and sort ascending
+			return vis.helpers.arrayUnique(result).sort(function(a, b) { return a-b; });
+		},
+		arrayUnique: function(array) {
+			var a = array.concat();
+			for(var i=0; i<a.length; ++i) {
+				for(var j=i+1; j<a.length; ++j) {
+					if(a[i] === a[j]) {
+						a.splice(j--, 1);
+					}
+				}
+			}
+
+			return a;
+		},
 		updateBinRanges: function(ranges) {
 			if (ranges && ranges.length > 0) {
 				vis.data.bins.ranges = ranges;

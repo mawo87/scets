@@ -16,7 +16,8 @@
     <script type="text/javascript" src="dist/js/Utility.js"></script>
     <script type="text/javascript" src="dist/js/dataStructure.js"></script>
     <script type="text/javascript" src="dist/js/app.js"></script>
-    <!-- <link rel="stylesheet" type="text/css" href="lib/colorbrewer/colorbrewer.css"> -->
+    <script type="text/javascript" src="lib/colorbrewer/colorbrewer.js"></script>
+    <link rel="stylesheet" type="text/css" href="lib/colorbrewer/colorbrewer.css">
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="dist/css/layout.css">
@@ -32,10 +33,13 @@
         <div class="ui-row"></div>
             <div class="ui-column ui-layout-center">
                 <div class="ui-controls">
-                    <button class="btn btn-primary btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
-                    <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
-                    <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
-                    <button class="btn btn-default btn-sm btn-remove-selection"><i class="fa fa-remove"></i>Remove Selection</button>
+                    <div id="buttonBar">
+                        <button class="btn btn-primary btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
+                        <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
+                        <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
+                        <button class="btn btn-default btn-sm btn-remove-selection"><i class="fa fa-remove"></i>Remove Selection</button>
+                    </div>
+                    <div id="legend" class="pull-right"></div>
                 </div>
                 <div id="canvas"></div>
             </div>

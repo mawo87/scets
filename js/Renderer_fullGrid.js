@@ -24,9 +24,7 @@ var SetVis = (function(vis) {
 			subset: {
 				r: 6
 			},
-			color: {
-				range: ['#FFF7FB', '#023858']
-			},
+			colors: colorbrewer.Reds[9],
 			labelButton: {
 				width: 14,
 				height: 14,
@@ -40,12 +38,14 @@ var SetVis = (function(vis) {
 		};
 		this.max_sets_per_group = 0;
 		this.no_set_groups = 0;
+		this.aggregated_bin_data = [];
 		this.scales = {
 			x: undefined,
 			y: undefined,
 			color: undefined,
 			radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
 		};
+		this.sortedValues = [];
 		this.selectedSubset = undefined;
 		this.init();
 	}
@@ -60,18 +60,26 @@ var SetVis = (function(vis) {
 				return;
 			}
 
+			this.computeWidth();
+
 			//this.data = new vis.Parser().helpers.transpose(vis.data.grid);
 			//this.data = vis.data.fullGrid;
-			this.max_sets_per_group = this.settings.canvas.width / this.getTotalSetWidth();
+			this.max_sets_per_group = Math.ceil(this.settings.canvas.width / this.getTotalSetWidth());
 
 			this.binningView = new BinningView({
 				setRenderer: this,
 				container: "#binningViewModal"
 			});
 
+			this.aggregated_bin_data = vis.helpers.createAggregatedData(vis.data.bins.data);
+
+			this.sortedValues = vis.helpers.computeSortedValuesArray(vis.data.elements, vis.data.aggregates);
+
 			this.setupControls();
 
 			initScales();
+
+			this.setupLegend();
 
 			//initialize table
 			this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
@@ -90,12 +98,35 @@ var SetVis = (function(vis) {
 					.rangeBands([0, self.getSetInnerHeight()])
 					.domain(d3.range(vis.data.bins.k));
 
+				/*
 				self.scales.color = d3.scale.linear()
 					.domain([vis.data.min, vis.data.max])
-					.range(self.settings.color.range);
+					.range([0, self.settings.colors.length - 1]);
+				*/
+
+				/*
+				self.scales.color = d3.scale.quantize()
+					.domain([vis.data.min, vis.data.max])
+					.range(self.settings.colors);
+				*/
+
+				self.scales.color = d3.scale.quantile()
+					.domain(self.sortedValues)
+					.range(self.settings.colors);
+
 			}
 
 			return this;
+		},
+		computeWidth: function() {
+			var $container = $(".ui-layout-center"),
+				containerWidth = $container.width(),
+				padding = {
+					left: parseInt($container.css("padding-left").replace("px", "")),
+					right: parseInt($container.css("padding-right").replace("px", ""))
+				};
+
+			this.settings.canvas.width = containerWidth - this.settings.canvas.margin.left + padding.left + padding.right;
 		},
 		unbindEventHandlers: function() {
 			$('.ui-controls .btn-edit-binning').unbind('click');
@@ -141,6 +172,36 @@ var SetVis = (function(vis) {
 				self.clearSelection();
 				self.table.clear();
 			});
+		},
+		setupLegend: function() {
+			var self = this;
+
+			/*
+			console.log("colors.quantiles() ", this.scales.color.quantiles());
+			console.log("colors(3) ", this.scales.color(3));
+			*/
+
+			d3.select("#legend")
+				.append("h5")
+				.text("No. of elements:");
+
+			var legend = d3.select("#legend")
+				.append("ul")
+				.attr("class", "list-inline");
+
+			var keys = legend.selectAll("li.key")
+				.data(this.scales.color.range())
+				.enter()
+				.append("li")
+				.attr("class", "key")
+				.style("border-top-color", String)
+				.style("width", 100/this.settings.colors.length + "%")
+				.text(function(d) {
+					var r = self.scales.color.invertExtent(d);
+					//console.log("r ", r);
+					return "≥ " + Math.round(r[0]);
+				});
+
 		},
 		render: function() {
 			var self = this,
@@ -385,6 +446,7 @@ var SetVis = (function(vis) {
 					.attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
 					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
 					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
+					//.attr("fill", function(d) { return d.count > 0 ? self.settings.colors[Math.ceil(self.scales.color(d.count))] : "#FFFFFF"; });
 					.attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; });
 			});
 
@@ -527,12 +589,11 @@ var SetVis = (function(vis) {
 			//this.max_sets_per_group = 10;
 
 			var self = this,
-				aggregated_bin_data = createAggregatedData(vis.data.bins.data),
-				transposed = vis.helpers.transpose(aggregated_bin_data),
+				transposed = vis.helpers.transpose(this.aggregated_bin_data),
 				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
 				data_y_axis = createYAxisLabelData();
 
-			console.log("aggregated_bin_data ", aggregated_bin_data);
+			console.log("aggregated_bin_data ", this.aggregated_bin_data);
 
 			function createYAxisLabelData() {
 				var result = [];
@@ -551,30 +612,7 @@ var SetVis = (function(vis) {
 
 			console.log("vis.data.bins ", vis.data.bins);
 
-			function createAggregatedData(data) {
-
-				var gridData = vis.helpers.transpose(vis.data.fullGrid),
-					result = d3.range(data.length).map(function(i) {
-						return Array.apply(null, new Array(gridData[0].length)).map(function(d) {
-							return new vis.Aggregate();
-						});
-					});
-
-				console.log("data ", data);
-
-				for (var i = 0, len = data.length, current_block; i < len; i++) {
-					current_block = data[i];
-					for (var j = 0, l = current_block.length; j < l; j++) {
-						for (var x = 0, innerLength = current_block[j].length; x < innerLength; x++) {
-							result[i][x].addSubset(current_block[j][x]);
-						}
-					}
-				}
-
-				return result;
-			}
-
-			console.log("createAggregatedData ", createAggregatedData(vis.data.bins.data));
+			console.log("aggregated bin data ", this.aggregated_bin_data);
 
 			//set number of set groups
 			this.no_set_groups = data_per_setGroup.length;
@@ -634,7 +672,8 @@ var SetVis = (function(vis) {
 					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for aggregates with 0 elements
 					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show aggregates with 0 elements
 					.attr("data-bin", function(d, i) { return i; })
-					.style("fill", function(d) { return self.scales.color(d.count); })
+					//.style("fill", function(d) { return self.settings.colors[Math.ceil(self.scales.color(d.getTotalElements()))]; })
+					.style("fill", function(d) { return self.scales.color(d.getTotalElements()); })
 					.on("mouseover", onMouseover)
 					.on("mouseout", onMouseout)
 					.on("click", selectHandler);

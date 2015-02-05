@@ -67,7 +67,7 @@ SetVis = (function(vis) {
 				//append circle segment
 				svg.append("path")
 					.attr("d", arc)
-					.attr("fill", "orange")
+					.attr("fill", "#2B8CBE")
 					.attr("transform", "translate(" + (width / 2) + ", " + height / 2 + ")");
 			}
 		}

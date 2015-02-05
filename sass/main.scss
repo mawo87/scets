@@ -3,6 +3,7 @@ $space: 4px;
 $listWidth: 180px;
 $labelWidth: 60px;
 $numberWidth: 30px;
+$highlightColor: #2B8CBE;
 
 .ui-header {
   .title, .subtitle {
@@ -22,6 +23,11 @@ $numberWidth: 30px;
   .fa {
     margin-right: 5px;
   }
+
+  #buttonBar {
+    float: left;
+    margin-top: 30px;
+  }
 }
 
 #canvas {
@@ -38,7 +44,8 @@ $numberWidth: 30px;
 
   .x-label {
     &.highlighted {
-      fill: rgba(255, 165, 0, 1);
+      fill: rgba($highlightColor, 1);
+      font-weight: bold;
     }
   }
 
@@ -80,7 +87,8 @@ $numberWidth: 30px;
 
   .degree-label {
     &.highlighted {
-      fill: rgba(255, 165, 0, 1);
+      fill: rgba($highlightColor, 1);
+      font-weight: bold;
     }
   }
 
@@ -98,16 +106,12 @@ $numberWidth: 30px;
     transition: all 0.3s ease-in-out;
 
     &.selected {
-      fill: rgba(255, 165, 0, 0.5);
+      fill: rgba($highlightColor, 0.5);
     }
 
     &:hover {
       /* cursor: pointer; */
-      fill: orange !important;
-      /*
-      stroke: orange;
-      stroke-width: 3;
-      */
+
     }
   }
 
@@ -118,42 +122,34 @@ $numberWidth: 30px;
     transition: all 0.3s ease-in-out;
 
     &.selected {
-      fill: rgba(255, 165, 0, 1);
+      fill: rgba($highlightColor, 1);
     }
 
     &.highlighted {
-      fill: rgba(255, 165, 0, 0.5);
+      fill: rgba($highlightColor, 0.5);
     }
 
     &:hover {
       cursor: pointer;
       /* opacity: 0.75; */
-      fill: orange !important;
-      /*
-      stroke: orange;
-      stroke-width: 3;
-      */
+      fill: rgba($highlightColor, 1) !important;
     }
   }
 
   path.highlight-segment {
-    fill: rgba(255, 165, 0, 1);
+    fill: rgba($highlightColor, 1);
   }
 
   /* start deprecated */
   circle.subset-child {
     &.selected {
-      fill: rgba(255, 165, 0, 0.5);
+      fill: rgba($highlightColor, 0.5);
     }
 
     &:hover {
       cursor: pointer;
       /* opacity: 0.75; */
-      fill: orange !important;
-      /*
-      stroke: orange;
-      stroke-width: 3;
-      */
+      fill: rgba($highlightColor, 1) !important;
     }
   }
   /* end deprecated */
@@ -161,21 +157,12 @@ $numberWidth: 30px;
   text {
     font-size: 0.8em;
     &.active {
-      fill: orange;
+      fill: rgba($highlightColor, 1);
     }
   }
 
   line.grid-line {
     stroke: #FFFFFF;
-  }
-
-  /*******
-  * LEGEND
-  ********/
-  #legend {
-    h3.legend-title {
-      font-size: 0.8em;
-    }
   }
 
   /*********
@@ -281,6 +268,27 @@ $numberWidth: 30px;
     text {
       fill: #000000;
     }
+  }
+}
+
+/*******
+* LEGEND
+********/
+#legend {
+  /* padding: 1.5em 0 0 1.5em; */
+  width: 300px;
+
+  h3.legend-title {
+    font-size: 0.8em;
+  }
+
+  li.key {
+    border-top-width: 15px;
+    border-top-style: solid;
+    font-size: .75em;
+    /* width: 10%; */
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
