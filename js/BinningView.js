@@ -2,8 +2,8 @@ var scats = (function(vis) {
 
   /**
    * @class BinningView
-   * @classdesc The BinningView consists of a histogram view and the configurator for manipulating bin settings.
-   * @memberof scats
+   * @classDesc The BinningView consists of a histogram view and the configurator for manipulating bin settings.
+   * @memberOf scats
    *
    * @property {scats.Renderer} setRenderer - A reference to the renderer instance
    * @property {string} container - The container where the binning view will be rendered in
@@ -32,7 +32,7 @@ var scats = (function(vis) {
      * Renders the HTML into the provided container.
      * It also appends a histogram and initializes the BinConfigurator.
      *
-     * @memberof scats.BinningView
+     * @memberOf scats.BinningView
      * @method render
      */
     render: function () {
@@ -65,7 +65,7 @@ var scats = (function(vis) {
     /**
      * Renders a histogram of elements per degree.
      *
-     * @memberof scats.BinningView
+     * @memberOf scats.BinningView
      * @method renderHistogram
      */
     renderHistogram: function () {

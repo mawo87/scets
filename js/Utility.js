@@ -3,7 +3,7 @@ var scats = (function(vis) {
 
 	/**
 	 * @description A utility object providing common helper functions
-	 * @memberof scats
+	 * @memberOf scats
 	 * @namespace scats.helpers
 	 */
 	vis.helpers = {
@@ -11,7 +11,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name intersect
 		 * @description Calculates the intersection of two arrays a and b
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {array} a - The first array.
 		 * @param {array} b - The second array.
 		 * @returns {array} - The intersection of array a and b.
@@ -27,7 +27,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name createZeroToNArray
 		 * @description Creates an array of length n, starting from 0 to n.
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {array} n - The length of the array array.
 		 * @returns {array} - An array from 0 to n.
 		 * @static
@@ -39,7 +39,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name createNumbersArray
 		 * @description Creates an array of numbers from from to to.
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {int} from - The starting value.
 		 * @param {int} to - The end value.
 		 * @returns {array} - An array from from to to.
@@ -55,7 +55,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name chunk
 		 * @description Splits array into chunks of size n. From: http://stackoverflow.com/questions/8495687/split-array-into-chunks/10456644#10456644
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {array} arr - The array which has to be split.
 		 * @param {int} chunk_size - The number of chunks the resulting array should contain.
 		 * @returns {array} - A two-dimensional array, e.g., [[1,2,3],[4,5,6],[7,8,9],[10]]
@@ -70,7 +70,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name getElementsGroupedBySetAndDegree
 		 * @description Creates a set occurrence map for the given subset
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {object} subset - The subset instance.
 		 * @returns {object} - An object of the following form: { set1: { "2" : { count: 1, degree: 2 }, count: 1, set: set1 } }
 		 */
@@ -125,7 +125,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name transpose
 		 * @description Creates the transposte of a matrix, i.e., it swaps rows and cols in a matrix
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {array} a - The matrix.
 		 * @returns {array} - Returns the input matrix with columns and rows swapped
 		 */
@@ -240,7 +240,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name arrayUnique
 		 * @description Eliminates duplicates in an input array
-		 * @memberof scats.helpers
+		 * @memberOf scats.helpers
 		 * @param {array} array - The input array.
 		 * @returns {array} - Returns the input without duplicates.
 		 */

@@ -2,8 +2,8 @@ var scats = (function(vis) {
 
 	/**
 	 * @class Renderer
-	 * @classdesc The visualization's rendering component
-	 * @memberof scats
+	 * @classDesc The visualization's rendering component
+	 * @memberOf scats
 	 *
 	 * @property {object} settings - The default setting values
 	 * @property {object} settings.canvas - The default settings for our canvas
@@ -76,7 +76,7 @@ var scats = (function(vis) {
 		/**
 		 * Initializes the Renderer, i.e., common place for calling initialization tasks.
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method init
 		 */
 		init: function() {
@@ -159,7 +159,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the available width of the canvas
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method computeWidth
 		 */
 		computeWidth: function() {
@@ -175,7 +175,7 @@ var scats = (function(vis) {
 		/**
 		 * Unbinds all event handlers for the UI control elements
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method unbindEventHandlers
 		 */
 		unbindEventHandlers: function() {
@@ -187,7 +187,7 @@ var scats = (function(vis) {
 		/**
 		 * Binds click events to the UI control elements
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method setupControls
 		 */
 		setupControls: function() {
@@ -232,7 +232,7 @@ var scats = (function(vis) {
 		/**
 		 * Creates the HTML for the legend based on the scales.color object
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method setupLegend
 		 */
 		setupLegend: function() {
@@ -271,7 +271,7 @@ var scats = (function(vis) {
 		/**
 		 * Renders the visualization data, common place for drawing the canvas and calling the renderSets method
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method render
 		 */
 		render: function() {
@@ -301,7 +301,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the total outer width of a set rectangle
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method getTotalSetWidth
 		 * @returns {int} - The total outer width of a set rectangle
 		 */
@@ -311,7 +311,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the inner height of a set rectangle
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method getSetInnerHeight
 		 * @returns {int} - The inner height of a set rectangle (without the border)
 		 */
@@ -321,7 +321,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the outer height of a set rectangle
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method getSetOuterHeight
 		 * @returns {int} - The outer height of a set rectangle (including the border)
 		 */
@@ -331,7 +331,7 @@ var scats = (function(vis) {
 		/**
 		 * Clears the current selection.
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method clearSelection
 		 */
 		clearSelection: function() {
@@ -431,7 +431,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the height of the canvas
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method getCanvasHeight
 		 * @return {int} - The height of the canvas
 		 */
@@ -441,7 +441,7 @@ var scats = (function(vis) {
 		/**
 		 * Sets the height of the canvas
 		 *
-		 * @memberof scats.Renderer
+		 * @memberOf scats.Renderer
 		 * @method setCanvasHeight
 		 * @param {int} height - The height value to be set.
 		 */

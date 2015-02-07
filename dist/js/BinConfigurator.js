@@ -2,15 +2,15 @@ var scats = (function(vis) {
 
 	/**
 	 * @class BinConfigurator
-	 * @classdesc The BinConfigurator component allows users to change the default bin settings
-	 * @memberof scats
+	 * @classDesc The BinConfigurator component allows users to change the default bin settings
+	 * @memberOf scats
 	 *
 	 * @property {string} container - The container where the binning view will be rendered in
 	 * @property {array} bins - An array of bins.
 	 * @property {defaults} defaults
 	 * @property {function} onSaveCallback
 	 * @property {object} templates
-	 * @params {object}initializer
+	 * @params {object} initializer
 	 */
   function BinConfigurator(initializer) {
     this.container = initializer.container;
@@ -58,7 +58,7 @@ var scats = (function(vis) {
 		 * - creates a save button<br/>
 		 * - attaches event handlers<br/>
 		 *
-		 * @memberof scats.BinConfigurator
+		 * @memberOf scats.BinConfigurator
 		 * @method init
 		 */
     init: function() {
@@ -82,7 +82,7 @@ var scats = (function(vis) {
 		/**
 		 * Adds a new row to the configurator
 		 *
-		 * @memberof scats.BinConfigurator
+		 * @memberOf scats.BinConfigurator
 		 * @method appendBinRow
 		 * @param {int} index - The index of the bin
 		 * @param {object} bin - The bin object to be added
@@ -93,7 +93,7 @@ var scats = (function(vis) {
 		/**
 		 * Attaches click handler to the form elements.
 		 *
-		 * @memberof scats.BinConfigurator
+		 * @memberOf scats.BinConfigurator
 		 * @method attachEventHandler
 		 */
     attachEventHandler: function() {
@@ -151,7 +151,7 @@ var scats = (function(vis) {
 		/**
 		 * Removes all existing ranges and appends a new row in the form for each bin range.
 		 *
-		 * @memberof scats.BinConfigurator
+		 * @memberOf scats.BinConfigurator
 		 * @method redrawBinRanges
 		 */
 		redrawBinRanges: function () {
@@ -166,7 +166,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name updateBinRanges
 		 * @description Updates the bin ranges of the global vis.data.bins.ranges object.
-		 * @memberof scats.BinConfigurator
+		 * @memberOf scats.BinConfigurator
 		 * @param {array} ranges - The ranges array.
 		 */
 		updateBinRanges: function(ranges) {

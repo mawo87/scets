@@ -1,5 +1,15 @@
 scats = (function(vis) {
 
+
+	/**
+	 * @class Tooltip
+	 * @classDesc The tooltip class
+	 * @memberOf scats
+	 *
+	 * @property {string} container - The container where HTML code will be rendered in
+	 * @property {object} templates - An object that maps template names to template functions. The following templates are supported: aggregate, subset, subset_highlight
+	 * @params {object} initializer - An object to pass properties for initialization
+	 */
 	function Tooltip(initializer) {
 		this.container = initializer.container;
 		this.templates = {
@@ -74,6 +84,16 @@ scats = (function(vis) {
 	}
 
 	Tooltip.prototype = {
+
+		/**
+		 * Updates the Tooltip's HTML
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {object} data - A data object which is passed to the template
+		 * @param {string} template - The template name that will be used to update the tooltip.
+		 * @returns {scats.Tooltip} - The tooltip object itself.
+		 * @method update
+		 */
 		update: function(data, template) {
 			if (this.templates[template]) {
 				$(this.container).empty();
@@ -84,22 +104,54 @@ scats = (function(vis) {
 
 			return this;
 		},
+		/**
+		 * Shows the tooltip on a given position.
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {int} x - The x position of the tooltip to be placed.
+		 * @param {int} y - The y position of the tooltip to be placed.
+		 * @returns {scats.Tooltip} - The tooltip object itself.
+		 * @method show
+		 */
 		show: function(x, y) {
 			this.position(x, y);
 			d3.select(this.container).classed("hidden", false);
 			return this;
 		},
+		/**
+		 * Hides the tooltip.
+		 *
+		 * @memberOf scats.Tooltip
+		 * @method hide
+		 */
 		hide: function() {
 			d3.select(this.container).classed("hidden", true);
 			return this;
 		},
+		/**
+		 * Gets the tooltip's width
+		 *
+		 * @memberOf scats.Tooltip
+		 * @returns {int} - The width of the tooltip in px.
+		 * @method getWidth
+		 */
 		getWidth: function() {
 			return $(this.container).width();
 		},
+		/**
+		 * Sets the tooltips x and y position
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {int} left - The left offset in px.
+		 * @param {int} top - The top offset in px.
+		 * @method position
+		 */
 		position: function(left, top) {
 			d3.select(this.container)
 				.style("left", left + "px")
 				.style("top", top + "px");
+
+			return this;
 		}
 	};
 
