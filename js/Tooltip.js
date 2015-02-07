@@ -1,4 +1,4 @@
-SetVis = (function(vis) {
+scats = (function(vis) {
 
 	function Tooltip(initializer) {
 		this.container = initializer.container;
@@ -107,4 +107,4 @@ SetVis = (function(vis) {
 		Tooltip: Tooltip
 	});
 
-})(SetVis || vis);
+})(scats || vis);

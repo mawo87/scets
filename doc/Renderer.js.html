@@ -1,4 +1,32 @@
-var scats = (function(vis) {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Renderer.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Renderer.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var scats = (function(vis) {
 
     function Renderer() {
         this.settings = {
@@ -93,11 +121,11 @@ var scats = (function(vis) {
 			          binSize,
 			          s;
 
-		        for (var bin = 0; bin < this.bins.k; bin++) {
+		        for (var bin = 0; bin &lt; this.bins.k; bin++) {
 			          this.bins.start[bin] = ind;
 			          binSize = H[ind];
 			          s = leftElements / (this.bins.k - bin);
-			          while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
+			          while ((ind &lt; n - 1) &amp;&amp; (binSize + H[ind + 1] &lt;= s)) {
 				            ind++;
 				            binSize += H[ind];
 			          }
@@ -111,9 +139,9 @@ var scats = (function(vis) {
 		        console.log("bins initialized ", this.bins);
 	      },
 	      classifyData: function() {
-		        for (var i = 0; i < this.bins.k; i++) {
+		        for (var i = 0; i &lt; this.bins.k; i++) {
 			          var counter = this.bins.start[i];
-			          while (counter <= this.bins.end[i]) {
+			          while (counter &lt;= this.bins.end[i]) {
 				            if (typeof this.bins.data[i] === "undefined") {
 					              this.bins.data[i] = [];
 				            }
@@ -332,7 +360,7 @@ var scats = (function(vis) {
             d3.selectAll('.set-group').selectAll('.set .subset').each(function(d, i) {
                 //console.log("d ", d, "i ", i);
 
-                if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
+                if (typeof set_occurrence_map[d.set_name] !== "undefined" &amp;&amp; typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
                     //console.log("is ok ", this);
 
                     var cx = d3.select(this).attr("cx"),
@@ -363,7 +391,7 @@ var scats = (function(vis) {
             //first unselect all previously selected elements
             this.clearSelection();
 
-            for (var i = 0, len = vis.data.fullGrid.length; i < len; i++) {
+            for (var i = 0, len = vis.data.fullGrid.length; i &lt; len; i++) {
                 var col = vis.data.fullGrid[i],
                     cell = col[rowIndex];
 
@@ -396,7 +424,7 @@ var scats = (function(vis) {
 
                 d3.selectAll('.set-group').selectAll('.set .subset').each(function(d, i) {
                     ////console.log("d ", d, "i ", i);
-                    if (d.degree == index + 1 && d.elements.length > 0) {
+                    if (d.degree == index + 1 &amp;&amp; d.elements.length > 0) {
                         /*
                         var c = document.createElement('circle');
                         c.setAttribute("cx", this.getAttribute("cx"));
@@ -530,7 +558,7 @@ var scats = (function(vis) {
 			      subsets.each(function(d, i) {
 					      //console.log("d ", d, "i ", i);
 
-					      if (parseInt(d3.select(this).attr("data-bin")) == labelIndex && d > 0) {
+					      if (parseInt(d3.select(this).attr("data-bin")) == labelIndex &amp;&amp; d > 0) {
 						        //console.log("matched subset ", i);
 
 						        var subset_y_pos = parseInt(d3.select(this).attr("cy")),
@@ -554,7 +582,7 @@ var scats = (function(vis) {
 			      function getDataForSubset(data, index) {
 				        //console.log("data ", data, "index ", index);
 				        var result = [];
-				        for (var i = 0, len = data.length; i < len; i++) {
+				        for (var i = 0, len = data.length; i &lt; len; i++) {
 							      result.push(data[i][index]);
 					      }
 					      return result;
@@ -638,10 +666,10 @@ var scats = (function(vis) {
 
 	          function createYAxisLabelData() {
 		            var result = [];
-		            for (var i = 0; i < self.bins.k; i++) {
+		            for (var i = 0; i &lt; self.bins.k; i++) {
 			              var arr = [],
 				                counter = self.bins.start[i];
-			              while (counter <= self.bins.end[i]) {
+			              while (counter &lt;= self.bins.end[i]) {
 				                arr.push(counter+1);
 				                counter++;
 			              }
@@ -656,10 +684,10 @@ var scats = (function(vis) {
 			                  return Array.apply(null, new Array(vis.data.grid[0].length)).map(Number.prototype.valueOf, 0);
 		                });
 
-		            for (var i = 0, len = data.length; i < len; i++) {
+		            for (var i = 0, len = data.length; i &lt; len; i++) {
 			              var current_block = data[i];
-			              for (var j = 0, l = current_block.length; j < l; j++) {
-				                for (var x = 0, innerlength = current_block[j].length; x < innerlength; x++) {
+			              for (var j = 0, l = current_block.length; j &lt; l; j++) {
+				                for (var x = 0, innerlength = current_block[j].length; x &lt; innerlength; x++) {
 					                  result[i][x] += current_block[j][x];
 				                }
 			              }
@@ -670,7 +698,7 @@ var scats = (function(vis) {
 
 		        function split(a, n) {
 			          var len = a.length, out = [], i = 0;
-			          while (i < len) {
+			          while (i &lt; len) {
 				            var size = Math.ceil((len - i) / n--);
 				            out.push(a.slice(i, i += size));
 			          }
@@ -830,22 +858,22 @@ var scats = (function(vis) {
 
     BinningView.prototype = {
         render: function() {
-            var html = '<div class="modal-dialog modal-lg">' +
-                         '<div class="modal-content">' +
-                           '<div class="modal-header">' +
-                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-                             '<h4 class="modal-title">Edit <span class="semi-bold">Binning</span></h4>' +
-                           '</div>' +
-                           '<div class="modal-body">' +
-                             '<div class="ui-container">' +
-                               '<div class="ui-row">' +
-                                  '<div class="ui-column degree-hist"><h5>Elements <span class="semi-bold">per Degree</span></h5></div>'+
-                                  '<div class="ui-column custom-bins"></div>' +
-                               '</div>' +
-                             '</div>' +
-                           '</div>' +
-                         '</div>' +
-                       '</div>';
+            var html = '&lt;div class="modal-dialog modal-lg">' +
+                         '&lt;div class="modal-content">' +
+                           '&lt;div class="modal-header">' +
+                             '&lt;button type="button" class="close" data-dismiss="modal">&lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;span class="sr-only">Close&lt;/span>&lt;/button>' +
+                             '&lt;h4 class="modal-title">Edit &lt;span class="semi-bold">Binning&lt;/span>&lt;/h4>' +
+                           '&lt;/div>' +
+                           '&lt;div class="modal-body">' +
+                             '&lt;div class="ui-container">' +
+                               '&lt;div class="ui-row">' +
+                                  '&lt;div class="ui-column degree-hist">&lt;h5>Elements &lt;span class="semi-bold">per Degree&lt;/span>&lt;/h5>&lt;/div>'+
+                                  '&lt;div class="ui-column custom-bins">&lt;/div>' +
+                               '&lt;/div>' +
+                             '&lt;/div>' +
+                           '&lt;/div>' +
+                         '&lt;/div>' +
+                       '&lt;/div>';
 
             $(this.container)
                 .empty()
@@ -911,4 +939,26 @@ var scats = (function(vis) {
 
     return vis;
 
-})(scats || {});
+})(scats || {});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="scats.BinConfigurator.html">BinConfigurator</a></li><li><a href="scats.BinningView.html">BinningView</a></li><li><a href="scats.Renderer.html">Renderer</a></li></ul><h3>Namespaces</h3><ul><li><a href="scats.html">scats</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Sat Feb 07 2015 15:56:03 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

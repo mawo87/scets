@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: BinningView.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: BinningView.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var scats = (function(vis) {
+
+  /**
+   * @class
+   * BinningView
+   * @memberof scats
+   *
+   * @property {scats.Renderer} setRenderer - A reference to the renderer instance
+   * @property {string} container - The container where the binning view will be rendered in
+   * @property {scats.BinConfigurator} binConfigurator - The BinConfigurator instance
+   */
+  function BinningView(initializer) {
+    var self = this;
+    this.setRenderer = initializer.setRenderer;
+    this.container = initializer.container;
+    this.binConfigurator = new vis.BinConfigurator({
+      container: '.custom-bins',
+      bins: vis.data.bins,
+      onSaveCallback: function () {
+        console.log("save callback with renderer ", self.setRenderer);
+
+        self.setRenderer
+          .init()
+          .render();
+      }
+    });
+  }
+
+  BinningView.prototype = {
+
+    /**
+     * Renders the HTML into the provided container.
+     * It also appends a histogram and initializes the BinConfigurator.
+     *
+     * @memberof scats.BinningView
+     * @method render
+     */
+    render: function () {
+      var html = '&lt;div class="modal-dialog modal-lg">' +
+        '&lt;div class="modal-content">' +
+        '&lt;div class="modal-header">' +
+        '&lt;button type="button" class="close" data-dismiss="modal">&lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;span class="sr-only">Close&lt;/span>&lt;/button>' +
+        '&lt;h4 class="modal-title">Edit &lt;span class="semi-bold">Binning&lt;/span>&lt;/h4>' +
+        '&lt;/div>' +
+        '&lt;div class="modal-body">' +
+        '&lt;div class="ui-container">' +
+        '&lt;div class="ui-row">' +
+        '&lt;div class="ui-column degree-hist">&lt;h5>Elements &lt;span class="semi-bold">per Degree&lt;/span>&lt;/h5>&lt;/div>' +
+        '&lt;div class="ui-column custom-bins">&lt;/div>' +
+        '&lt;/div>' +
+        '&lt;/div>' +
+        '&lt;/div>' +
+        '&lt;/div>' +
+        '&lt;/div>';
+
+      $(this.container)
+        .empty()
+        .html(html);
+
+      this.binConfigurator.init();
+
+      this.renderHistogram();
+    },
+
+    /**
+     * Renders a histogram of elements per degree.
+     *
+     * @memberof scats.BinningView
+     * @method renderHistogram
+     */
+    renderHistogram: function () {
+      var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
+        data = elements_per_degree.getList();
+
+      var margin = {left: 20, top: 10},
+        width = 420,
+        barHeight = 20,
+        height = barHeight * data.length;
+
+      var xScale = d3.scale.linear()
+        .domain([0, d3.max(data)])
+        .range([0, width - margin.left]);
+
+      var yScale = d3.scale.linear()
+        .domain([0, data.length])
+        .range([0, height]);
+
+      var chart = d3.select(".degree-hist")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", barHeight * data.length + margin.top)
+        .append("g")
+        .attr("transform", function (d, i) {
+          return "translate(" + margin.left + ", " + margin.top + ")";
+        });
+
+      var bar = chart.selectAll("g")
+        .data(data)
+        .enter().append("g")
+        .attr("transform", function (d, i) {
+          return "translate(0," + i * barHeight + ")";
+        });
+
+      bar.append("rect")
+        .attr("width", xScale)
+        .attr("height", barHeight - 1)
+        .attr("y", -barHeight / 2);
+
+      bar.append("text")
+        .attr("x", function (d) {
+          return xScale(d) - 3;
+        })
+        .attr("dy", ".35em")
+        .text(function (d) {
+          return d > 0 ? d : "";
+        });
+
+      var yAxis = d3.svg.axis()
+        .orient('left')
+        .scale(yScale)
+        .tickSize(2)
+        .tickFormat(function (d, i) {
+          return i + 1;
+        })
+        .tickValues(d3.range(data.length));
+
+      chart.append('g')
+        .attr("transform", "translate(0,0)")
+        .attr('class', 'yaxis')
+        .call(yAxis);
+
+    }
+  };
+
+  return $.extend(vis, {
+    BinningView: BinningView
+  });
+
+})(scats || {});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="scats.BinConfigurator.html">BinConfigurator</a></li><li><a href="scats.BinningView.html">BinningView</a></li><li><a href="scats.Renderer.html">Renderer</a></li></ul><h3>Namespaces</h3><ul><li><a href="scats.html">scats</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Sat Feb 07 2015 15:56:03 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

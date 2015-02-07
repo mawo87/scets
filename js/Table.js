@@ -1,4 +1,4 @@
-var SetVis = (function(vis) {
+var scats = (function(vis) {
 
 	function Table(initializer) {
 		this.$container = $(initializer.container);
@@ -53,4 +53,4 @@ var SetVis = (function(vis) {
 		Table: Table
 	});
 
-})(SetVis || vis);
+})(scats || vis);

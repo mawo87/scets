@@ -1,0 +1,11 @@
+{
+  "source": {
+    "include": "js",
+    "includePattern": ".+\\.js(doc)?$"
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
+  }
+}
