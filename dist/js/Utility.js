@@ -1,8 +1,20 @@
 var scats = (function(vis) {
 
+
+	/**
+	 * @description A utility object providing common helper functions
+	 * @memberof scats
+	 * @namespace scats.helpers
+	 */
 	vis.helpers = {
-		/*
-		 * calculates the intersection of two arrays a and b
+		/**
+		 * @method
+		 * @name intersect
+		 * @description Calculates the intersection of two arrays a and b
+		 * @memberof scats.helpers
+		 * @param {array} a - The first array.
+		 * @param {array} b - The second array.
+		 * @returns {array} - The intersection of array a and b.
 		 */
 		intersect: function(a, b) {
 			var t;
@@ -11,12 +23,27 @@ var scats = (function(vis) {
 				if (b.indexOf(e) !== -1) return true;
 			});
 		},
-		/*
-		 * creates an array of length n, starting from 0 to n
+		/**
+		 * @method
+		 * @name createZeroToNArray
+		 * @description Creates an array of length n, starting from 0 to n.
+		 * @memberof scats.helpers
+		 * @param {array} n - The length of the array array.
+		 * @returns {array} - An array from 0 to n.
+		 * @static
 		 */
 		createZeroToNArray: function(n) {
 			return Array.apply(null, {length: n}).map(Number.call, Number);
 		},
+		/**
+		 * @method
+		 * @name createNumbersArray
+		 * @description Creates an array of numbers from from to to.
+		 * @memberof scats.helpers
+		 * @param {int} from - The starting value.
+		 * @param {int} to - The end value.
+		 * @returns {array} - An array from from to to.
+		 */
 		createNumbersArray: function(from, to) {
 			var result = [];
 			for (var i = from; i <= to; i++) {
@@ -24,9 +51,14 @@ var scats = (function(vis) {
 			}
 			return result;
 		},
-		/*
-		 * splits array into chunks of size n
-		 * see: http://stackoverflow.com/questions/8495687/split-array-into-chunks/10456644#10456644
+		/**
+		 * @method
+		 * @name chunk
+		 * @description Splits array into chunks of size n. From: http://stackoverflow.com/questions/8495687/split-array-into-chunks/10456644#10456644
+		 * @memberof scats.helpers
+		 * @param {array} arr - The array which has to be split.
+		 * @param {int} chunk_size - The number of chunks the resulting array should contain.
+		 * @returns {array} - A two-dimensional array, e.g., [[1,2,3],[4,5,6],[7,8,9],[10]]
 		 */
 		chunk: function(arr, chunk_size) {
 			var groups = arr.map( function(e, i) {
@@ -34,6 +66,14 @@ var scats = (function(vis) {
 			}).filter(function(e) { return e; });
 			return groups;
 		},
+		/**
+		 * @method
+		 * @name getElementsGroupedBySetAndDegree
+		 * @description Creates a set occurrence map for the given subset
+		 * @memberof scats.helpers
+		 * @param {object} subset - The subset instance.
+		 * @returns {object} - An object of the following form: { set1: { "2" : { count: 1, degree: 2 }, count: 1, set: set1 } }
+		 */
 		getElementsGroupedBySetAndDegree: function (subset) {
 			var elements = subset.elements,
 				set_occurrence_map = {};
@@ -81,7 +121,14 @@ var scats = (function(vis) {
 				getMaxEntriesCount: function() { return maxEntriesCount; }
 			};
 		},
-		/* swaps rows and cols in a matrix a */
+		/**
+		 * @method
+		 * @name transpose
+		 * @description Creates the transposte of a matrix, i.e., it swaps rows and cols in a matrix
+		 * @memberof scats.helpers
+		 * @param {array} a - The matrix.
+		 * @returns {array} - Returns the input matrix with columns and rows swapped
+		 */
 		transpose: function(a) {
 			return Object.keys(a[0]).map(
 				function (c) { return a.map(function (r) { return r[c]; }); }
@@ -189,6 +236,14 @@ var scats = (function(vis) {
 			//eliminate duplicates and sort ascending
 			return vis.helpers.arrayUnique(result).sort(function(a, b) { return a-b; });
 		},
+		/**
+		 * @method
+		 * @name arrayUnique
+		 * @description Eliminates duplicates in an input array
+		 * @memberof scats.helpers
+		 * @param {array} array - The input array.
+		 * @returns {array} - Returns the input without duplicates.
+		 */
 		arrayUnique: function(array) {
 			var a = array.concat();
 			for(var i=0; i<a.length; ++i) {
@@ -200,11 +255,6 @@ var scats = (function(vis) {
 			}
 
 			return a;
-		},
-		updateBinRanges: function(ranges) {
-			if (ranges && ranges.length > 0) {
-				vis.data.bins.ranges = ranges;
-			}
 		}
 	};
 

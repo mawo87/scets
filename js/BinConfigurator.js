@@ -1,8 +1,8 @@
 var scats = (function(vis) {
 
 	/**
-	 * @class
-	 * BinConfigurator
+	 * @class BinConfigurator
+	 * @classdesc The BinConfigurator component allows users to change the default bin settings
 	 * @memberof scats
 	 *
 	 * @property {string} container - The container where the binning view will be rendered in
@@ -160,6 +160,18 @@ var scats = (function(vis) {
 
 			for (var i = 0; i < this.bins.ranges.length; i++) {
 				this.appendBinRow(i, this.bins.ranges[i]);
+			}
+		},
+		/**
+		 * @method
+		 * @name updateBinRanges
+		 * @description Updates the bin ranges of the global vis.data.bins.ranges object.
+		 * @memberof scats.BinConfigurator
+		 * @param {array} ranges - The ranges array.
+		 */
+		updateBinRanges: function(ranges) {
+			if (ranges && ranges.length > 0) {
+				vis.data.bins.ranges = ranges;
 			}
 		}
   };

@@ -1,8 +1,8 @@
 var scats = (function(vis) {
 
 	/**
-	 * @class
-	 * Renderer
+	 * @class Renderer
+	 * @classdesc The visualization's rendering component
 	 * @memberof scats
 	 *
 	 * @property {object} settings - The default setting values

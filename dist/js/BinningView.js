@@ -1,8 +1,8 @@
 var scats = (function(vis) {
 
   /**
-   * @class
-   * BinningView
+   * @class BinningView
+   * @classdesc The BinningView consists of a histogram view and the configurator for manipulating bin settings.
    * @memberof scats
    *
    * @property {scats.Renderer} setRenderer - A reference to the renderer instance
