@@ -1,7 +1,4 @@
-/**
- * Created by martinwortschack on 05/11/14.
- */
-var SetVis = (function(vis) {
+var scats = (function(vis) {
 
 	vis.helpers = {
 		/*
@@ -98,35 +95,37 @@ var SetVis = (function(vis) {
 
 			return intersection.length / neighbor_elements.length;
 		},
-		initBins: function() {
-			var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
+		initBins: function(data, k) {
+			var elements_per_degree = vis.helpers.getElementsPerDegree(data),
 				H = elements_per_degree.getList(), //histogram data
 				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
-				b = vis.data.maxDegree, //max degree in histogram data
+				//b = vis.data.maxDegree, //max degree in histogram data
 				ind = 0,
 				leftElements = n,
 				binSize,
 				s;
 
+			var result = [];
+
 			//console.log("H ", H, "n ", n , "b ", b);
 
-			for (var bin = 0; bin < vis.data.bins.k; bin++) {
-				vis.data.bins.ranges[bin] = {};
-				vis.data.bins.ranges[bin].start = ind;
+			for (var bin = 0; bin < k; bin++) {
+				result[bin] = {};
+				result[bin].start = ind;
 				binSize = H[ind];
-				s = leftElements / (vis.data.bins.k - bin);
+				s = leftElements / (k - bin);
 				while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
 					ind++;
 					binSize += H[ind];
 				}
-				vis.data.bins.ranges[bin].end = ind;
+				result[bin].end = ind;
 				leftElements -= binSize;
 				ind++;
 			}
 
-			vis.helpers.classifyBinData();
-
 			console.log("bins initialized ", vis.data.bins);
+
+			return result;
 		},
 		classifyBinData: function() {
 
@@ -211,4 +210,4 @@ var SetVis = (function(vis) {
 
 	return vis;
 
-})(SetVis || {});
+})(scats || {});

@@ -1,7 +1,17 @@
-/**
- * Created by martinwortschack on 13.01.15.
- */
-var SetVis = (function(vis) {
+var scats = (function(vis) {
+
+	/**
+	 * @class
+	 * BinConfigurator
+	 * @memberof scats
+	 *
+	 * @property {string} container - The container where the binning view will be rendered in
+	 * @property {array} bins - An array of bins.
+	 * @property {defaults} defaults
+	 * @property {function} onSaveCallback
+	 * @property {object} templates
+	 * @params {object}initializer
+	 */
   function BinConfigurator(initializer) {
     this.container = initializer.container;
     this.bins = initializer.bins;
@@ -41,6 +51,16 @@ var SetVis = (function(vis) {
   }
 
   BinConfigurator.prototype = {
+
+		/**
+		 * Initializes the BinConfigruator:<br/>
+		 * - creates ranges for all bins<br/>
+		 * - creates a save button<br/>
+		 * - attaches event handlers<br/>
+		 *
+		 * @memberof scats.BinConfigurator
+		 * @method init
+		 */
     init: function() {
 
 	    //append input for number of bins (k)
@@ -59,9 +79,23 @@ var SetVis = (function(vis) {
       //attach handler
       this.attachEventHandler();
     },
+		/**
+		 * Adds a new row to the configurator
+		 *
+		 * @memberof scats.BinConfigurator
+		 * @method appendBinRow
+		 * @param {int} index - The index of the bin
+		 * @param {object} bin - The bin object to be added
+		 */
     appendBinRow: function(index, bin) {
       $(this.container).find('#binForm').append(this.templates.binRow.call(this, index, bin.start, bin.end));
     },
+		/**
+		 * Attaches click handler to the form elements.
+		 *
+		 * @memberof scats.BinConfigurator
+		 * @method attachEventHandler
+		 */
     attachEventHandler: function() {
       var self = this;
 
@@ -70,76 +104,41 @@ var SetVis = (function(vis) {
 		    if (parseInt($(this).val()) !== self.bins.k) {
 					self.bins.k = parseInt($(this).val());
 			    self.bins.ranges = [];
-			    initBins();
-			    redrawBinRanges();
+					self.bins.ranges = vis.helpers.initBins(vis.data.grid, self.bins.k);
+			    self.redrawBinRanges();
 		    }
 	    });
 
-	    function initBins() {
-		    var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
-			    H = elements_per_degree.getList(), //histogram data
-			    n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
-			    ind = 0,
-			    leftElements = n,
-			    binSize,
-			    s;
-
-		    //console.log("H ", H, "n ", n , "b ", b);
-
-		    for (var bin = 0; bin < self.bins.k; bin++) {
-			    self.bins.ranges[bin] = {};
-			    self.bins.ranges[bin].start = ind;
-			    binSize = H[ind];
-			    s = leftElements / (self.bins.k - bin);
-			    while ((ind < n - 1) && (binSize + H[ind + 1] <= s)) {
-				    ind++;
-				    binSize += H[ind];
-			    }
-			    self.bins.ranges[bin].end = ind;
-			    leftElements -= binSize;
-			    ind++;
-		    }
-	    }
-
-	    function redrawBinRanges() {
-		    $(self.container).find('#binForm')
-			    .empty();
-
-		    for (var i = 0; i < self.bins.ranges.length; i++) {
-			    self.appendBinRow(i, self.bins.ranges[i]);
-		    }
-	    }
-
 	    //save button
       $(this.container).find('#saveBtn').on("click", function() {
-        var ranges = [];
+				var ranges = [];
 
-        console.log("save button clicked");
+				console.log("save button clicked");
 
-        $(self.container).find('.bin-range').each(function(k, v) {
-          var start = parseInt($(this).find('input.bin-start').val()) - 1,
-              end = parseInt($(this).find('input.bin-end').val()) - 1;
+				$(self.container).find('.bin-range').each(function(k, v) {
+					var start = parseInt($(this).find('input.bin-start').val()) - 1,
+						end = parseInt($(this).find('input.bin-end').val()) - 1;
 
-	        ranges.push({ start: start, end: end });
-        });
+					ranges.push({ start: start, end: end });
+				});
 
-        //update bin ranges
-        vis.helpers.updateBinRanges(ranges);
+				//update bin ranges
+				vis.helpers.updateBinRanges(ranges);
 
-        //update number of bins
-        vis.data.bins.k = $(self.container).find('.bin-range').length;
-        vis.helpers.classifyBinData();
+				//update number of bins
+				vis.data.bins.k = $(self.container).find('.bin-range').length;
+				vis.helpers.classifyBinData();
 
-        console.log("ranges ", ranges);
+				console.log("ranges ", ranges);
 
-        if (self.onSaveCallback) {
-          self.onSaveCallback.call(this);
-        }
+				if (self.onSaveCallback) {
+					self.onSaveCallback.call(self);
+				}
 
-        //close modal window
-        $('#binningViewModal').modal('hide');
+				//close modal window
+				$('#binningViewModal').modal('hide');
 
-      });
+			});
 
 	    //reset button
 	    /*
@@ -148,15 +147,31 @@ var SetVis = (function(vis) {
         
       });
       */
-    }
+    },
+		/**
+		 * Removes all existing ranges and appends a new row in the form for each bin range.
+		 *
+		 * @memberof scats.BinConfigurator
+		 * @method redrawBinRanges
+		 */
+		redrawBinRanges: function () {
+			$(this.container).find('#binForm')
+				.empty();
+
+			for (var i = 0; i < this.bins.ranges.length; i++) {
+				this.appendBinRow(i, this.bins.ranges[i]);
+			}
+		}
   };
 
+	/*
   function Bin() {
 
   }
+  */
 
   vis.BinConfigurator = BinConfigurator;
 
   return vis;
 
-})(SetVis || {});
+})(scats || {});

@@ -1,7 +1,4 @@
-/**
- * Created by martinwortschack on 05/11/14.
- */
-var SetVis = (function(vis) {
+var scats = (function(vis) {
 
     function Renderer() {
         this.settings = {
@@ -45,6 +42,9 @@ var SetVis = (function(vis) {
     }
 
     Renderer.prototype = {
+        /**
+         * initializes the Renderer, i.e., common place for calling init methods
+         */
         init: function() {
             var self = this;
             //this.data = new vis.Parser().helpers.transpose(vis.data.grid);
@@ -911,4 +911,4 @@ var SetVis = (function(vis) {
 
     return vis;
 
-})(SetVis || {});
+})(scats || {});

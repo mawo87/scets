@@ -1,8 +1,4 @@
-/**
- * Created by martinwortschack on 16/10/14.
- */
-
-var SetVis = (function(vis) {
+var scats = (function(vis) {
 
 	function Element(id, name) {
 		this.id = id;
@@ -119,4 +115,4 @@ var SetVis = (function(vis) {
 		Aggregate: Aggregate
 	});
 
-})(SetVis || vis);
+})(scats || vis);

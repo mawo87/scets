@@ -1,8 +1,27 @@
-/**
- * Created by martinwortschack on 05/11/14.
- */
-var SetVis = (function(vis) {
+var scats = (function(vis) {
 
+	/**
+	 * @class
+	 * Renderer
+	 * @memberof scats
+	 *
+	 * @property {object} settings - The default setting values
+	 * @property {object} settings.canvas - The default settings for our canvas
+	 * @property {object} settings.canvas.margin - The default settings for our canvas
+	 * @property {int} max_sets_per_group - The max number of sets per row
+	 * @property {int} no_set_groups - The number of set groups in the layout
+	 * @property {array} aggregated_bin_data - The data aggregated by bins
+	 * @property {object} scales - A scales object
+	 * @property {d3.scale} scales.x - The x scale used for the visualization
+	 * @property {d3.scale} scales.y - The y scale used for the visualization
+	 * @property {d3.scale} scales.color - The color scale used for coloring aggregates and sets based on the number of elements
+	 * @property {d3.scale} scales.radianToPercent - The scale for converting percentage to radians
+	 * @property {array} sortedValues - An array of unique values (elements per aggregate and elements per set) sorted ascending
+	 * @property {subset} selectedSubset  - The currently selected subset.
+	 * @property {table} table - The table object that shows the active selection
+	 * @property {array} data_y_axis - A two-dimensional array. First dimension are the bins, second dimension the degrees per bin.
+	 * @property {tooltip} tooltip - The tooltip object.
+	 */
 	function Renderer() {
 		this.settings = {
 			canvas: {
@@ -47,10 +66,19 @@ var SetVis = (function(vis) {
 		};
 		this.sortedValues = [];
 		this.selectedSubset = undefined;
+		this.table = undefined;
+		this.tooltip = undefined;
+		this.data_y_axis = this.createYAxisLabelData();
 		this.init();
 	}
 
 	Renderer.prototype = {
+		/**
+		 * Initializes the Renderer, i.e., common place for calling initialization tasks.
+		 *
+		 * @memberof scats.Renderer
+		 * @method init
+		 */
 		init: function() {
 			var self = this;
 
@@ -66,7 +94,7 @@ var SetVis = (function(vis) {
 			//this.data = vis.data.fullGrid;
 			this.max_sets_per_group = Math.ceil(this.settings.canvas.width / this.getTotalSetWidth());
 
-			this.binningView = new BinningView({
+			this.binningView = new vis.BinningView({
 				setRenderer: this,
 				container: "#binningViewModal"
 			});
@@ -110,6 +138,16 @@ var SetVis = (function(vis) {
 					.range(self.settings.colors);
 				*/
 
+
+				/*
+				 * see more about color scales:
+				 * http://bl.ocks.org/mbostock/4573883
+				 * http://stackoverflow.com/questions/19258996/what-is-the-difference-between-d3-scale-quantize-and-d3-scale-quantile
+				 * http://stackoverflow.com/questions/17671252/d3-create-a-continous-color-scale-with-many-strings-inputs-for-the-range-and-dy
+
+				 * http://stackoverflow.com/questions/10579944/how-does-d3-scale-quantile-work (!!)
+				 * example: http://jsfiddle.net/euSfG/2/
+				 */
 				self.scales.color = d3.scale.quantile()
 					.domain(self.sortedValues)
 					.range(self.settings.colors);
@@ -118,6 +156,12 @@ var SetVis = (function(vis) {
 
 			return this;
 		},
+		/**
+		 * Computes the available width of the canvas
+		 *
+		 * @memberof scats.Renderer
+		 * @method computeWidth
+		 */
 		computeWidth: function() {
 			var $container = $(".ui-layout-center"),
 				containerWidth = $container.width(),
@@ -128,12 +172,24 @@ var SetVis = (function(vis) {
 
 			this.settings.canvas.width = containerWidth - this.settings.canvas.margin.left + padding.left + padding.right;
 		},
+		/**
+		 * Unbinds all event handlers for the UI control elements
+		 *
+		 * @memberof scats.Renderer
+		 * @method unbindEventHandlers
+		 */
 		unbindEventHandlers: function() {
 			$('.ui-controls .btn-edit-binning').unbind('click');
 			$('.ui-controls .btn-expand-all').unbind('click');
 			$('.ui-controls .btn-collapse-all').unbind('click');
 			$('.ui-controls .btn-remove-selection').unbind('click');
 		},
+		/**
+		 * Binds click events to the UI control elements
+		 *
+		 * @memberof scats.Renderer
+		 * @method setupControls
+		 */
 		setupControls: function() {
 			var self = this;
 
@@ -173,6 +229,12 @@ var SetVis = (function(vis) {
 				self.table.clear();
 			});
 		},
+		/**
+		 * Creates the HTML for the legend based on the scales.color object
+		 *
+		 * @memberof scats.Renderer
+		 * @method setupLegend
+		 */
 		setupLegend: function() {
 			var self = this;
 
@@ -180,6 +242,9 @@ var SetVis = (function(vis) {
 			console.log("colors.quantiles() ", this.scales.color.quantiles());
 			console.log("colors(3) ", this.scales.color(3));
 			*/
+
+			//empty container first
+			$('#legend').empty();
 
 			d3.select("#legend")
 				.append("h5")
@@ -203,6 +268,12 @@ var SetVis = (function(vis) {
 				});
 
 		},
+		/**
+		 * Renders the visualization data, common place for drawing the canvas and calling the renderSets method
+		 *
+		 * @memberof scats.Renderer
+		 * @method render
+		 */
 		render: function() {
 			var self = this,
 				width = this.settings.canvas.width,
@@ -227,15 +298,42 @@ var SetVis = (function(vis) {
 
 			this.setCanvasHeight(canvasHeight);
 		},
+		/**
+		 * Computes the total outer width of a set rectangle
+		 *
+		 * @memberof scats.Renderer
+		 * @method getTotalSetWidth
+		 * @returns {int} - The total outer width of a set rectangle
+		 */
 		getTotalSetWidth: function() {
 			return this.settings.set.width + 2 * this.settings.set.stroke + this.settings.set.margin.right;
 		},
+		/**
+		 * Computes the inner height of a set rectangle
+		 *
+		 * @memberof scats.Renderer
+		 * @method getSetInnerHeight
+		 * @returns {int} - The inner height of a set rectangle (without the border)
+		 */
 		getSetInnerHeight: function() {
 			return vis.data.bins.k * this.settings.set.height;
 		},
+		/**
+		 * Computes the outer height of a set rectangle
+		 *
+		 * @memberof scats.Renderer
+		 * @method getSetOuterHeight
+		 * @returns {int} - The outer height of a set rectangle (including the border)
+		 */
 		getSetOuterHeight: function() {
 			return this.getSetInnerHeight() + 2 * this.settings.set.stroke;
 		},
+		/**
+		 * Clears the current selection.
+		 *
+		 * @memberof scats.Renderer
+		 * @method clearSelection
+		 */
 		clearSelection: function() {
 			//remove circle segments
 			d3.selectAll('.highlight-segment').remove();
@@ -251,8 +349,22 @@ var SetVis = (function(vis) {
 			//remove segment-tooltip class from all highlighted subsets
 			d3.selectAll('.subset.segment-tooltip').classed("segment-tooltip", false);
 		},
-		selectAggregate: function(aggregate) {
+		selectAggregate: function(aggregate, rowIndex) {
 			console.log("aggregate ", aggregate);
+
+			var labelGroups = d3.selectAll('.y-label-group'),
+
+				bin = this.data_y_axis[rowIndex];
+
+			console.log("labelGroups ", labelGroups);
+			var group = labelGroups.filter(function(d, i) { return i == rowIndex; });
+
+			//console.log("group ", group);
+
+			//d3.select(group).click();
+
+			//this.expandRow.call(d3.select(group[0]), bin, rowIndex, this);
+
 		},
 		selectSubset: function(subset) {
 			console.log("subset ", subset);
@@ -316,9 +428,23 @@ var SetVis = (function(vis) {
 			this.highlightSetLabels(set_ids);
 			this.highlightDegreeLabel(subset.degree);
 		},
+		/**
+		 * Computes the height of the canvas
+		 *
+		 * @memberof scats.Renderer
+		 * @method getCanvasHeight
+		 * @return {int} - The height of the canvas
+		 */
 		getCanvasHeight: function() {
 			return parseInt(d3.select('#canvas svg').attr("height"));
 		},
+		/**
+		 * Sets the height of the canvas
+		 *
+		 * @memberof scats.Renderer
+		 * @method setCanvasHeight
+		 * @param {int} height - The height value to be set.
+		 */
 		setCanvasHeight: function(height) {
 			d3.select('#canvas svg').attr("height", height);
 		},
@@ -583,6 +709,20 @@ var SetVis = (function(vis) {
 					return d3.select(this).attr("class");
 				});
 		},
+		createYAxisLabelData: function () {
+			var result = [];
+			for (var i = 0; i < vis.data.bins.k; i++) {
+				var arr = [],
+					counter = vis.data.bins.ranges[i].start;
+				while (counter <= vis.data.bins.ranges[i].end) {
+					arr.push(counter+1);
+					counter++;
+				}
+				result.push(arr);
+			}
+
+			return result;
+		},
 		renderSets: function() {
 
 			//TODO: remove --> just added for testing
@@ -590,25 +730,9 @@ var SetVis = (function(vis) {
 
 			var self = this,
 				transposed = vis.helpers.transpose(this.aggregated_bin_data),
-				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group)),
-				data_y_axis = createYAxisLabelData();
+				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group))
 
 			console.log("aggregated_bin_data ", this.aggregated_bin_data);
-
-			function createYAxisLabelData() {
-				var result = [];
-				for (var i = 0; i < vis.data.bins.k; i++) {
-					var arr = [],
-						counter = vis.data.bins.ranges[i].start;
-					while (counter <= vis.data.bins.ranges[i].end) {
-						arr.push(counter+1);
-						counter++;
-					}
-					result.push(arr);
-				}
-
-				return result;
-			}
 
 			console.log("vis.data.bins ", vis.data.bins);
 
@@ -660,9 +784,9 @@ var SetVis = (function(vis) {
 					.attr("height", vis.data.bins.k * self.settings.set.height);
 			}
 
-			function drawAggregates(aggregate) {
-				var delay;
-				var circle = d3.select(this).selectAll('.aggregate')
+			function drawAggregates(aggregate, idx) {
+				var delay,
+					circle = d3.select(this).selectAll('.aggregate')
 					.data(aggregate)
 					.enter()
 					.append("circle")
@@ -702,12 +826,11 @@ var SetVis = (function(vis) {
 				}
 
 				function selectHandler(aggregate, rowIndex) {
-					//console.log("aggregate ", aggregate, "rowIndex ", rowIndex);
+					console.log("aggregate ", aggregate, "rowIndex ", rowIndex);
 
-					var degree = rowIndex + 1;
 					//var elements = subset.getElementNames();
 
-					self.selectAggregate(aggregate, degree);
+					self.selectAggregate(aggregate, rowIndex);
 				}
 
 			}
@@ -733,7 +856,7 @@ var SetVis = (function(vis) {
 
 			function renderYaxisLabels(setGroup, index) {
 				var labelGroups = d3.select(this).selectAll('.y-label-group')
-					.data(data_y_axis)
+					.data(self.data_y_axis)
 					.enter().append("g")
 					.attr("class", "y-label-group collapsed")
 					.attr("data-set-group", function(d) { return index; })
@@ -781,7 +904,7 @@ var SetVis = (function(vis) {
 
 				//attach click handler
 				labelGroups.on("click", function(bin, idx) {
-					//console.log("bin ", bin, "idx ", idx);
+					console.log("bin ", bin, "idx ", idx);
 
 					//expand row
 					if (!d3.select(this).classed("expanded")) {
@@ -797,106 +920,8 @@ var SetVis = (function(vis) {
 		}
 	};
 
-	function BinningView(initializer) {
-		var self = this;
-		this.setRenderer = initializer.setRenderer;
-		this.container = initializer.container;
-		this.binConfigurator = new vis.BinConfigurator({
-			container: '.custom-bins',
-			bins: vis.data.bins,
-			onSaveCallback: function() {
-				console.log("save callback with renderer ", self.setRenderer);
-
-				self.setRenderer
-					.init()
-					.render();
-			}
-		});
-	}
-
-	BinningView.prototype = {
-		render: function() {
-			var html = '<div class="modal-dialog modal-lg">' +
-				'<div class="modal-content">' +
-				'<div class="modal-header">' +
-				'<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-				'<h4 class="modal-title">Edit <span class="semi-bold">Binning</span></h4>' +
-				'</div>' +
-				'<div class="modal-body">' +
-				'<div class="ui-container">' +
-				'<div class="ui-row">' +
-				'<div class="ui-column degree-hist"><h5>Elements <span class="semi-bold">per Degree</span></h5></div>'+
-				'<div class="ui-column custom-bins"></div>' +
-				'</div>' +
-				'</div>' +
-				'</div>' +
-				'</div>' +
-				'</div>';
-
-			$(this.container)
-				.empty()
-				.html(html);
-
-			this.binConfigurator.init();
-
-			this.renderHistogram();
-		},
-		renderHistogram: function() {
-			var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
-				data = elements_per_degree.getList();
-
-			var margin = { left: 20, top: 10  },
-				width = 420,
-				barHeight = 20,
-				height = barHeight * data.length;
-
-			var xScale = d3.scale.linear()
-				.domain([0, d3.max(data)])
-				.range([0, width - margin.left]);
-
-			var yScale = d3.scale.linear()
-				.domain([0, data.length])
-				.range([0, height]);
-
-			var chart = d3.select(".degree-hist")
-				.append("svg")
-				.attr("width", width)
-				.attr("height", barHeight * data.length + margin.top)
-				.append("g")
-				.attr("transform", function(d, i) { return "translate(" + margin.left + ", " + margin.top + ")"; });
-
-			var bar = chart.selectAll("g")
-				.data(data)
-				.enter().append("g")
-				.attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
-
-			bar.append("rect")
-				.attr("width", xScale)
-				.attr("height", barHeight - 1)
-				.attr("y", -barHeight / 2);
-
-			bar.append("text")
-				.attr("x", function(d) { return xScale(d) - 3; })
-				.attr("dy", ".35em")
-				.text(function(d) { return d > 0 ? d : ""; });
-
-			var	yAxis = d3.svg.axis()
-				.orient('left')
-				.scale(yScale)
-				.tickSize(2)
-				.tickFormat(function(d, i){ return i + 1; })
-				.tickValues(d3.range(data.length));
-
-			chart.append('g')
-				.attr("transform", "translate(0,0)")
-				.attr('class','yaxis')
-				.call(yAxis);
-
-		}
-	};
-
 	vis.Renderer = Renderer;
 
 	return vis;
 
-})(SetVis || {});
+})(scats || {});

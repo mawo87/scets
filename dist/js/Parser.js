@@ -1,7 +1,9 @@
 /**
- * Created by martinwortschack on 04/11/14.
+ * The global namespace for the visualization
+ * @namespace scats
  */
-var SetVis = (function(vis) {
+
+var scats = (function(vis) {
 
 	vis.data = {
 		sets: [],
@@ -173,7 +175,10 @@ var SetVis = (function(vis) {
 
 			//initialize bins
 			vis.data.bins.k = vis.data.grid.length >= vis.data.bins.k ? vis.data.bins.k : vis.data.grid.length;
-			vis.helpers.initBins();
+			vis.data.bins.ranges = vis.helpers.initBins(vis.data.grid, vis.data.bins.k);
+
+			//classify bin data
+			vis.helpers.classifyBinData();
 
 		}
 	};
@@ -235,4 +240,4 @@ var SetVis = (function(vis) {
 
 	return vis;
 
-})(SetVis || {});
+})(scats || {});
