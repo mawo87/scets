@@ -123,7 +123,7 @@ var scats = (function(vis) {
 				});
 
 				//update bin ranges
-				vis.helpers.updateBinRanges(ranges);
+				self.updateBinRanges(ranges);
 
 				//update number of bins
 				vis.data.bins.k = $(self.container).find('.bin-range').length;

@@ -68,7 +68,7 @@ var scats = (function(vis) {
 		this.selectedSubset = undefined;
 		this.table = undefined;
 		this.tooltip = undefined;
-		this.data_y_axis = this.createYAxisLabelData();
+		this.data_y_axis = [];
 		this.init();
 	}
 
@@ -102,6 +102,9 @@ var scats = (function(vis) {
 			this.aggregated_bin_data = vis.helpers.createAggregatedData(vis.data.bins.data);
 
 			this.sortedValues = vis.helpers.computeSortedValuesArray(vis.data.elements, vis.data.aggregates);
+
+			//sets y axis data
+			this.data_y_axis = this.createYAxisLabelData();
 
 			this.setupControls();
 
@@ -797,7 +800,7 @@ var scats = (function(vis) {
 					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show aggregates with 0 elements
 					.attr("data-bin", function(d, i) { return i; })
 					//.style("fill", function(d) { return self.settings.colors[Math.ceil(self.scales.color(d.getTotalElements()))]; })
-					.style("fill", function(d) { return self.scales.color(d.getTotalElements()); })
+					.style("fill", function(d) { return self.scales.color(d.count); })
 					.on("mouseover", onMouseover)
 					.on("mouseout", onMouseout)
 					.on("click", selectHandler);

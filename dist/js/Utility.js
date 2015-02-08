@@ -208,8 +208,8 @@ var scats = (function(vis) {
 				for (var j = 0, l = current_block.length; j < l; j++) {
 					for (var x = 0, innerLength = current_block[j].length; x < innerLength; x++) {
 						result[i][x].addSubset(current_block[j][x]);
-						if (result[i][x].getTotalElements() > vis.data.max) {
-							vis.data.max = result[i][x].getTotalElements();
+						if (result[i][x].count > vis.data.max) {
+							vis.data.max = result[i][x].count;
 						}
 					}
 				}
