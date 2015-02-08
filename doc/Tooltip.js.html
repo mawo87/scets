@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Tooltip.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Tooltip.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>scats = (function(vis) {
+
+
+	/**
+	 * @class Tooltip
+	 * @classDesc The tooltip class
+	 * @memberOf scats
+	 *
+	 * @property {string} container - The container where HTML code will be rendered in
+	 * @property {object} templates - An object that maps template names to template functions. The following templates are supported: aggregate, subset, subset_highlight
+	 * @params {object} initializer - An object to pass properties for initialization
+	 */
+	function Tooltip(initializer) {
+		this.container = initializer.container;
+		this.templates = {
+			"aggregate": function(data) {
+				var d3Tooltip = d3.select(this.container),
+					maxValue = Math.max.apply(Math, data.aggregate.subsets.map(function(element) {
+						return element.count;
+					}));
+
+				$(this.container)
+					.append("&lt;div class='shared-items-note'>Shared items / degree&lt;/div>");
+
+				var list = d3Tooltip.append("ul")
+					.attr("class", "list-unstyled");
+
+				var bars = list.selectAll(".bar-horizontal")
+					.data(data.aggregate.subsets)
+					.enter()
+					.append("li")
+					.attr("class", function(d) { return d.count > 0 ? "bar-horizontal" : "bar-horizontal hidden"; });
+
+				bars
+					.append("em")
+					.text(function(d) { return "Degree " + d.degree; });
+
+				bars
+					.append("span")
+					.style("padding-right", function(d, i) { return (d.count / maxValue) * 50 + "%"; })
+					.text(function(d) { return d.count; });
+			},
+			"subset": function(data) {
+				var text = data.subset.degree > 0 ? ("Items shared with " + data.subset.degree + " other sets: " + data.subset.count) : ("Unique items in this set: " + data.subset.count);
+
+				d3.select(this.container)
+					.text(text);
+			},
+			"subset_highlight": function(data) {
+				this.templates["subset"].call(this, data);
+
+				$(this.container).append("&lt;hr>");
+
+				var width = this.getWidth(),
+					height = 80,
+					innerRadius = 20,
+					outerRadius = 30,
+					svg = d3.select(this.container)
+						.append("svg")
+						.attr("width", width)
+						.attr("height", height);
+
+				var arc = d3.svg.arc()
+					.innerRadius(innerRadius)
+					.outerRadius(outerRadius)
+					.startAngle(0)
+					.endAngle(data.segmentPercentage);
+
+				//append circle
+				svg.append("circle")
+					.attr("class", "subset")
+					.attr("cx", width / 2)
+					.attr("cy", 40)
+					.attr("r", innerRadius)
+					.attr("fill", data.subsetFill);
+
+				//append circle segment
+				svg.append("path")
+					.attr("d", arc)
+					.attr("fill", "#2B8CBE")
+					.attr("transform", "translate(" + (width / 2) + ", " + height / 2 + ")");
+			}
+		}
+	}
+
+	Tooltip.prototype = {
+
+		/**
+		 * Updates the Tooltip's HTML
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {object} data - A data object which is passed to the template
+		 * @param {string} template - The template name that will be used to update the tooltip.
+		 * @returns {scats.Tooltip} - The tooltip object itself.
+		 * @method update
+		 */
+		update: function(data, template) {
+			if (this.templates[template]) {
+				$(this.container).empty();
+				this.templates[template].call(this, data);
+			} else {
+				console.error("Template " + template + " does not exist");
+			}
+
+			return this;
+		},
+		/**
+		 * Shows the tooltip on a given position.
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {int} x - The x position of the tooltip to be placed.
+		 * @param {int} y - The y position of the tooltip to be placed.
+		 * @returns {scats.Tooltip} - The tooltip object itself.
+		 * @method show
+		 */
+		show: function(x, y) {
+			this.position(x, y);
+			d3.select(this.container).classed("hidden", false);
+			return this;
+		},
+		/**
+		 * Hides the tooltip.
+		 *
+		 * @memberOf scats.Tooltip
+		 * @method hide
+		 */
+		hide: function() {
+			d3.select(this.container).classed("hidden", true);
+			return this;
+		},
+		/**
+		 * Gets the tooltip's width
+		 *
+		 * @memberOf scats.Tooltip
+		 * @returns {int} - The width of the tooltip in px.
+		 * @method getWidth
+		 */
+		getWidth: function() {
+			return $(this.container).width();
+		},
+		/**
+		 * Sets the tooltips x and y position
+		 *
+		 * @memberOf scats.Tooltip
+		 * @param {int} left - The left offset in px.
+		 * @param {int} top - The top offset in px.
+		 * @method position
+		 */
+		position: function(left, top) {
+			d3.select(this.container)
+				.style("left", left + "px")
+				.style("top", top + "px");
+
+			return this;
+		}
+	};
+
+	return $.extend(vis, {
+		Tooltip: Tooltip
+	});
+
+})(scats || vis);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="scats.Aggregate.html">Aggregate</a></li><li><a href="scats.BinConfigurator.html">BinConfigurator</a></li><li><a href="scats.BinningView.html">BinningView</a></li><li><a href="scats.Renderer.html">Renderer</a></li><li><a href="scats.Selection.html">Selection</a></li><li><a href="scats.Set.html">Set</a></li><li><a href="scats.SubSet.html">SubSet</a></li><li><a href="scats.Table.html">Table</a></li><li><a href="scats.Tooltip.html">Tooltip</a></li></ul><h3>Namespaces</h3><ul><li><a href="scats.html">scats</a></li><li><a href="scats.helpers.html">helpers</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Sun Feb 08 2015 08:44:37 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
