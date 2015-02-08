@@ -6,8 +6,8 @@ var scats = (function(vis) {
 	 * @memberOf scats
 	 *
 	 * @property {object} $container - A jquery object
-	 * @property {string} tableClass - An optional classname.
-	 * @property {array} colnames - An array of column names shown in the table header.
+	 * @property {string} tableClass - An optional CSS class name.
+	 * @property {array} colNames - An array of column names shown in the table header.
 	 * @property {array} elements - The elements array.
 	 * @params {object} initializer - An object to pass properties for initialization
 	 */
