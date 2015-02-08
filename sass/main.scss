@@ -140,20 +140,6 @@ $highlightColor: #2B8CBE;
     fill: rgba($highlightColor, 1);
   }
 
-  /* start deprecated */
-  circle.subset-child {
-    &.selected {
-      fill: rgba($highlightColor, 0.5);
-    }
-
-    &:hover {
-      cursor: pointer;
-      /* opacity: 0.75; */
-      fill: rgba($highlightColor, 1) !important;
-    }
-  }
-  /* end deprecated */
-
   text {
     font-size: 0.8em;
     &.active {
