@@ -56,74 +56,6 @@ var scats = (function(vis) {
 		this.count = 0;
 	}
 
-	SubSet.prototype = {
-
-		/**
-		 * Creates a map from set name to number of elements, i.e., { Set1: 24, ... }
-		 *
-		 * @memberOf scats.Subset
-		 * @deprecated
-		 */
-		getSetOccurrenceMap: function() {
-			var setMap = {};
-
-			var duplicates_eliminated = [];
-			for (var i = 0, set_str = "", len = this.elements.length; i < len; i++) {
-				set_str = this.elements[i].getSets();
-				if ($.inArray(set_str, duplicates_eliminated) == -1) {
-					duplicates_eliminated.push(set_str);
-				}
-			}
-			console.log("duplicates_eliminated ", duplicates_eliminated);
-
-			for (var i = 0, len = this.elements.length; i < len; i++) {
-				console.log("split ", this.elements[i].getSets().split(","));
-
-				console.log("this.elements[i] ", this.elements[i]);
-
-				var foundPos = $.inArray(this.elements[i].getSets(), duplicates_eliminated);
-
-				if (foundPos != -1) {
-
-					duplicates_eliminated[foundPos] = undefined;
-
-					$(this.elements[i].getSets().split(",")).each(function(k, v) {
-
-						if (setMap[v] !== undefined) {
-							setMap[v]++;
-						} else {
-							setMap[v] = 1;
-						}
-					});
-				}
-
-			}
-			return setMap;
-		},
-		/**
-		 * Returns the element names of this subset.
-		 *
-		 * @memberOf scats.Subset
-		 * @deprecated
-		 */
-		getElementNames: function() {
-			/*
-			 var result = [];
-			 for (var i = 0, el, len = this.elements.length; i < len; i++) {
-			 el = this.elements[i];
-			 if ($.inArray(el.name, result) == -1) {
-			 result.push(el.name);
-			 }
-			 }
-			 return result;
-			 */
-
-			return $.unique(this.elements.map(function(e) {
-				return e.name;
-			}));
-		}
-	};
-
 	/**
 	 * @class Aggregate
 	 * @classDesc Represents an aggregate (can store multiple subsets).
@@ -150,25 +82,6 @@ var scats = (function(vis) {
 			this.count += subset.count;
 		}
 	};
-
-	/**
-	 * @class Selection
-	 * @classDesc Represents a selection.
-	 * @memberOf scats
-	 *
-	 * @deprecated
-	 */
-	function Selection(set, degree) {
-		this.set = (set === undefined) ? "" : set;
-		this.degree = (degree === undefined) ? -1 : degree;
-		this.elements = [];
-		this.toString = function () {
-			if (this.degree <= 0) { return this.set; }
-			if (this.set === "") { return "degree-" + this.degree; }
-			return this.set + "[" + this.degree + "]";
-		};
-
-	}
 
 	return $.extend(vis, {
 		Element: Element,
