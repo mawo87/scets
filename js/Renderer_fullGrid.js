@@ -43,7 +43,7 @@ var scats = (function(vis) {
 			subset: {
 				r: 6
 			},
-			colors: colorbrewer.Reds[9],
+			colors: colorbrewer.Oranges[9],
 			labelButton: {
 				width: 14,
 				height: 14,
@@ -351,6 +351,11 @@ var scats = (function(vis) {
 
 			//remove segment-tooltip class from all highlighted subsets
 			d3.selectAll('.subset.segment-tooltip').classed("segment-tooltip", false);
+
+			//set opacity to 1 for subsets, aggregates and x-axis labels
+			d3.selectAll('.subset').style("opacity", 1);
+			d3.selectAll('.aggregate').style("opacity", 1);
+			d3.selectAll('.x-label').style("opacity", 1);
 		},
 		selectAggregate: function(aggregate, rowIndex) {
 			console.log("aggregate ", aggregate);
@@ -427,6 +432,10 @@ var scats = (function(vis) {
 				}
 
 			});
+
+			//reduce opacity for not selected subsets and aggregates
+			d3.selectAll('.subset:not(.selected)').style("opacity", 0.3);
+			d3.selectAll('.aggregate').style("opacity", 0.3);
 
 			this.highlightSetLabels(set_ids);
 			this.highlightDegreeLabel(subset.degree);
@@ -702,6 +711,10 @@ var scats = (function(vis) {
 					}
 					return d3.select(this).attr("class");
 				});
+
+			//reduce opacity for remaining labels
+			d3.selectAll('.x-label:not(.highlighted)')
+				.style("opacity", 0.3);
 		},
 		highlightDegreeLabel: function(degree) {
 			d3.selectAll('.degree-label')
