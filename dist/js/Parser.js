@@ -29,15 +29,6 @@ var scats = (function(vis) {
 
 	Parser.prototype = {
 		helpers: {
-			createSets: function(header, setDescription) {
-				var result = [];
-				for (var i = 0, len = header.length; i < len; i++) {
-					if (i >= setDescription.set.start && i <= setDescription.set.end) {
-						result.push(new vis.Set(header[i]));
-					}
-				}
-				return result;
-			},
 			//creates a grid of rows x cols where all cols are filled with 0
 			initGrid: function(rows, cols) {
 				return d3.range(rows).map(function(j) {
@@ -92,9 +83,6 @@ var scats = (function(vis) {
 				}
 
 				return result;
-			},
-			transpose: function(a) {
-				return a[0].map(function (_, c) { return a.map(function (r) { return r[c]; }); });
 			}
 		},
 		loadSet: function(setDescriptionUrl) {
@@ -127,8 +115,6 @@ var scats = (function(vis) {
 				dsv = d3.dsv(self.setDescription.separator, "text/plain"),
 				file = dsv.parseRows(rawFile),
 				header = file[self.setDescription.header];
-
-			//vis.data.sets = self.helpers.createSets(header, self.setDescription);
 
 			radSetAlgo(file, this.setDescription);
 
