@@ -91,4 +91,4 @@ var scats = (function(vis) {
 		Aggregate: Aggregate
 	});
 
-})(scats || vis);
+})(scats || {});

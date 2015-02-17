@@ -101,4 +101,4 @@ var scats = (function(vis) {
 		Table: Table
 	});
 
-})(scats || vis);
+})(scats || {});
