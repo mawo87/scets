@@ -83,9 +83,6 @@
 
 					console.log("scats.data :: after adding sets and elements ", scats.data);
 
-					//TODO:
-					//extend global vis object with data
-					//create new renderer:
 					var renderer = new scats.Renderer();
 					renderer.render();
 
