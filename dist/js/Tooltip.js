@@ -159,4 +159,4 @@ scats = (function(vis) {
 		Tooltip: Tooltip
 	});
 
-})(scats || vis);
+})(scats || {});
