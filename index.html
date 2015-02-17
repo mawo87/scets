@@ -22,36 +22,45 @@
     <link rel="stylesheet" type="text/css" href="lib/colorbrewer/colorbrewer.css">
     <link rel="stylesheet" type="text/css" href="lib/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="lib/fontawesome/css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="dist/css/layout.css">
-    <link rel="stylesheet" type="text/css" href="dist/css/main.css">
+    <link rel="stylesheet" type="text/css" href="dist/css/scats.css">
 </head>
 <body>
-    <div class="ui-header">
-        <span class="title">scats</span>
-        <span class="subtitle light">a scalable visualization of sets</span>
+    <div id="loader" class="loader">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
     </div>
 
-    <div class="ui-container">
-        <div class="ui-row"></div>
-            <div class="ui-column ui-layout-center">
-                <div class="ui-controls">
-                    <div id="buttonBar">
-                        <button class="btn btn-primary btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
-                        <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
-                        <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
-                        <button class="btn btn-default btn-sm btn-remove-selection"><i class="fa fa-remove"></i>Remove Selection</button>
+    <div id="main">
+        <div class="ui-header">
+            <span class="title">scats</span>
+            <span class="subtitle light">a scalable visualization of sets</span>
+        </div>
+
+        <div class="ui-container">
+            <div class="ui-row"></div>
+                <div class="ui-column ui-layout-center">
+                    <div class="ui-controls">
+                        <div id="buttonBar">
+                            <button class="btn btn-primary btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
+                            <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
+                            <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
+                            <button class="btn btn-default btn-sm btn-remove-selection"><i class="fa fa-remove"></i>Remove Selection</button>
+                        </div>
+                        <div id="legend" class="pull-right"></div>
                     </div>
-                    <div id="legend" class="pull-right"></div>
+                    <div id="canvas"></div>
                 </div>
-                <div id="canvas"></div>
-            </div>
-            <div class="ui-column ui-layout-east" style="width:400px;">
-                <div class="grid simple">
-                    <div class="grid-title">
-                        <h4>Selected <span class="semi-bold">Subset</span></h4>
-                    </div>
-                    <div class="grid-body">
-                        <div id="element-table">
+                <div class="ui-column ui-layout-east" style="width:400px;">
+                    <div class="grid simple">
+                        <div class="grid-title">
+                            <h4>Selected <span class="semi-bold">Subset</span></h4>
+                        </div>
+                        <div class="grid-body">
+                            <div id="element-table">
+                        </div>
                     </div>
                 </div>
             </div>
