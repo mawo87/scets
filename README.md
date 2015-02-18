@@ -1,9 +1,17 @@
+
 scats
 ======
 A scalable visualization of set-typed data
 
-Deployment
-----------
+## Run
+* open a terminal and switch to the /scats directory
+* run npm install
+* run node server.js
+* copy the dist folder to your local webserver
+* run the index.html file in your browser
+
+
+## Optional Deployment
 
 Install Gulp:
 sudo npm install -g gulp
