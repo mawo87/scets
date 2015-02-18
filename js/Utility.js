@@ -100,7 +100,6 @@ var scats = (function(vis) {
 		},
 		getElementsPerDegree: function(arr) {
 			var result = [],
-				maxEntriesCount = 0,
 				sum;
 
 			for (var i = 0, len = arr.length; i < len; i++) {
@@ -109,17 +108,10 @@ var scats = (function(vis) {
 					sum += arr[i][j];
 				}
 
-				if (sum > maxEntriesCount) {
-					maxEntriesCount = sum;
-				}
-
 				result.push(sum);
 			}
 
-			return {
-				getList: function() { return result; },
-				getMaxEntriesCount: function() { return maxEntriesCount; }
-			};
+			return result;
 		},
 		/**
 		 * @method
@@ -143,8 +135,7 @@ var scats = (function(vis) {
 			return intersection.length / neighbor_elements.length;
 		},
 		initBins: function(data, k) {
-			var elements_per_degree = vis.helpers.getElementsPerDegree(data),
-				H = elements_per_degree.getList(), //histogram data
+			var H = vis.helpers.getElementsPerDegree(data), //histogram data
 				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
 				//b = vis.data.maxDegree, //max degree in histogram data
 				ind = 0,
