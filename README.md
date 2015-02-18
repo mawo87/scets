@@ -4,11 +4,11 @@ scats
 A scalable visualization of set-typed data
 
 ## Run
-* open a terminal and switch to the /scats directory
-* run npm install
-* run node server.js
-* copy the dist folder to your local webserver
-* run the index.html file in your browser
+1. Open a terminal and switch to the /scats directory
+2. Run `npm install`
+3. Run `node server.js`
+4. Copy the dist folder to your local webserver
+5. Run the index.html file in your browser
 
 
 ## Optional Deployment
