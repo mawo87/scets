@@ -7,7 +7,7 @@ var scatsParser = require("./modules/parser.js");
 
 var app = express();
 
-// Add headers
+// Add headers (for CORS)
 app.use(function (req, res, next) {
 
   // Website you wish to allow to connect
@@ -112,20 +112,11 @@ router.route('/upload')
       });
 
       // Now that setup is done, write data to the stream
-      //parser.write(req.rawBody);
       parser.write(csvData);
 
       // Close the readable stream
       parser.end();
     }
-
-    /*
-    var onData = function(d) {
-      console.log("onData ", d);
-    };
-
-    req.on("data", onData);
-    */
 
   });
 

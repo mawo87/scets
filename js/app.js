@@ -5,7 +5,6 @@
 		sets: [],
 		elements: [],
 		aggregates: [],
-
 		grid: [],
 		fullGrid: [],
 		degreeVector: [],
@@ -87,6 +86,13 @@
 
 				console.log("scats.data :: after adding sets and elements ", scats.data);
 
+				//initialize bins
+				scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
+				scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
+
+				//classify bin data
+				scats.helpers.classifyBinData(this.data);
+
 				if (this.onLoadedCallback) {
 					this.onLoadedCallback.call(this);
 				}
@@ -102,6 +108,7 @@
 
 		var dataLoader = new DataLoader({
 			url: "../data/skillmat.json",
+			//url: "../data/skillmatrix_final.json",
 			onLoadedCallback: function() {
 				$('#loader').fadeOut();
 				$('#main').fadeIn();

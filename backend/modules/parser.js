@@ -1,7 +1,5 @@
 (function() {
 
-  var utils = require("./utility.js");
-
   function Element(id, name) {
     this.id = id;
     this.name = name;
@@ -33,19 +31,19 @@
       degreeVector: [],
       max: 0,
       min: 0,
-      maxDegree: 0,
-      bins: {
-        k: 5,
-        data: [],
-        ranges: []
-      }
+      maxDegree: 0
     };
   }
 
   Parser.prototype = {
     parseFile: function(file, setDescription) {
-      this.radSetAlgo(file, setDescription);
+      var radSetAlgoResult = this.radSetAlgo(file, setDescription),
+        reducedFile = radSetAlgoResult.reducedFile,
+        degreeVector = radSetAlgoResult.degreeVector,
+        setCount = setDescription.set.end - setDescription.set.start + 1;
 
+      /* deprecated */
+      /*
       //remove header from file
       file.splice(setDescription.header, 1);
 
@@ -73,6 +71,10 @@
           return val !== null;
         });
       });
+      */
+
+      //console.log("degreeVector parseFile :: ", degreeVector);
+      //console.log("reducedFile :: ", reducedFile);
 
       var maxDegree = Math.max.apply(null, degreeVector);
 
@@ -83,13 +85,6 @@
       this.data.grid = this.createGrid(reducedFile, degreeVector, maxDegree, setCount);
       this.data.fullGrid = this.createFullGrid();
 
-      //initialize bins
-      this.data.bins.k = this.data.grid.length >= this.data.bins.k ? this.data.bins.k : this.data.grid.length;
-      this.data.bins.ranges = utils.initBins(this.data.grid, this.data.bins.k);
-
-      //classify bin data
-      utils.classifyBinData(this.data);
-
       return this.data;
     },
     radSetAlgo: function(file, setDescription) {
@@ -97,9 +92,15 @@
         headerIdxAndCatIdx = [],
         id = 0;
 
+      //TODO: change size of array to file.length if file doesn't include a header
+      var degreeVector = Array.apply(null, new Array(file.length - 1)).map(Number.prototype.valueOf, 0);
+
+      var reducedFile = [];
+
       for (var i = 0, len = file.length; i < len; i++) {
         var row = file[i],
-          element = null;
+          element = null,
+          gridRow = [];
 
         for (var j = 0, l = row.length; j < l; j++) {
           var col = row[j];
@@ -130,18 +131,38 @@
                   this.data.sets[catIndex].count += 1;
                 }
               }
+
+              //TODO: change "i - 1" according to file length (has header or not)
+              degreeVector[i - 1] = degreeVector[i - 1] + parseInt(col);
+              gridRow.push(parseInt(col));
+
             } else {
               element[head] = col;
             }
           }
         }
+
         if (element !== null) {
           element.degree = element.sets.length;
           if (element.degree > 0) {
             this.data.elements.push(element);
           }
         }
+
+        if (i !== 0) {
+          reducedFile.push(gridRow);
+        }
+
       }
+
+      //console.log("radSetAlgo :: result ", result);
+      //console.log("degreeVector radSetAlgo :: ", degreeVector);
+
+      return {
+        reducedFile: reducedFile,
+        degreeVector: degreeVector
+      };
+
     },
     //creates a grid of rows x cols where all cols are filled with 0
     initGrid: function(rows, cols) {
