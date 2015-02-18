@@ -2,7 +2,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var parse = require("csv-parse");
 var fs = require("fs");
-
+var config = require("./modules/config.js");
 var scatsParser = require("./modules/parser.js");
 
 var app = express();
@@ -11,7 +11,7 @@ var app = express();
 app.use(function (req, res, next) {
 
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8005');
+  res.setHeader('Access-Control-Allow-Origin', config.localhost.url);
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -32,7 +32,7 @@ app.use(function (req, res, next) {
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 
-var port = process.env.PORT || 8080; //set the port
+var port = process.env.PORT || config.server.port; //set the port
 
 // ROUTES FOR OUR API
 // =============================================================================
