@@ -56,7 +56,7 @@ router.route('/upload')
   .post(function(req, res) {
     res.contentType('application/json');
 
-    console.log("POST /upload req.body ", req.body);
+    //console.log("POST /upload req.body ", req.body);
 
     var fs = require('fs'),
       setDescription = req.body.set_description,
@@ -106,7 +106,7 @@ router.route('/upload')
 
         var data = myScatsParser.parseFile(file, setDescription);
 
-        console.log("scatsParser.parseFile :: result : ", data);
+        //console.log("scatsParser.parseFile :: result : ", data);
 
         res.json({ success: true, result: data });
       });

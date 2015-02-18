@@ -37,6 +37,8 @@
 
   Parser.prototype = {
     parseFile: function(file, setDescription) {
+      console.time("parseFile");
+
       var radSetAlgoResult = this.radSetAlgo(file, setDescription),
         reducedFile = radSetAlgoResult.reducedFile,
         degreeVector = radSetAlgoResult.degreeVector,
@@ -85,9 +87,14 @@
       this.data.grid = this.createGrid(reducedFile, degreeVector, maxDegree, setCount);
       this.data.fullGrid = this.createFullGrid();
 
+      console.timeEnd("parseFile");
+
       return this.data;
     },
     radSetAlgo: function(file, setDescription) {
+
+      console.time("radSetAlgo");
+
       var header = [],
         headerIdxAndCatIdx = [],
         id = 0;
@@ -158,6 +165,8 @@
       //console.log("radSetAlgo :: result ", result);
       //console.log("degreeVector radSetAlgo :: ", degreeVector);
 
+      console.timeEnd("radSetAlgo");
+
       return {
         reducedFile: reducedFile,
         degreeVector: degreeVector
@@ -172,6 +181,8 @@
     },
     //initialize grid and populate with values
     createGrid: function(csv, degreeVector, rows, cols) {
+      console.time("createGrid");
+
       var grid = this.initGrid(rows, cols),
         degree = undefined;
 
@@ -193,29 +204,56 @@
         }
       }
 
+      console.timeEnd("createGrid");
+
       return grid;
     },
     //this will create the full create where each cell contains an array of elements instead of an int value only
     createFullGrid: function() {
+      console.time("createFullGrid");
+
       var result = [],
         setName = "",
         degree = 0,
-        subset = undefined;
+        subset = undefined,
+        re = undefined,
+        match = false;
 
       for (var i = 0, len = this.data.sets.length; i < len; i++) {
         var row = [];
         setName = this.data.sets[i].name;
+        re = new RegExp("\\b("+setName+")\\b", "g"); //regexp for matching the exact set name in the string returned by getSets()
         for (var j = 0; j < this.data.maxDegree; j++) {
           degree = j + 1;
           subset = new SubSet(setName, degree);
+
+          /*
+           * slower than another for loop
+           *
           subset.elements = this.data.elements.filter(function(d, i) {
             return d.getSets().split(",").indexOf(setName) != -1 && d.degree == degree;
           });
+          */
+
+          //for (var k = 0, l = this.data.elements.length; k < l; k++) {
+          for (var k = this.data.elements.length; k--;) {
+
+            //using regexp is much faster than split + indexOf
+            match = this.data.elements[k].getSets().match(re);
+
+            if (match && this.data.elements[k].degree == degree) {
+              subset.elements.push(this.data.elements[k]);
+            }
+
+          }
+
           subset.count = subset.elements.length;
           row.push(subset);
         }
         result.push(row);
       }
+
+      console.timeEnd("createFullGrid");
 
       return result;
     }
