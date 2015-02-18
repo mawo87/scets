@@ -69,8 +69,7 @@ var scats = (function(vis) {
      * @method renderHistogram
      */
     renderHistogram: function () {
-      var elements_per_degree = vis.helpers.getElementsPerDegree(vis.data.grid),
-        data = elements_per_degree.getList();
+      var data = vis.helpers.getElementsPerDegree(vis.data.grid);
 
       var margin = {left: 20, top: 10},
         width = 420,
