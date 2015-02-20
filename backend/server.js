@@ -29,6 +29,7 @@ app.use(function (req, res, next) {
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
+// increase limit according to: http://stackoverflow.com/questions/19917401/node-js-express-request-entity-too-large
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 
@@ -79,7 +80,8 @@ router.route('/upload')
       var output = [];
       // Create the parser
 
-      var parser = parse({delimiter: ':'});
+      var parser = parse({delimiter: ':'}),
+        record;
 
       // Use the writable stream api
       parser.on('readable', function(){

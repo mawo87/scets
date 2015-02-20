@@ -39,70 +39,17 @@
     parseFile: function(file, setDescription) {
       console.time("parseFile");
 
-      var radSetAlgoResult = this.radSetAlgo(file, setDescription),
-        reducedFile = radSetAlgoResult.reducedFile,
-        degreeVector = radSetAlgoResult.degreeVector,
-        setCount = setDescription.set.end - setDescription.set.start + 1;
-
-      /* deprecated */
-      /*
-      //remove header from file
-      file.splice(setDescription.header, 1);
-
-      //create degree vector of length n (number of rows in file) and fill up with 0
-      var degreeVector = Array.apply(null, new Array(file.length)).map(Number.prototype.valueOf, 0),
-        setCount = setDescription.set.end - setDescription.set.start + 1;
-
-      var reducedFile = file.map(function(row, rowIndex) {
-        return row.map(function(col, colIndex) {
-          if (colIndex >= setDescription.set.start && colIndex <= setDescription.set.end) {
-            var intValue = parseInt(col, 10);
-
-            if (isNaN(intValue)) {
-              console.error('Unable to convert "' + col + '" to integer (row ' + rowIndex + ', column ' + colIndex + ')');
-            } else {
-              //increase the degree as we iterate over the cols
-              degreeVector[rowIndex] = degreeVector[rowIndex] + intValue;
-            }
-
-            return intValue;
-          }
-
-          return null;
-        }).filter(function(val) {
-          return val !== null;
-        });
-      });
-      */
-
-      //console.log("degreeVector parseFile :: ", degreeVector);
-      //console.log("reducedFile :: ", reducedFile);
-
-      var maxDegree = Math.max.apply(null, degreeVector);
-
-      this.data.degreeVector = degreeVector;
-      this.data.maxDegree = maxDegree;
-
-      //create grid and fullGrid
-      this.data.grid = this.createGrid(reducedFile, degreeVector, maxDegree, setCount);
-      this.data.fullGrid = this.createFullGrid();
-
-      console.timeEnd("parseFile");
-
-      return this.data;
-    },
-    radSetAlgo: function(file, setDescription) {
-
       console.time("radSetAlgo");
 
-      var header = [],
+      var setCount = setDescription.set.end - setDescription.set.start + 1,
+        header = [],
         headerIdxAndCatIdx = [],
-        id = 0;
+        id = 0,
+        reducedFile = [];
 
       //TODO: change size of array to file.length if file doesn't include a header
+      //using length - 1 here because first row is header and we don't want to include it
       var degreeVector = Array.apply(null, new Array(file.length - 1)).map(Number.prototype.valueOf, 0);
-
-      var reducedFile = [];
 
       for (var i = 0, len = file.length; i < len; i++) {
         var row = file[i],
@@ -140,6 +87,7 @@
               }
 
               //TODO: change "i - 1" according to file length (has header or not)
+              //using i-1 here because first row is header
               degreeVector[i - 1] = degreeVector[i - 1] + parseInt(col);
               gridRow.push(parseInt(col));
 
@@ -162,16 +110,20 @@
 
       }
 
-      //console.log("radSetAlgo :: result ", result);
-      //console.log("degreeVector radSetAlgo :: ", degreeVector);
-
       console.timeEnd("radSetAlgo");
 
-      return {
-        reducedFile: reducedFile,
-        degreeVector: degreeVector
-      };
+      var maxDegree = Math.max.apply(null, degreeVector);
 
+      this.data.degreeVector = degreeVector;
+      this.data.maxDegree = maxDegree;
+
+      //create grid and fullGrid
+      this.data.grid = this.createGrid(reducedFile, degreeVector, maxDegree, setCount);
+      this.data.fullGrid = this.createFullGrid();
+
+      console.timeEnd("parseFile");
+
+      return this.data;
     },
     //creates a grid of rows x cols where all cols are filled with 0
     initGrid: function(rows, cols) {
@@ -213,6 +165,7 @@
       console.time("createFullGrid");
 
       var result = [],
+        row = [],
         setName = "",
         degree = 0,
         subset = undefined,
@@ -220,9 +173,10 @@
         match = false;
 
       for (var i = 0, len = this.data.sets.length; i < len; i++) {
-        var row = [];
+        row = [];
         setName = this.data.sets[i].name;
-        re = new RegExp("\\b("+setName+")\\b", "g"); //regexp for matching the exact set name in the string returned by getSets()
+        re = new RegExp("\\b("+setName+")\\b", "g"); //regex for matching the exact set name in the string returned by getSets()
+
         for (var j = 0; j < this.data.maxDegree; j++) {
           degree = j + 1;
           subset = new SubSet(setName, degree);
@@ -238,7 +192,7 @@
           //for (var k = 0, l = this.data.elements.length; k < l; k++) {
           for (var k = this.data.elements.length; k--;) {
 
-            //using regexp is much faster than split + indexOf
+            //using regex is much faster than split + indexOf
             match = this.data.elements[k].getSets().match(re);
 
             if (match && this.data.elements[k].degree == degree) {
