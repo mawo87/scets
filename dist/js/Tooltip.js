@@ -1,4 +1,4 @@
-scats = (function(vis) {
+var scats = (function(vis) {
 
 
 	/**

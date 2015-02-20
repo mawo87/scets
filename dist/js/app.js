@@ -70,13 +70,15 @@
 				console.log("scats.data :: ", scats.data);
 
 				//create sets
-				for (var i = 0, len = sets.length; i < len; i++) {
-					tmp.sets.push(new scats.Set(sets[i].name, sets[i].count));
+				for (var i = 0, len = sets.length, s; i < len; i++) {
+					s = new scats.Set(sets[i].name);
+					s.count = sets[i].count;
+					tmp.sets.push(s);
 				}
 
 				//create elements
 				for (var i = 0, len = elements.length, e; i < len; i++) {
-					var e = new scats.Element(elements[i].id, elements[i].name);
+					e = new scats.Element(elements[i].id, elements[i].name);
 					e.sets = elements[i].sets;
 					e.degree = elements[i].degree;
 					tmp.elements.push(e);
@@ -85,6 +87,12 @@
 				$.extend(scats.data, tmp);
 
 				console.log("scats.data :: after adding sets and elements ", scats.data);
+
+				//create bitsets here
+				for (var i = 0, len = scats.data.sets.length; i < len; i++) {
+					console.log("scats.data.sets[i] :: ", scats.data.sets[i]);
+
+				}
 
 				//initialize bins
 				scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
