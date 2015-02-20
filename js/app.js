@@ -88,6 +88,12 @@
 
 				console.log("scats.data :: after adding sets and elements ", scats.data);
 
+				//create bitsets here
+				for (var i = 0, len = scats.data.sets.length; i < len; i++) {
+					console.log("scats.data.sets[i] :: ", scats.data.sets[i]);
+
+				}
+
 				//initialize bins
 				scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
 				scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
