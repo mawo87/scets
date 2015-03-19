@@ -5,6 +5,7 @@
     <title>scats</title>
     <script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="lib/bootstrap/bootstrap.min.js"></script>
+    <script type="text/javascript" src="lib/underscore.min.js"></script>
     <script type="text/javascript" src="lib/d3.v3.js"></script>
     <script type="text/javascript" src="lib/colorbrewer/colorbrewer.js"></script>
     <script type="text/javascript" src="lib/bitset.js"></script>
@@ -49,6 +50,17 @@
                             <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
                             <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
                             <button class="btn btn-default btn-sm btn-remove-selection"><i class="fa fa-remove"></i>Remove Selection</button>
+                        </div>
+                        <div id="searchBar">
+                            <input type="text" class="form-control" placeholder="Search" id="searchInput">
+                            <!--
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Keyword" id="search">
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default" id="searchBtn">Search</button>
+                                </div>
+                            </div>
+                            -->
                         </div>
                         <div id="legend" class="pull-right"></div>
                     </div>

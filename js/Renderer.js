@@ -66,9 +66,12 @@ var scats = (function(vis) {
 		};
 		this.sortedValues = [];
 		this.selectedSubset = undefined;
+		this.selectedAggregate = undefined;
 		this.table = undefined;
 		this.tooltip = undefined;
 		this.data_y_axis = [];
+		this.user_expanded_bins = []; //bins expanded by user (click)
+		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
 		this.init();
 	}
 
@@ -211,7 +214,16 @@ var scats = (function(vis) {
 			$('.ui-controls .btn-expand-all').on("click", function() {
 				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (!d3.select(this).classed("expanded")) {
-						self.expandRow.call(this, d, i, self);
+
+						/* deprecated */
+						//self.expandRow.call(this, d, i, self);
+						//update bin indexes
+						//self.updateExpandedBins(i, self.user_expanded_bins);
+
+						//new
+						self.clearSelection();
+						self.expandRowIndex(i, true);
+
 					}
 				});
 			});
@@ -220,7 +232,19 @@ var scats = (function(vis) {
 			$('.ui-controls .btn-collapse-all').on("click", function() {
 				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (d3.select(this).classed("expanded")) {
-						self.collapseRow.call(this, d, i, self);
+
+						/* deprecated */
+						//self.collapseRow.call(this, d, i, self);
+						//update bin indexes
+						//self.updateExpandedBins(i, self.user_expanded_bins);
+
+						//new
+						self.clearSelection();
+						self.collapseRowIndex(i, true);
+
+						//empty all bins
+						self.user_expanded_bins = [];
+						self.auto_expanded_bins = [];
 					}
 				})
 			});
@@ -231,6 +255,150 @@ var scats = (function(vis) {
 				self.clearSelection();
 				self.table.clear();
 			});
+
+			//setup search
+			$('#searchInput').on("keyup", onSearchKeyup);
+
+			function onSearchKeyup(ev) {
+				if (onSearchKeyup.timeout) {
+					clearTimeout(onSearchKeyup.timeout);
+				}
+
+				var target = this;
+
+				onSearchKeyup.timeout = setTimeout(function() {
+					doSearch.call(target, ev);
+				}, 500);
+			}
+
+			function doSearch(ev) {
+				var text = $(ev.currentTarget).val(),
+					regex = new RegExp(text, "i"), //ignore case sensitive
+					result = [];
+
+				if (text !== "") {
+
+					for (var i = 0, len = vis.data.elements.length, entry = undefined; i < len; i++) {
+						entry = vis.data.elements[i];
+						if (regex.test(entry.name)) {
+							console.log("Search :: found : ", entry.name);
+							result.push(entry);
+						}
+					}
+
+					console.log("Search :: result : ", result);
+
+					self.createSelection(result, "search");
+
+				}
+			}
+
+		},
+		createSelection: function (elements, type) {
+			var self = this,
+				el = undefined, //vars for iterations
+				degree = -1,
+				binIndex = -1;
+
+			//var select_parent_aggregate = false;
+
+			//clear selection first otherwise selection gets messed up during row expanding
+			this.clearSelection();
+
+			for (var i = 0, len = elements.length; i < len; i++) {
+				el = elements[i];
+				degree = el.degree;
+
+				console.log("createSelection :: element : ", el);
+				console.log("createSelection :: degree : ", degree);
+
+				//1. check which row includes the degree
+				binIndex = this.getBinIndex(degree);
+
+				console.log("createSelection :: binIndex : ", binIndex);
+
+				//2. check if the row from (1) is already expanded
+				if (this.isBinExpanded(binIndex)) {
+					//yes, proceed to 3
+				} else {
+					//no, call expand row function with bin index that has to be expanded
+					this.expandRowIndex(binIndex);
+				}
+			}
+
+			var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(elements);
+
+			console.log("createSelection :: set_occurrence_map : ", set_occurrence_map);
+
+			this.createSegmentSelection(set_occurrence_map, type);
+
+			self.table.update(elements);
+		},
+		createSegmentSelection: function(set_occurrence_map, type) {
+			var self = this,
+				highlighted_set_labels = [],
+				highlighted_degrees = [],
+				arc = d3.svg.arc();
+
+			_.each(set_occurrence_map, function(entry, idx) {
+				//4. select the subset
+
+				var setName = entry.set;
+
+				highlighted_set_labels.push(parseInt(d3.select('.set#' + setName).attr("data-set")));
+
+				_.each(entry.degrees, function(degreeItem) {
+					var subset = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').node(),
+						reference_data = undefined;
+
+					console.log("createSegmentSelection :: entry : ", entry);
+					console.log("createSegmentSelection :: subset data : ", d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0]);
+
+					highlighted_degrees.push(degreeItem.degree);
+
+					if (type === "search") {
+						reference_data = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0];
+					} else if (type === "aggregate") {
+						reference_data = self.selectedAggregate;
+					}
+
+					//d3.select(subset).classed("selected", true);
+
+					//create circle segments to represent selection
+					var cx = d3.select(subset).attr("cx"),
+						cy = d3.select(subset).attr("cy"),
+						r = d3.select(subset).attr("r");
+
+					//add additional class for advanced tooltip
+					//reduce opacity for not selected subsets
+					d3.select(subset)
+						.classed("segment-tooltip", true)
+						.style("opacity", 0.3);
+
+					//var segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
+					var segment_percentage = degreeItem.count / reference_data.count * 100; //e.g., 33.3
+
+					console.log("createSegmentSelection :: selectedAggregate ", self.selectedAggregate);
+					console.log("createSegmentSelection :: entry.count / reference_data.count ", degreeItem.count + " / " + reference_data.count);
+					console.log("createSegmentSelection :: segment_percentage : ", segment_percentage);
+
+					arc
+						.innerRadius(4)
+						.outerRadius(6)
+						.startAngle(0)
+						.endAngle(self.scales.radianToPercent(segment_percentage));
+
+					d3.select(subset.parentNode).append("path")
+						.attr("d", arc)
+						.attr("class", "highlight-segment")
+						.attr("transform", "translate(8," + cy + ")");
+				});
+			});
+
+			//highlight set and degree labels
+			this.highlightSetLabels(_.uniq(highlighted_set_labels));
+
+			this.highlightDegreeLabels(_.uniq(highlighted_degrees));
 		},
 		/**
 		 * Creates the HTML for the legend based on the scales.color object
@@ -338,6 +506,8 @@ var scats = (function(vis) {
 		 * @method clearSelection
 		 */
 		clearSelection: function() {
+			console.log("clearSelection");
+
 			//remove circle segments
 			d3.selectAll('.highlight-segment').remove();
 
@@ -356,29 +526,121 @@ var scats = (function(vis) {
 			d3.selectAll('.subset').style("opacity", 1);
 			d3.selectAll('.aggregate').style("opacity", 1);
 			d3.selectAll('.x-label').style("opacity", 1);
+
+			//remove highlighted class from selected aggregates
+			d3.selectAll('.aggregate.selected').classed("selected", false);
 		},
-		selectAggregate: function(aggregate, rowIndex) {
-			console.log("aggregate ", aggregate);
+		selectAggregate: function(selection, aggregate, rowIndex) {
+			console.log("aggregate ", aggregate, "rowIndex ", rowIndex);
 
-			var labelGroups = d3.selectAll('.y-label-group'),
+			var self = this;
+			var parent_set = d3.select(selection).node().parentNode; //same as d3.select(selection.parentNode)[0]
 
-				bin = this.data_y_axis[rowIndex];
+			//first unselect all previously highlighted elements
+			this.clearSelection();
 
-			console.log("labelGroups ", labelGroups);
-			var group = labelGroups.filter(function(d, i) { return i == rowIndex; });
+			console.log("d3.select(selection) ", d3.select(selection).data());
 
-			//console.log("group ", group);
+			this.selectedAggregate = aggregate;
 
-			//d3.select(group).click();
+			//this.unSelectAggregate();
 
-			//this.expandRow.call(d3.select(group[0]), bin, rowIndex, this);
+			//expand row (if not expanded yet) and unselect all previously highlighted elements
+			if (!this.isBinExpanded(rowIndex)) {
+				this.expandRowIndex(rowIndex);
+			}
 
+			//get elements
+			var elementsArray = [];
+
+			for (var i = 0, len = aggregate.subsets.length, s = undefined; i < len; i++) {
+				s = aggregate.subsets[i];
+				for (var j = 0, l = s.elements.length, e = undefined; j < l; j++) {
+					e = s.elements[j];
+					console.log("selectAggregate :: element : ", e);
+					elementsArray.push(e);
+				}
+			}
+
+			console.log("selectAggregate :: elementsArray : ", elementsArray);
+
+			this.createSelection(elementsArray, "aggregate");
+
+			/*
+			d3.select(selection)
+				.classed("selected", true);
+
+			var subsets = d3.select(parent_set).selectAll('.subset');
+
+			console.log("subsets ", subsets);
+
+			subsets.each(function(d, i) {
+				self.selectSubset(d);
+			});
+			*/
+
+		},
+		unSelectAggregate: function() {
+			//get previously selected aggregate
+			var selected = d3.selectAll('.aggregate.selected')
+				.classed("selected", false);
+
+			console.log("selected ", selected);
+
+			if (selected.node()) {
+				var binIndex = parseInt(selected.attr("data-bin"));
+
+				/* deprecated */
+				//var d3Bin = this.getD3bin(1, binIndex);
+
+				/* deprecated */
+				//this.collapseRow.call(d3Bin, this.data_y_axis[binIndex], binIndex, this);
+
+				//new
+				this.clearSelection();
+				this.collapseRowIndex(binIndex);
+			}
+
+		},
+		/* deprecated */
+		getD3SetGroup: function(setGroupIndex) {
+			return d3.select('.set-group:nth-child(' + setGroupIndex + ')');
+		},
+		/* deprecated */
+		getD3bin: function(setGroupIndex, binIndex) {
+			var setGroup = this.getD3SetGroup(setGroupIndex);
+
+			console.log("setGroup ", setGroup);
+
+			if (setGroup.node()) {
+				var bin = undefined;
+				d3.select(setGroup.node()).selectAll('.y-label-group').each(function(d, i) {
+					console.log("i ", i, "binIndex ", binIndex);
+					if (i == binIndex) {
+						bin = this;
+						return;
+					}
+				});
+			}
+
+			return bin;
+		},
+		getBinIndex: function(degree) {
+			for (var i = 0, len = vis.data.bins.ranges.length, b = undefined, start = 0, end = 0; i < len; i++) {
+				b = vis.data.bins.ranges[i];
+				start = b.start + 1; //ranges start from 0, need to add 1
+				end = b.end + 1;
+				if (start <= degree && degree <= end) {
+					return i;
+				}
+			}
+			return -1;
 		},
 		selectSubset: function(subset) {
 			console.log("subset ", subset);
 
 			var self = this,
-				set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset),
+				set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset.elements),
 				arc = d3.svg.arc(),
 				cx = 0,
 				cy = 0,
@@ -388,12 +650,6 @@ var scats = (function(vis) {
 
 			console.log("set_occurrence_map ", set_occurrence_map);
 
-			//first unselect all previously highlighted elements
-			this.clearSelection();
-
-			//update selection in table
-			this.table.update(subset.elements);
-
 			d3.selectAll('.set-group').selectAll('.subset').each(function(d, i) {
 				//console.log("d ", d, "i ", i);
 
@@ -402,19 +658,25 @@ var scats = (function(vis) {
 				r = d3.select(this).attr("r");
 
 				//mark the clicked element as selected
+				//set opacity to 1 for selected subsets
 				if (d.set_name == subset.set_name && d.degree == subset.degree) {
 					d3.select(this)
-						.classed("selected", true);
+						.classed("selected", true)
+						.style("opacity", 1);
 
 					set_ids.push(parseInt(d3.select(this.parentNode).attr("data-set")));
 				} else {
-					if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name][d.degree] !== "undefined") {
+					if (typeof set_occurrence_map[d.set_name] !== "undefined" && typeof set_occurrence_map[d.set_name]["degrees"][d.degree] !== "undefined") {
 						//console.log("is ok ", this);
 
 						//add additional class for advanced tooltip
-						d3.select(this).classed("segment-tooltip", true);
+						//reduce opacity for not selected subsets
+						d3.select(this)
+							.classed("segment-tooltip", true)
+							.style("opacity", 0.3);
 
 						segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
+						console.log("segment_percentage ", segment_percentage);
 
 						arc
 							.innerRadius(4)
@@ -433,12 +695,14 @@ var scats = (function(vis) {
 
 			});
 
-			//reduce opacity for not selected subsets and aggregates
-			d3.selectAll('.subset:not(.selected)').style("opacity", 0.3);
-			d3.selectAll('.aggregate').style("opacity", 0.3);
-
 			this.highlightSetLabels(set_ids);
-			this.highlightDegreeLabel(subset.degree);
+
+			/* deprecated */
+			//this.highlightDegreeLabel(subset.degree);
+
+			//new
+			this.highlightDegreeLabels([subset.degree]);
+
 		},
 		/**
 		 * Computes the height of the canvas
@@ -484,6 +748,91 @@ var scats = (function(vis) {
 
 			});
 		},
+		expandRowIndex: function (rowIndex, isUserAction) {
+			var bin = vis.data.bins.ranges[rowIndex],
+				num_of_degrees = bin.end - bin.start + 1,
+				additional_height = this.settings.set.height * num_of_degrees,
+				setGroup = d3.select(".set-group"),
+				yLabelGroups = setGroup.selectAll(".y-label-group"),
+				label_yPos = d3.transform(d3.select(yLabelGroups[0][rowIndex]).attr("transform")).translate[1];
+
+			//clear selection first otherwise selection gets messed up during row expanding
+			//this.clearSelection();
+
+			d3.selectAll('.set-background')
+				.attr("height", function(d, i) {
+					return parseInt(d3.select(this).attr("height")) + additional_height;
+				});
+
+			d3.selectAll('.set-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+
+					if (i > 0) {
+						return "translate(0," + (prev + i * additional_height) + ")";
+					} else {
+						return "translate(0," + prev + ")";
+					}
+				});
+
+			d3.selectAll('.y-label-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+
+					if (prev > label_yPos) {
+						return "translate(0," + (prev + additional_height) + ")";
+					} else {
+						return "translate(0," + prev + ")";
+					}
+				})
+				.attr("class", function(d, i) {
+					//sets the expanded resp. collapsed class for the given bin in all set groups
+					if (Math.abs(rowIndex - i - vis.data.bins.k) % vis.data.bins.k == 0) {
+						return "y-label-group expanded";
+					} else {
+						return d3.select(this).attr("class");
+					}
+				});
+
+			this.arrangeLabels();
+
+			var aggregates = d3.selectAll('.aggregate')
+				.attr("cy", function(d, i) {
+					if (parseInt(d3.select(this).attr("cy")) > label_yPos) {
+						return parseInt(d3.select(this).attr("cy")) + additional_height;
+					} else {
+						return parseInt(d3.select(this).attr("cy"));
+					}
+				})
+				.attr("class", function(d, i) {
+					if (parseInt(d3.select(this).attr("data-bin")) == rowIndex && d.count > 0) {
+						var isExpanded = d3.select(this).classed("expanded");
+						if (!isExpanded) {
+							d3.select(this).classed("expanded", true);
+						}
+					}
+					return d3.select(this).attr("class");
+				});
+
+			this.appendSubsets();
+
+			//update canvas height
+			this.setCanvasHeight(this.getCanvasHeight() + this.no_set_groups * additional_height);
+
+			//update status of expanded bins
+			if (isUserAction) {
+				this.updateExpandedBins(rowIndex, this.user_expanded_bins);
+			} else {
+				this.updateExpandedBins(rowIndex, this.auto_expanded_bins);
+			}
+
+			//re-add selection if one exists
+			if (this.selectedSubset) {
+				this.selectSubset(this.selectedSubset);
+			}
+
+		},
+		/* deprecated */
 		expandRow: function(d, i, renderer) {
 			var degree_count = d.length,
 				label_yPos = d3.transform(d3.select(this).attr("transform")).translate[1],
@@ -560,77 +909,87 @@ var scats = (function(vis) {
 				renderer.selectSubset(renderer.selectedSubset);
 			}
 		},
-		appendSubsets: function() {
-			var self = this;
+		collapseRowIndex: function (rowIndex, isUserAction) {
+			var bin = vis.data.bins.ranges[rowIndex],
+				num_of_degrees = bin.end - bin.start + 1,
+				additional_height = this.settings.set.height * num_of_degrees,
+				setGroup = d3.select(".set-group"),
+				yLabelGroups = setGroup.selectAll(".y-label-group"),
+				label_yPos = d3.transform(d3.select(yLabelGroups[0][rowIndex]).attr("transform")).translate[1];
 
-			d3.selectAll('.subset')
-				.remove();
+			console.log("collapseRowIndex :: label_yPos : ", label_yPos);
 
-			d3.selectAll('.aggregate.expanded').each(function(d, i) {
-
-				var subset_y_pos = parseInt(d3.select(this).attr("cy")),
-					subset_x_pos = parseInt(d3.select(this).attr("cx")),
-					bin_entries = d3.select(this).data()[0].subsets;
-
-				//console.log("this ", this);
-				//console.log("bin_entries ", bin_entries);
-
-				d3.select(this.parentNode).selectAll('.subset.level-' + i)
-					.data(bin_entries)
-					.enter()
-					.append("circle")
-					.attr("class", "subset level-" + i)
-					.attr("cx", subset_x_pos)
-					.attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
-					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
-					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
-					//.attr("fill", function(d) { return d.count > 0 ? self.settings.colors[Math.ceil(self.scales.color(d.count))] : "#FFFFFF"; });
-					.attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; });
-			});
-
-			//handler for appended subsets
-			d3.selectAll('.subset')
-				.on("mouseover", function(d, i) {
-					//console.log("d ", d);
-					var that = this;
-
-					//delay mouseover event for 500ms
-					delay = setTimeout(function() {
-						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
-
-						//tooltip showing text and selection
-						if (d3.select(that).classed("segment-tooltip")) {
-							var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
-
-							self.tooltip.update({
-									subset: d,
-									segmentPercentage: self.scales.radianToPercent(segment_percentage),
-									subsetFill: d3.select(that).attr("fill")
-								}, "subset_highlight")
-								.show(xPos, yPos);
-
-						//tooltip with text only
-						} else {
-
-							self.tooltip.update({
-								subset: d
-							}, "subset")
-							.show(xPos, yPos);
-						}
-
-					}, 500);
-				})
-				.on("mouseout", function(d, i) {
-					clearTimeout(delay);
-					self.tooltip.hide();
-				})
-				.on("click", function(subset) {
-					self.selectedSubset = subset;
-					self.selectSubset(subset);
+			d3.selectAll('.set-background')
+				.attr("height", function(d, i) {
+					return parseInt(d3.select(this).attr("height")) - additional_height;
 				});
 
+			d3.selectAll('.set-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+
+					if (i > 0) {
+						return "translate(0," + (prev - i * additional_height) + ")";
+					} else {
+						return "translate(0," + prev + ")";
+					}
+				});
+
+			d3.selectAll('.y-label-group')
+				.attr("transform", function(d, i) {
+					var prev = d3.transform(d3.select(this).attr("transform")).translate[1];
+
+					if (prev > label_yPos) {
+						return "translate(0," + (prev - additional_height) + ")";
+					} else {
+						return "translate(0," + prev + ")";
+					}
+				})
+				.attr("class", function(d, i) {
+					if (Math.abs(rowIndex - i - vis.data.bins.k) % vis.data.bins.k == 0) {
+						return "y-label-group collapsed";
+					} else {
+						return d3.select(this).attr("class");
+					}
+				});
+
+			this.arrangeLabels();
+
+			d3.selectAll('.aggregate')
+				.attr("cy", function(d, i) {
+					if (parseInt(d3.select(this).attr("cy")) > label_yPos) {
+						return parseInt(d3.select(this).attr("cy")) - additional_height;
+					} else {
+						return parseInt(d3.select(this).attr("cy"));
+					}
+				})
+				.attr("class", function(d, i) {
+					if (parseInt(d3.select(this).attr("data-bin")) == rowIndex && d.count > 0) {
+						var isExpanded = d3.select(this).classed("expanded");
+						if (isExpanded) {
+							d3.select(this).classed("expanded", false);
+						}
+					}
+					return d3.select(this).attr("class");
+				});
+
+			this.appendSubsets();
+
+			this.setCanvasHeight(this.getCanvasHeight() - additional_height);
+
+			//update status of expanded bins
+			if (isUserAction) {
+				this.updateExpandedBins(rowIndex, this.user_expanded_bins);
+			} else {
+				this.updateExpandedBins(rowIndex, this.auto_expanded_bins);
+			}
+
+			//re-add selection if one exists
+			if (this.selectedSubset) {
+				this.selectSubset(this.selectedSubset);
+			}
 		},
+		/* deprecated */
 		collapseRow: function(d, i, renderer) {
 			var degree_count = d.length,
 				label_yPos = d3.transform(d3.select(this).attr("transform")).translate[1],
@@ -703,10 +1062,116 @@ var scats = (function(vis) {
 				renderer.selectSubset(renderer.selectedSubset);
 			}
 		},
+		isBinExpanded: function(binIndex) {
+			//var idx = this.user_expanded_bins.indexOf(binIndex);
+
+			//checks both user and auto expanded bins if the given binIndex is included
+			var idx = _.indexOf(_.union(this.user_expanded_bins, this.auto_expanded_bins), binIndex);
+			return idx > -1;
+		},
+		updateExpandedBins: function(binIndex, binArray) {
+			var idx = _.indexOf(binArray, binIndex);
+
+			//remove binIndex from array
+			if (idx > -1) {
+				binArray.splice(idx, 1);
+			} else {
+				//add binIndex to array
+				binArray.push(binIndex);
+			}
+
+			console.log("updateExpandedBins :: expanded bins : ", binArray);
+		},
+		appendSubsets: function() {
+			var self = this;
+
+			d3.selectAll('.subset')
+				.remove();
+
+			d3.selectAll('.aggregate.expanded').each(function(d, i) {
+
+				var subset_y_pos = parseInt(d3.select(this).attr("cy")),
+					subset_x_pos = parseInt(d3.select(this).attr("cx")),
+					bin_entries = d3.select(this).data()[0].subsets,
+					binIndex = parseInt(d3.select(this).attr("data-bin"));
+
+				//console.log("this ", this);
+				//console.log("bin_entries ", bin_entries);
+				//console.log("data-bin :: ", d3.select(this).attr("data-bin"));
+
+				//level is the index of the bin the parent aggregate belongs to (starting from 0)
+				d3.select(this.parentNode).selectAll('.subset.level-' + binIndex)
+					.data(bin_entries)
+					.enter()
+					.append("circle")
+					.attr("class", "subset level-" + binIndex)
+					.attr("cx", subset_x_pos)
+					.attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
+					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
+					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
+					//.attr("fill", function(d) { return d.count > 0 ? self.settings.colors[Math.ceil(self.scales.color(d.count))] : "#FFFFFF"; });
+					.attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; })
+					.attr("data-degree", function(d, i) { return d.degree; });
+			});
+
+			//handler for appended subsets
+			d3.selectAll('.subset')
+				.on("mouseover", function(d, i) {
+					console.log("d ", d);
+					var that = this;
+
+					//delay mouseover event for 500ms
+					delay = setTimeout(function() {
+						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
+
+						//tooltip showing text and selection
+						if (d3.select(that).classed("segment-tooltip")) {
+							var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
+
+							self.tooltip.update({
+									subset: d,
+									segmentPercentage: self.scales.radianToPercent(segment_percentage),
+									subsetFill: d3.select(that).attr("fill")
+								}, "subset_highlight")
+								.show(xPos, yPos);
+
+						//tooltip with text only
+						} else {
+
+							self.tooltip.update({
+								subset: d
+							}, "subset")
+							.show(xPos, yPos);
+						}
+
+					}, 500);
+				})
+				.on("mouseout", function(d, i) {
+					clearTimeout(delay);
+					self.tooltip.hide();
+				})
+				.on("click", onClickHandler);
+
+			function onClickHandler(subset) {
+				console.log("clicked subset ", subset);
+
+				self.selectedSubset = subset;
+
+				//first unselect all previously highlighted elements
+				self.clearSelection();
+
+				self.selectSubset(subset);
+
+				//update selection in table
+				self.table.update(subset.elements);
+			}
+
+		},
 		highlightSetLabels: function(set_ids) {
 			d3.selectAll('.x-label')
 				.attr("class", function(d, i) {
-					if ($.inArray(i, set_ids) != -1) {
+					if (_.contains(set_ids, i)) {
 						d3.select(this).classed("highlighted", true);
 					}
 					return d3.select(this).attr("class");
@@ -716,10 +1181,20 @@ var scats = (function(vis) {
 			d3.selectAll('.x-label:not(.highlighted)')
 				.style("opacity", 0.3);
 		},
+		/* deprecated */
 		highlightDegreeLabel: function(degree) {
 			d3.selectAll('.degree-label')
 				.attr("class", function(d) {
 					if (d == degree) {
+						d3.select(this).classed("highlighted", true);
+					}
+					return d3.select(this).attr("class");
+				});
+		},
+		highlightDegreeLabels: function (degreeArray) {
+			d3.selectAll('.degree-label')
+				.attr("class", function(d) {
+					if (_.contains(degreeArray, d)) {
 						d3.select(this).classed("highlighted", true);
 					}
 					return d3.select(this).attr("class");
@@ -774,17 +1249,19 @@ var scats = (function(vis) {
 			setGroups.each(renderYaxisLabels);
 
 			function renderSets(d, i) {
+				var setGroup = i;
 				var sets = d3.select(this).selectAll(".set")
 					.data(data_per_setGroup[i])
 					.enter().append("g")
 					.attr("class", "set")
+					.attr("id", function(d, i) { return vis.data.sets[i + (setGroup * self.max_sets_per_group)].name; })
 					.attr("transform", function(d, i) {
 						//console.log("d ", d, "i ", i);
 						return "translate(" + self.scales.x(i) + ", 0)";
 					})
 					.attr("data-set", function(d, i) {
 						//console.log("d ", d, "i ", i);
-						return i + parseInt(d3.select(this.parentNode).attr("data-set-group")) * self.max_sets_per_group;
+						return i + (setGroup * self.max_sets_per_group);
 					});
 
 				sets.each(drawSets);
@@ -816,7 +1293,9 @@ var scats = (function(vis) {
 					.style("fill", function(d) { return self.scales.color(d.count); })
 					.on("mouseover", onMouseover)
 					.on("mouseout", onMouseout)
-					.on("click", selectHandler);
+					.on("click", function(aggregate, rowIndex) {
+							self.selectAggregate(this, aggregate, rowIndex);
+					});
 
 				function onMouseover(d, i) {
 					//console.log("d ", d);
@@ -839,14 +1318,6 @@ var scats = (function(vis) {
 				function onMouseout() {
 					clearTimeout(delay);
 					self.tooltip.hide();
-				}
-
-				function selectHandler(aggregate, rowIndex) {
-					console.log("aggregate ", aggregate, "rowIndex ", rowIndex);
-
-					//var elements = subset.getElementNames();
-
-					self.selectAggregate(aggregate, rowIndex);
 				}
 
 			}
@@ -924,11 +1395,27 @@ var scats = (function(vis) {
 
 					//expand row
 					if (!d3.select(this).classed("expanded")) {
-						self.expandRow.call(this, bin, idx, self);
+						/* deprecated */
+						//self.expandRow.call(this, bin, idx, self);
+
+						//new
+						self.clearSelection();
+						self.expandRowIndex(idx, true);
+
 					} else {
 						//collapse row
-						self.collapseRow.call(this, bin, idx, self);
+
+						/* deprecated */
+						//self.collapseRow.call(this, bin, idx, self);
+
+						//new
+						self.clearSelection();
+						self.collapseRowIndex(idx, true);
 					}
+
+					/* deprecated */
+					//update bin indexes
+					//self.updateExpandedBins(idx, self.user_expanded_bins);
 				});
 
 			}

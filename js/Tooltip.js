@@ -41,7 +41,7 @@ var scats = (function(vis) {
 					.text(function(d) { return d.count; });
 			},
 			"subset": function(data) {
-				var text = data.subset.degree > 0 ? ("Items shared with " + data.subset.degree + " other sets: " + data.subset.count) : ("Unique items in this set: " + data.subset.count);
+				var text = data.subset.degree > 1 ? ("Items shared with " + data.subset.degree + " other sets: " + data.subset.count) : ("Unique items in this set: " + data.subset.count);
 
 				d3.select(this.container)
 					.text(text);

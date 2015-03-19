@@ -88,11 +88,12 @@
 
 				console.log("scats.data :: after adding sets and elements ", scats.data);
 
-				//create bitsets here
+				//create bitsets here#
+				/*
 				for (var i = 0, len = scats.data.sets.length; i < len; i++) {
 					console.log("scats.data.sets[i] :: ", scats.data.sets[i]);
-
 				}
+				*/
 
 				//initialize bins
 				scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
@@ -117,6 +118,7 @@
 		var dataLoader = new DataLoader({
 			url: "../data/skillmat.json",
 			//url: "../data/skillmatrix_final.json",
+			//url: "../data/movies.json",
 			onLoadedCallback: function() {
 				$('#loader').fadeOut();
 				$('#main').fadeIn();
