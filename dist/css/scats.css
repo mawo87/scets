@@ -543,6 +543,11 @@ input[type="checkbox"] {
 .ui-controls #buttonBar {
   float: left;
   margin-top: 30px; }
+.ui-controls #searchBar {
+  float: left;
+  width: 200px;
+  margin-top: 28px;
+  margin-left: 20px; }
 
 #canvas {
   /* margin: 1em auto 4em auto; */
@@ -590,9 +595,10 @@ input[type="checkbox"] {
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out; }
     #canvas circle.aggregate.selected {
-      fill: rgba(43, 140, 190, 0.5); }
+      fill: #2b8cbe !important; }
     #canvas circle.aggregate:hover {
-      /* cursor: pointer; */ }
+      /* cursor: pointer; */
+      fill: #2b8cbe !important; }
   #canvas circle.subset {
     -moz-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;

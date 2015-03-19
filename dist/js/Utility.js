@@ -71,27 +71,28 @@ var scats = (function(vis) {
 		 * @name getElementsGroupedBySetAndDegree
 		 * @description Creates a set occurrence map for the given subset
 		 * @memberOf scats.helpers
-		 * @param {object} subset - The subset instance.
+		 * @param {array} elements - An array of elements.
 		 * @returns {object} - An object of the following form: { set1: { "2" : { count: 1, degree: 2 }, count: 1, set: set1 } }
 		 */
-		getElementsGroupedBySetAndDegree: function (subset) {
-			var elements = subset.elements,
-				set_occurrence_map = {};
+		getElementsGroupedBySetAndDegree: function (elements) {
+			var set_occurrence_map = {};
 
-			for (var i = 0, len = elements.length; i < len; i++) {
-				var el = elements[i];
-				for (var j = 0, l = el.sets.length; j < l; j++) {
-					var set_name = el.sets[j];
-					if (typeof set_occurrence_map[set_name] === "undefined") {
-						set_occurrence_map[set_name] = { set: set_name, count: 1 };
-					} else {
-						set_occurrence_map[set_name].count++;
-					}
+			if (elements && elements.length > 0) {
+				for (var i = 0, len = elements.length; i < len; i++) {
+					var el = elements[i];
+					for (var j = 0, l = el.sets.length; j < l; j++) {
+						var set_name = el.sets[j];
+						if (typeof set_occurrence_map[set_name] === "undefined") {
+							set_occurrence_map[set_name] = { set: set_name, count: 1, degrees: {} };
+						} else {
+							set_occurrence_map[set_name].count++;
+						}
 
-					if (typeof set_occurrence_map[set_name][el.degree] === "undefined") {
-						set_occurrence_map[set_name][el.degree] = { degree: el.degree, count: 1 };
-					} else {
-						set_occurrence_map[set_name][el.degree].count ++;
+						if (typeof set_occurrence_map[set_name]["degrees"][el.degree] === "undefined") {
+							set_occurrence_map[set_name]["degrees"][el.degree] = { degree: el.degree, count: 1 };
+						} else {
+							set_occurrence_map[set_name]["degrees"][el.degree].count ++;
+						}
 					}
 				}
 			}
