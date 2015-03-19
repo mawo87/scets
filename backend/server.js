@@ -80,12 +80,13 @@ router.route('/upload')
       var output = [];
       // Create the parser
 
-      var parser = parse({delimiter: ':'}),
-        record;
+      //var parser = parse({delimiter: ':'});
+      var parser = parse({delimiter: setDescription.separator });
 
       // Use the writable stream api
       parser.on('readable', function(){
         while(record = parser.read()){
+          //console.log("record ", record);
           output.push(record);
         }
       });
@@ -97,16 +98,12 @@ router.route('/upload')
 
       // When we are done, test that the parsed output matched what expected
       parser.on('finish', function() {
-        var file = [],
-          data = {};
 
-        for (var i = 0, len =output.length; i < len; i++) {
-          file.push(output[i][0].split(setDescription.separator));
-        }
+        //console.log("parser on finish :: ", output);
 
-        var myScatsParser = new scatsParser.Parser();
-
-        var data = myScatsParser.parseFile(file, setDescription);
+        var data = {},
+          myScatsParser = new scatsParser.Parser(),
+          data = myScatsParser.parseFile(output, setDescription);
 
         //console.log("scatsParser.parseFile :: result : ", data);
 
