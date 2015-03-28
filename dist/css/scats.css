@@ -597,7 +597,7 @@ input[type="checkbox"] {
     #canvas circle.aggregate.selected {
       fill: #2b8cbe !important; }
     #canvas circle.aggregate:hover {
-      /* cursor: pointer; */
+      cursor: pointer;
       fill: #2b8cbe !important; }
   #canvas circle.subset {
     -moz-transition: all 0.3s ease-in-out;
