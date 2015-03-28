@@ -120,7 +120,7 @@ $highlightColor: #2B8CBE;
     }
 
     &:hover {
-      /* cursor: pointer; */
+      cursor: pointer;
       fill: rgba($highlightColor, 1) !important;
     }
   }
