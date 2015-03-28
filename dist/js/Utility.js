@@ -128,12 +128,20 @@ var scats = (function(vis) {
 			);
 		},
 		/* calculates the percentage of the colored circle segment for a selected subset and a given neighboring element */
+		/* deprecated */
 		calcSegmentPercentage: function(subset, neighbor) {
 			var subset_elements = subset.elements.map(function(el) { return el.name; }),
 				neighbor_elements = neighbor.elements.map(function(el) { return el.name; }),
 				intersection = vis.helpers.intersect(subset_elements, neighbor_elements);
 
 			return intersection.length / neighbor_elements.length;
+		},
+		calcSegmentPercentageNew: function(currElements, refElements) {
+			var a = currElements.map(function(el) { return el.name; }),
+				b = refElements.map(function(el) { return el.name; }),
+				intersection = vis.helpers.intersect(a, b);
+
+			return intersection.length / b.length;
 		},
 		initBins: function(data, k) {
 			var H = vis.helpers.getElementsPerDegree(data), //histogram data

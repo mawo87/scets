@@ -294,13 +294,18 @@ var scats = (function(vis) {
 			}
 
 		},
-		createSelection: function (elements, type) {
+		/**
+		 * @method createSelection
+		 * @description - Creates the set occurrence map for the given elements and calls the createSegmentSelection method
+		 * @param elements - an array of elements
+		 * @param type - the type of selection, can be one of the following: subset, aggregate, search (will be passed to createSegmentSelection)
+		 * @param rowIndex - an optional rowIndex (only for aggregate selection)
+		 */
+		createSelection: function (elements, type, rowIndex) {
 			var self = this,
 				el = undefined, //vars for iterations
 				degree = -1,
 				binIndex = -1;
-
-			//var select_parent_aggregate = false;
 
 			//clear selection first otherwise selection gets messed up during row expanding
 			this.clearSelection();
@@ -330,15 +335,30 @@ var scats = (function(vis) {
 
 			console.log("createSelection :: set_occurrence_map : ", set_occurrence_map);
 
-			this.createSegmentSelection(set_occurrence_map, type);
+			//if aggregate, then highlight aggregate first
+			if (type === "aggregate") {
+				var aggregate = d3.select('.set#' + self.selectedAggregate.subsets[0].set_name + ' .aggregate[data-bin="' + rowIndex + '"]').node();
+				d3.select(aggregate).classed("selected", true);
+			}
+
+			this.createSegmentSelection(set_occurrence_map, type, elements);
 
 			self.table.update(elements);
 		},
-		createSegmentSelection: function(set_occurrence_map, type) {
+		/**
+		 * @method createSegmentSelectio
+		 * @description - Creates the circle segments for the given occurrence map
+		 * @param set_occurrence_map - a map of sets and the degrees within theses sets that need to be highlighted
+		 * @param type - the type of selection, can be one of the following: subset, aggregate, search. The type will be used to determine the reference for the segment
+		 * @param elements - an array of elements
+		 */
+		createSegmentSelection: function(set_occurrence_map, type, elements) {
 			var self = this,
 				highlighted_set_labels = [],
 				highlighted_degrees = [],
 				arc = d3.svg.arc();
+
+			console.log("createSegmentSelection :: type : ", type);
 
 			_.each(set_occurrence_map, function(entry, idx) {
 				//4. select the subset
@@ -349,49 +369,62 @@ var scats = (function(vis) {
 
 				_.each(entry.degrees, function(degreeItem) {
 					var subset = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').node(),
-						reference_data = undefined;
+						subset_data = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0],
+						segment_percentage = undefined;
 
 					console.log("createSegmentSelection :: entry : ", entry);
-					console.log("createSegmentSelection :: subset data : ", d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0]);
+					console.log("createSegmentSelection :: subset data : ", subset_data);
 
 					highlighted_degrees.push(degreeItem.degree);
 
 					if (type === "search") {
-						reference_data = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0];
+						console.log("createSegmentSelection :: TYPE SEARCH : current ", subset_data);
+						console.log("createSegmentSelection :: TYPE SEARCH : reference ", degreeItem);
+
+						//segment_percentage = degreeItem.count / subset_data.count * 100; //e.g., 33.3
+						segment_percentage = vis.helpers.calcSegmentPercentageNew(subset_data.elements, elements) * 100;
+
 					} else if (type === "aggregate") {
-						reference_data = self.selectedAggregate;
+						console.log("createSegmentSelection :: TYPE AGGREGATE : current ", subset_data);
+						console.log("createSegmentSelection :: TYPE AGGREGATE : reference ", elements);
+						console.log("createSegmentSelection :: TYPE AGGREGATE : segment_percentage ", vis.helpers.calcSegmentPercentageNew(subset_data.elements, elements));
+
+						segment_percentage = vis.helpers.calcSegmentPercentageNew(subset_data.elements, elements) * 100;
+					} else if (type === "subset") {
+						console.log("createSegmentSelection :: TYPE SUBSET : current ", subset_data);
+						console.log("createSegmentSelection :: TYPE SUBSET : reference ", elements);
+						console.log("createSegmentSelection :: TYPE SUBSET : segment_percentage ", vis.helpers.calcSegmentPercentageNew(subset_data.elements, elements));
+
+						segment_percentage = vis.helpers.calcSegmentPercentageNew(subset_data.elements, elements) * 100;
 					}
 
-					//d3.select(subset).classed("selected", true);
+					//if subset, then select
+					if (type === "subset" && setName == self.selectedSubset.set_name && degreeItem.degree == self.selectedSubset.degree) {
+						d3.select(subset).classed("selected", true);
 
-					//create circle segments to represent selection
-					var cx = d3.select(subset).attr("cx"),
-						cy = d3.select(subset).attr("cy"),
-						r = d3.select(subset).attr("r");
+					} else {
+						//otherwise create circle segments to represent selection
 
-					//add additional class for advanced tooltip
-					//reduce opacity for not selected subsets
-					d3.select(subset)
-						.classed("segment-tooltip", true)
-						.style("opacity", 0.3);
+						var cx = d3.select(subset).attr("cx"),
+							cy = d3.select(subset).attr("cy"),
+							r = d3.select(subset).attr("r");
 
-					//var segment_percentage = vis.helpers.calcSegmentPercentage(subset, d) * 100;
-					var segment_percentage = degreeItem.count / reference_data.count * 100; //e.g., 33.3
+						//add additional class for advanced tooltip and reduce opacity for not selected subsets
+						d3.select(subset)
+							.classed("segment-tooltip", true)
+							.style("opacity", 0.3);
 
-					console.log("createSegmentSelection :: selectedAggregate ", self.selectedAggregate);
-					console.log("createSegmentSelection :: entry.count / reference_data.count ", degreeItem.count + " / " + reference_data.count);
-					console.log("createSegmentSelection :: segment_percentage : ", segment_percentage);
+						arc
+							.innerRadius(4)
+							.outerRadius(6)
+							.startAngle(0)
+							.endAngle(self.scales.radianToPercent(segment_percentage));
 
-					arc
-						.innerRadius(4)
-						.outerRadius(6)
-						.startAngle(0)
-						.endAngle(self.scales.radianToPercent(segment_percentage));
-
-					d3.select(subset.parentNode).append("path")
-						.attr("d", arc)
-						.attr("class", "highlight-segment")
-						.attr("transform", "translate(8," + cy + ")");
+						d3.select(subset.parentNode).append("path")
+							.attr("d", arc)
+							.attr("class", "highlight-segment")
+							.attr("transform", "translate(8," + cy + ")");
+					}
 				});
 			});
 
@@ -551,6 +584,7 @@ var scats = (function(vis) {
 			}
 
 			//get elements
+			/*
 			var elementsArray = [];
 
 			for (var i = 0, len = aggregate.subsets.length, s = undefined; i < len; i++) {
@@ -564,7 +598,12 @@ var scats = (function(vis) {
 
 			console.log("selectAggregate :: elementsArray : ", elementsArray);
 
-			this.createSelection(elementsArray, "aggregate");
+			this.createSelection(elementsArray, "aggregate", rowIndex);
+			*/
+
+			console.log("selectAggregate :: elementsArray : ", aggregate.getElements());
+
+			this.createSelection(aggregate.getElements(), "aggregate", rowIndex);
 
 			/*
 			d3.select(selection)
@@ -580,6 +619,8 @@ var scats = (function(vis) {
 			*/
 
 		},
+		/* deprecated */
+		/*
 		unSelectAggregate: function() {
 			//get previously selected aggregate
 			var selected = d3.selectAll('.aggregate.selected')
@@ -590,10 +631,10 @@ var scats = (function(vis) {
 			if (selected.node()) {
 				var binIndex = parseInt(selected.attr("data-bin"));
 
-				/* deprecated */
+				//deprecated
 				//var d3Bin = this.getD3bin(1, binIndex);
 
-				/* deprecated */
+				//deprecated
 				//this.collapseRow.call(d3Bin, this.data_y_axis[binIndex], binIndex, this);
 
 				//new
@@ -602,6 +643,7 @@ var scats = (function(vis) {
 			}
 
 		},
+		*/
 		/* deprecated */
 		getD3SetGroup: function(setGroupIndex) {
 			return d3.select('.set-group:nth-child(' + setGroupIndex + ')');
@@ -639,6 +681,8 @@ var scats = (function(vis) {
 		selectSubset: function(subset) {
 			console.log("subset ", subset);
 
+			/* deprecated */
+			/*
 			var self = this,
 				set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(subset.elements),
 				arc = d3.svg.arc(),
@@ -697,11 +741,14 @@ var scats = (function(vis) {
 
 			this.highlightSetLabels(set_ids);
 
-			/* deprecated */
+			//deprecated
 			//this.highlightDegreeLabel(subset.degree);
 
 			//new
 			this.highlightDegreeLabels([subset.degree]);
+			*/
+
+			this.createSelection(subset.elements, "subset");
 
 		},
 		/**
@@ -1127,7 +1174,17 @@ var scats = (function(vis) {
 
 						//tooltip showing text and selection
 						if (d3.select(that).classed("segment-tooltip")) {
-							var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
+
+							//var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
+
+							if (self.selectedSubset) {
+								//var segment_percentage = d.count / self.selectedSubset.count * 100;
+								var segment_percentage = vis.helpers.calcSegmentPercentageNew(d.elements, self.selectedSubset.elements) * 100;
+
+							} else if (self.selectedAggregate) {
+
+								var segment_percentage = vis.helpers.calcSegmentPercentageNew(d.elements, self.selectedAggregate.getElements()) * 100;
+							}
 
 							self.tooltip.update({
 									subset: d,
