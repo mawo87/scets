@@ -74,6 +74,9 @@
           } else if (i !== 0 && j === 0) {
             id = this.data.elements.length;
             element = new Element(id, col);
+            if (i == 1) {
+              console.log("new Element ", element);
+            }
           } else if (i !== 0 && j !== 0) {
             var head = header[j];
             if (j >= setDescription.set.start && j <= setDescription.set.end) {
@@ -86,11 +89,16 @@
                 }
               }
 
+              if (i == 1) {
+                console.log("element ", element);
+              }
+
               //TODO: change "i - 1" according to file length (has header or not)
               //using i-1 here because first row is header
               degreeVector[i - 1] = degreeVector[i - 1] + parseInt(col);
               gridRow.push(parseInt(col));
 
+            //if not within range of set data, then just add it as an element attribute
             } else {
               element[head] = col;
             }
@@ -109,6 +117,8 @@
         }
 
       }
+
+      console.log("this.data.elements[0] ", JSON.parse(JSON.stringify(this.data.elements[0])));
 
       console.timeEnd("radSetAlgo");
 
@@ -172,6 +182,8 @@
         re = undefined,
         match = false;
 
+      //console.log("this.data.elements[5] ", this.data.elements[5]);
+
       for (var i = 0, len = this.data.sets.length; i < len; i++) {
         row = [];
         setName = this.data.sets[i].name;
@@ -196,6 +208,7 @@
             match = this.data.elements[k].getSets().match(re);
 
             if (match && this.data.elements[k].degree == degree) {
+              //console.log("fullGrid match :: pushing this.data.elements[k] ", this.data.elements[k]);
               subset.elements.push(this.data.elements[k]);
             }
 
@@ -207,6 +220,7 @@
         result.push(row);
       }
 
+      //console.log("fullGrid :: ", result);
       console.timeEnd("createFullGrid");
 
       return result;

@@ -80,6 +80,26 @@ var scats = (function(vis) {
 		addSubset: function(subset) {
 			this.subsets.push(subset);
 			this.count += subset.count;
+		},
+		/**
+		 * Returns the elements of an aggregate
+		 *
+		 * @memberOf scats.Aggregate
+		 * @returns {Array}
+		 * @method getElements
+		 */
+		getElements: function() {
+			var elementsArray = [];
+
+			for (var i = 0, len = this.subsets.length, s = undefined; i < len; i++) {
+				s = this.subsets[i];
+				for (var j = 0, l = s.elements.length, e = undefined; j < l; j++) {
+					e = s.elements[j];
+					elementsArray.push(e);
+				}
+			}
+
+			return elementsArray;
 		}
 	};
 
