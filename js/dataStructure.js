@@ -103,6 +103,14 @@ var scats = (function(vis) {
 		}
 	};
 
+	function Selection(initializer) {
+		this.type = initializer.type;
+		this.elements = initializer.elements;
+		this.subset = initializer.subset || undefined;
+		this.aggregate = initializer.aggregate || undefined;
+		this.rowIndex = initializer.rowIndex || undefined;
+	}
+
 	return $.extend(vis, {
 		Element: Element,
 		Set: Set,
