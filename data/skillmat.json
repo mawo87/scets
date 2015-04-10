@@ -1,6 +1,6 @@
 {
-    "file": "../data/skillmat.csv",
-    "name": "Employee Skills",
+    "file": "skillmat.csv",
+    "name": "Employee Skills Final",
     "separator": " ",
     "header": 0,
     "set": {

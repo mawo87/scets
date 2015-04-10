@@ -51,6 +51,100 @@ router.get('/', function(req, res) {
   res.json({ message: 'hooray! welcome to our api!' });
 });
 
+// get a list of examples
+// ----------------------------------------------------
+router.route('/examples')
+  .get(function(req, res) {
+    res.contentType('application/json');
+
+    console.log("Now give me the examples");
+
+    var responseData = [];
+
+    fs.readdir(config.data.dir, function(err, files) {
+      if (err) {
+        throw err;
+      }
+
+      var jsonFiles = [];
+
+      //browse json files only and exclude files listed in config
+      files.forEach(function(file) {
+        if (file.match(/\.(json)$/) && config.data.excludedFiles.indexOf(file.replace(/\.[^/.]+$/, "")) == -1) {
+          jsonFiles.push(file);
+        }
+      });
+
+      //keep track of how many we have to go.
+      var remaining = jsonFiles.length;
+
+      //read all json files in the folder in parallel
+      jsonFiles.forEach(function(file) {
+
+        fs.readFile(config.data.dir + file, 'utf-8', function (fileErr, data) {
+
+          if (fileErr) {
+            console.log("Error ", fileErr);
+          }
+
+          var parsedData = JSON.parse(data),
+            fileName = file.replace(/\.[^/.]+$/, ""); //without extension (.json)
+
+          responseData.push({ name: fileName, title: parsedData.name });
+
+          remaining -= 1;
+
+          //done reading files, return response
+          if (remaining == 0) {
+            res.json({ success: true, result: responseData });
+          }
+
+        });
+
+      });
+
+    });
+  });
+
+// get a singe example
+// ----------------------------------------------------
+
+router.route('/examples/:file')
+  .get(function(req, res) {
+    res.contentType('application/json');
+
+    console.log("Now give me the example file " + req.params.file);
+
+    var fs = require('fs'),
+      fileName = req.params.file + ".json";
+
+    //read description file first
+    fs.readFile(config.data.dir + fileName, 'utf8', function (err, data) {
+      if (err) throw err;
+
+      var setDescription = JSON.parse(data);
+
+      console.log("setDescription loaded :: setDescription : ", setDescription);
+
+      onSetDescriptionLoaded(setDescription);
+    });
+
+    function onSetDescriptionLoaded(setDescription) {
+
+      //then read CSV file
+      fs.readFile(config.data.dir + setDescription.file, 'utf8', function (err, data) {
+        if (err) throw err;
+
+        console.log("CSV loaded :: csv : ", data);
+
+        onCSVDataLoaded(setDescription, data, function(data) {
+          res.json({ success: true, result: data });
+        });
+      });
+    }
+
+  });
+
 // on routes that end in /upload
 // ----------------------------------------------------
 router.route('/upload')
@@ -73,51 +167,55 @@ router.route('/upload')
     */
 
     if (setDescription && csvData) {
-      onSetDescriptionLoaded(setDescription, csvData);
-    }
-
-    function onSetDescriptionLoaded(setDescription, csvData) {
-      var output = [];
-      // Create the parser
-
-      //var parser = parse({delimiter: ':'});
-      var parser = parse({delimiter: setDescription.separator });
-
-      // Use the writable stream api
-      parser.on('readable', function(){
-        while(record = parser.read()){
-          //console.log("record ", record);
-          output.push(record);
-        }
-      });
-
-      // Catch any error
-      parser.on('error', function(err){
-        console.log(err.message);
-      });
-
-      // When we are done, test that the parsed output matched what expected
-      parser.on('finish', function() {
-
-        //console.log("parser on finish :: ", output);
-
-        var data = {},
-          myScatsParser = new scatsParser.Parser(),
-          data = myScatsParser.parseFile(output, setDescription);
-
-        //console.log("scatsParser.parseFile :: result : ", data);
-
+      onCSVDataLoaded(setDescription, csvData, function(data) {
         res.json({ success: true, result: data });
       });
-
-      // Now that setup is done, write data to the stream
-      parser.write(csvData);
-
-      // Close the readable stream
-      parser.end();
     }
 
   });
+
+function onCSVDataLoaded(setDescription, csvData, cb) {
+  var output = [];
+  // Create the parser
+
+  //var parser = parse({delimiter: ':'});
+  var parser = parse({delimiter: setDescription.separator });
+
+  // Use the writable stream api
+  parser.on('readable', function(){
+    while(record = parser.read()){
+      //console.log("record ", record);
+      output.push(record);
+    }
+  });
+
+  // Catch any error
+  parser.on('error', function(err){
+    console.log(err.message);
+  });
+
+  // When we are done, test that the parsed output matched what expected
+  parser.on('finish', function() {
+
+    //console.log("parser on finish :: ", output);
+
+    var data = {},
+      myScatsParser = new scatsParser.Parser(),
+      data = myScatsParser.parseFile(output, setDescription);
+
+    //console.log("scatsParser.parseFile :: result : ", data);
+
+    if (cb) {
+      cb(data);
+    }
+  });
+
+  // Now that setup is done, write data to the stream
+  parser.write(csvData);
+
+  // Close the readable stream
+  parser.end();
+}
 
 // more routes for our API will happen here
 

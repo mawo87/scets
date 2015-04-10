@@ -1,5 +1,5 @@
 {
-    "file": "../data/movies.csv",
+    "file": "movies.csv",
     "name": "Movies Genres",
     "header": 0,
     "separator": ";",

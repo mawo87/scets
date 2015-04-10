@@ -103,6 +103,13 @@ var scats = (function(vis) {
 		}
 	};
 
+	/**
+	 * @class Selection
+	 * @classDesc Represents a selection (elements of search, subset, or aggregate).
+	 * @memberOf scats
+	 *
+	 * @param {object} initializer
+	 */
 	function Selection(initializer) {
 		this.type = initializer.type;
 		this.elements = initializer.elements;

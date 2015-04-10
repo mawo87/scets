@@ -8,6 +8,34 @@ $labelWidth: 60px;
 $numberWidth: 30px;
 $highlightColor: #2B8CBE;
 
+.init-hide {
+  display: none;
+}
+
+.data-navigator {
+  &.lg {
+    width: 280px;
+    height: 160px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background: #FFFFFF;
+    padding: 10px;
+    border-radius: 4px;
+
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  #loadBtn {
+    margin-top: 10px;
+  }
+}
+
 .ui-header {
   .title, .subtitle {
     font-family: 'Open Sans';

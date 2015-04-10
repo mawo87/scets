@@ -233,27 +233,7 @@ var scats = (function(vis) {
 			}
 
 			//eliminate duplicates and sort ascending
-			return vis.helpers.arrayUnique(result).sort(function(a, b) { return a-b; });
-		},
-		/**
-		 * @method
-		 * @name arrayUnique
-		 * @description Eliminates duplicates in an input array
-		 * @memberOf scats.helpers
-		 * @param {array} array - The input array.
-		 * @returns {array} - Returns the input without duplicates.
-		 */
-		arrayUnique: function(array) {
-			var a = array.concat();
-			for(var i=0; i<a.length; ++i) {
-				for(var j=i+1; j<a.length; ++j) {
-					if(a[i] === a[j]) {
-						a.splice(j--, 1);
-					}
-				}
-			}
-
-			return a;
+			return _.uniq(result).sort(function(a, b) { return a - b; });
 		}
 	};
 

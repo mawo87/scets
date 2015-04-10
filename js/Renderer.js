@@ -349,6 +349,10 @@ var scats = (function(vis) {
 					d3.select(aggregate).classed("selected", true);
 			}
 
+			//reduce opacity for all elements that are not selected (focus with context)
+			d3.selectAll(".subset:not(.selected), .aggregate:not(.selected)")
+				.style("opacity", 0.3);
+
 			this.createSegmentSelection(set_occurrence_map, type, elements);
 
 			self.table.update(elements);
@@ -900,7 +904,7 @@ var scats = (function(vis) {
 						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
 							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
-						//tooltip showing text and selection
+						//tooltip showing text and highlighted segment
 						if (d3.select(that).classed("segment-tooltip")) {
 
 							/* deprecated */
