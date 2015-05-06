@@ -237,6 +237,11 @@ var scats = (function(vis) {
 			$('.ui-controls .btn-remove-selection').on("click", function() {
 				self.currentSelection = undefined;
 
+				//toggle status
+				$(this)
+					.toggleClass("disabled", true)
+					.toggleClass("enabled", false);
+
 				self.clearSelection();
 				self.table.clear();
 			});
@@ -356,6 +361,11 @@ var scats = (function(vis) {
 			this.createSegmentSelection(set_occurrence_map, type, elements);
 
 			self.table.update(elements);
+
+			//toggle button status
+			$('.ui-controls .btn-remove-selection')
+				.toggleClass("disabled", false)
+				.toggleClass("enabled", true);
 		},
 		/**
 		 * @method createSegmentSelectio

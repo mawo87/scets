@@ -12,6 +12,7 @@ $highlightColor: #2B8CBE;
   display: none;
 }
 
+
 .data-navigator {
   &.lg {
     width: 280px;
@@ -58,6 +59,23 @@ $highlightColor: #2B8CBE;
   #buttonBar {
     float: left;
     margin-top: 30px;
+
+    .btn-remove-selection {
+      -moz-transition: all 0.3s ease-in-out;
+      -o-transition: all 0.3s ease-in-out;
+      -webkit-transition: all 0.3s ease-in-out;
+      transition: all 0.3s ease-in-out;
+
+      &:hover {
+        background: lighten($highlightColor, 5%);
+      }
+
+      &.enabled {
+        background: $highlightColor;
+        border-color: darken($highlightColor, 10%);
+        color: #FFFFFF;
+      }
+    }
   }
 
   #searchBar {
