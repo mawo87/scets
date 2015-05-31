@@ -586,10 +586,7 @@ input[type="checkbox"] {
   /* margin: 0em 0em 0em 6em; */
   margin-left: 60px;
   width: 960px;
-  clear: both;
-  /*********
-  * TOOLTIPS
-  *********/ }
+  clear: both; }
   #canvas .background {
     fill: #FFFFFF; }
   #canvas .x-label.highlighted {
@@ -652,84 +649,6 @@ input[type="checkbox"] {
       fill: #2b8cbe; }
   #canvas line.grid-line {
     stroke: #FFFFFF; }
-  #canvas #tooltip {
-    position: absolute;
-    height: auto;
-    padding: 10px;
-    background-color: rgba(51, 51, 51, 0.9);
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-    pointer-events: none;
-    font-family: sans-serif;
-    font-size: 11px;
-    line-height: 20px;
-    color: #FFFFFF;
-    /*
-    &:before {
-      border: solid;
-      border-color: #333333 transparent;
-      border-color: rgba(51, 51, 51, 0.9) transparent;
-      border-width: 0 8px 8px 8px;
-      content: "";
-      display: block;
-      position: absolute;
-      top: -8px;
-      left: 96px;
-    }
-    */
-    /* Creates a small triangle extender for the tooltip */
-    /*
-    &:after {
-      box-sizing: border-box;
-      display: inline;
-      font-size: 10px;
-      width: 100%;
-      line-height: 1;
-      color: rgba(1, 56, 98, 0.9);
-      content: "\25BC";
-      position: absolute;
-      text-align: center;
-    }
-    */
-    /* Style northward tooltips differently */
-    /*
-    &.n:after {
-      margin: -1px 0 0 0;
-      top: 100%;
-      left: 0;
-    }
-    */
-    /* degree table */ }
-    #canvas #tooltip.hidden {
-      display: none; }
-    #canvas #tooltip hr {
-      margin-top: 8px;
-      margin-bottom: 8px; }
-    #canvas #tooltip .shared-items-note {
-      padding-left: 60px;
-      font-weight: bold; }
-    #canvas #tooltip ul {
-      list-style-type: none;
-      margin: 0; }
-      #canvas #tooltip ul li {
-        width: 180px;
-        margin-bottom: 0;
-        line-height: 12px;
-        font-size: 9px; }
-      #canvas #tooltip ul em {
-        text-align: right;
-        display: inline-block;
-        font-style: normal;
-        padding: 4px 8px 4px 0;
-        width: 60px; }
-      #canvas #tooltip ul span {
-        color: white;
-        font-weight: bold;
-        background: lightcoral;
-        display: inline-block;
-        padding: 0 4px;
-        width: 30px; }
 
 /******************
 * DEGREE HISTOGRAM
