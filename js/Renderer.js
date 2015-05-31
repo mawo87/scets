@@ -504,6 +504,8 @@ var scats = (function(vis) {
 				.append("ul")
 				.attr("class", "list-inline");
 
+			console.log("LEGEND DATA :: range : ", this.scales.color.range());
+
 			var keys = legend.selectAll("li.key")
 				.data(this.scales.color.range())
 				.enter()
@@ -513,9 +515,13 @@ var scats = (function(vis) {
 				.style("width", 100/this.settings.colors.length + "%")
 				.text(function(d) {
 					var r = self.scales.color.invertExtent(d);
-					//console.log("r ", r);
-					return "≥ " + Math.round(r[0]);
+					//console.log("LEGEND DATA :: r ", r);
+					//return "≥ " + Math.round(r[0]);
+					return "≥ " + Math.ceil(r[0]);
 				});
+
+			//console.log("LEGEND DATA :: 18.333333333333332 : ", this.scales.color(18.333333333333332));
+			//console.log("LEGEND DATA :: 18 : ", this.scales.color(18));
 
 		},
 		/**
