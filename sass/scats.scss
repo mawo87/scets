@@ -212,7 +212,6 @@ $highlightColor: #2B8CBE;
   *********/
   #tooltip {
     position: absolute;
-    width: 200px;
     height: auto;
     padding: 10px;
     background-color: rgba(51, 51, 51, 0.9);
@@ -224,7 +223,9 @@ $highlightColor: #2B8CBE;
     font-size: 11px;
     line-height: 20px;
     color: #FFFFFF;
+    //width: 200px;
 
+    /*
     &:before {
       border: solid;
       border-color: #333333 transparent;
@@ -236,6 +237,31 @@ $highlightColor: #2B8CBE;
       top: -8px;
       left: 96px;
     }
+    */
+
+    /* Creates a small triangle extender for the tooltip */
+    /*
+    &:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: rgba(1, 56, 98, 0.9);
+      content: "\25BC";
+      position: absolute;
+      text-align: center;
+    }
+    */
+
+    /* Style northward tooltips differently */
+    /*
+    &.n:after {
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+    */
 
     &.hidden {
       display: none;
@@ -344,4 +370,37 @@ $highlightColor: #2B8CBE;
   overflow-y: scroll;
   background: #FFFFFF;
   margin-top: 10px;
+}
+
+/* d3 and custom tooltips */
+.d3-tip {
+  line-height: 22px;
+  padding: 6px 12px;
+  background: rgba(1, 56, 98, 0.9);
+  color: #efefef;
+  border-radius: 2px;
+  font-size: 14px;
+  font-family: sans-serif;
+  font-weight: 300;
+  z-index: 10000;
+
+  /* Creates a small triangle extender for the tooltip */
+  &:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(1, 56, 98, 0.9);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+  }
+
+  /* Style northward tooltips differently */
+  &.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+  }
 }

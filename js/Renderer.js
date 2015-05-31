@@ -20,7 +20,6 @@ var scats = (function(vis) {
 	 * @property {subset} selectedSubset  - The currently selected subset.
 	 * @property {table} table - The table object that shows the active selection
 	 * @property {array} data_y_axis - A two-dimensional array. First dimension are the bins, second dimension the degrees per bin.
-	 * @property {tooltip} tooltip - The tooltip object.
 	 */
 	function Renderer() {
 		this.settings = {
@@ -67,7 +66,8 @@ var scats = (function(vis) {
 		this.sortedValues = [];
 		this.currentSelection = undefined;
 		this.table = undefined;
-		this.tooltip = undefined;
+		/* deprecated */
+		/* this.tooltip = undefined; */
 		this.data_y_axis = [];
 		this.user_expanded_bins = []; //bins expanded by user (click)
 		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
@@ -118,9 +118,16 @@ var scats = (function(vis) {
 			this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
 
 			//initialize tooltip
+			this.tip = d3.tip()
+				.attr("class", "d3-tip")
+				.html(function(d) { return "foo"; })
+
+			/* deprecated */
+			/*
 			this.tooltip = new vis.Tooltip({
 				container: "#tooltip"
 			});
+			*/
 
 			function initScales() {
 				self.scales.x = d3.scale.ordinal()
@@ -424,6 +431,8 @@ var scats = (function(vis) {
 					*/
 
 					//segment_percentage = degreeItem.count / subset_data.count * 100; //e.g., 33.3
+
+
 					segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
 
 					//if the current subset is not the selected one, create a circle segment
@@ -529,10 +538,15 @@ var scats = (function(vis) {
 				width = this.settings.canvas.width,
 				height = this.settings.canvas.height;
 
-			//empty canvas first and append tooltip container
+			//empty canvas first
 			$('#canvas')
-				.empty()
+				.empty();
+
+			/* deprecated */
+			/*
+			$('#canvas')
 				.append('<div id="tooltip" class="hidden"></div>');
+			*/
 
 			this.svg = d3.select('#canvas').append("svg")
 				.attr("width", width + self.settings.canvas.margin.left)
@@ -547,6 +561,8 @@ var scats = (function(vis) {
 				canvasHeight = (this.getSetOuterHeight() + this.settings.canvas.margin.top) * no_of_set_groups;
 
 			this.setCanvasHeight(canvasHeight);
+
+			this.svg.call(this.tip);
 		},
 		/**
 		 * Computes the total outer width of a set rectangle
@@ -873,6 +889,7 @@ var scats = (function(vis) {
 		},
 		appendSubsets: function() {
 			var self = this;
+			var delay;
 
 			d3.selectAll('.subset')
 				.remove();
@@ -903,58 +920,66 @@ var scats = (function(vis) {
 					.attr("data-degree", function(d, i) { return d.degree; });
 			});
 
+
 			//handler for appended subsets
 			d3.selectAll('.subset')
 				.on("mouseover", function(d, i) {
 					console.log("d ", d);
-					var that = this;
 
-					//delay mouseover event for 500ms
+					var context = this;
+					var args = [].slice.call(arguments);
+					args.push(this);
+					clearTimeout(delay);
 					delay = setTimeout(function() {
-						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
-							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
+						self.tip
+							.offset(function() {
+								return [this.getBBox().height - 20, 0];
+							});
 
-						//tooltip showing text and highlighted segment
-						if (d3.select(that).classed("segment-tooltip")) {
+						self.tip
+							.html(function() {
+								console.log("SUBSET TOOLTIP :: ", d);
 
-							/* deprecated */
-							//var segment_percentage = vis.helpers.calcSegmentPercentage(self.selectedSubset, d) * 100;
+								var text_elements = d.count > 1 ? "elements" : "element",
+									text_sets = d.degree > 1 ? "sets" : "set",
+									html = "<strong>" + d.count + "</strong> " + text_elements + " shared with <strong>" + d.degree + "</strong> other " + text_sets + ".";
 
-							/* deprecated */
-							/*
-							if (self.selectedSubset) {
-								//var segment_percentage = d.count / self.selectedSubset.count * 100;
-								var segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.selectedSubset.elements) * 100;
+								if (d3.select(context).classed("segment-tooltip")) {
+									var segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.currentSelection.elements),
+										rounded = Math.round(segment_percentage * 1000) / 1000 * 100;
 
-							} else if (self.selectedAggregate) {
+									console.log("SUBSET TOOLTIP :: SEGMENT TOOLTIP : ", self.currentSelection.elements, d.elements);
 
-								var segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.selectedAggregate.getElements()) * 100;
-							}
-							*/
+									html += " <strong>" + d.elements.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
+								}
 
-							var segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.currentSelection.elements) * 100;
+								/*
+								var subset_first = d.subsets[0],
+									subset_last = d.subsets[d.subsets.length - 1],
+									text = d.count + " elements shared with " + subset_first.degree;
 
-							self.tooltip.update({
-									subset: d,
-									segmentPercentage: self.scales.radianToPercent(segment_percentage),
-									subsetFill: d3.select(that).attr("fill")
-								}, "subset_highlight")
-								.show(xPos, yPos);
+								if (subset_first.degree != subset_last.degree) {
+									text += " to " + subset_last.degree;
+								}
 
-						//tooltip with text only
-						} else {
+								text += " other sets";
 
-							self.tooltip.update({
-								subset: d
-							}, "subset")
-							.show(xPos, yPos);
-						}
+								return text;
+								*/
 
+								return html;
+
+							});
+
+						self.tip.show.apply(context, args);
 					}, 500);
+
 				})
 				.on("mouseout", function(d, i) {
 					clearTimeout(delay);
-					self.tooltip.hide();
+					/* deprecated */
+					//self.tooltip.hide();
+					self.tip.hide();
 				})
 				.on("click", onClickHandler);
 
@@ -1089,13 +1114,15 @@ var scats = (function(vis) {
 					});
 
 				function onMouseover(d, i) {
-					//console.log("d ", d);
+					console.log("d ", d);
 
+					/* deprecated */
+					/*
 					var that = this;
 
 					//delay mouseover event for 500ms
 					delay = setTimeout(function() {
-						var xPos = parseFloat($(that).offset().left) - (self.tooltip.getWidth()/2 + self.getTotalSetWidth()/2 - self.settings.subset.r/2),
+						var xPos = parseFloat($(that).offset().left),
 							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
 
 						self.tooltip.update({
@@ -1104,18 +1131,54 @@ var scats = (function(vis) {
 							.show(xPos, yPos);
 
 					}, 500);
+					*/
+
+					var context = this;
+					var args = [].slice.call(arguments);
+					args.push(this);
+					clearTimeout(delay);
+					delay = setTimeout(function() {
+						self.tip
+							.offset(function() {
+								return [this.getBBox().height - 20, 0];
+							});
+
+						self.tip
+							.html(function() {
+								console.log("AGGREGATE TOOLTIP :: ", d);
+
+								var subset_first = d.subsets[0],
+									subset_last = d.subsets[d.subsets.length - 1],
+									html = "<strong>" + d.count + "</strong> elements shared with <strong>" + subset_first.degree;
+
+									if (subset_first.degree != subset_last.degree) {
+										html += " to " + subset_last.degree;
+									}
+
+								html += "</strong> other sets.";
+
+								return html;
+
+							});
+
+						self.tip.show.apply(context, args);
+					}, 500);
+
 				}
 
 				function onMouseout() {
 					clearTimeout(delay);
-					self.tooltip.hide();
+					/* deprecated */
+					//self.tooltip.hide();
+					self.tip.hide();
 				}
 
 			}
 
 			function renderXaxisLabels(setGroup, index) {
 				//x axis data depends on set group whereas the y labels remain the same for each set group
-				var data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
+				var delay,
+					data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
 
 				//render labels for x axis
 				d3.select(this).selectAll('.x-label')
@@ -1129,7 +1192,34 @@ var scats = (function(vis) {
 					.attr("y", function(d, i) { return self.scales.x(i) + 7; })
 					.attr("dy", ".32em")
 					.attr("text-anchor", "start")
-					.text(function(d, i) { return d.name; });
+					.text(function(d, i) { return d.name; })
+					.on("mouseover", function(d, i) {
+
+						var context = this;
+						var args = [].slice.call(arguments);
+						args.push(this);
+						clearTimeout(delay);
+						delay = setTimeout(function() {
+							self.tip
+								.offset(function() {
+									return [this.getBBox().height - 40, 5];
+								});
+
+							self.tip
+								.html(function() {
+									console.log("SET TOOLTIP :: ", d);
+
+									return "<span><strong>" + d.name + "</strong></span>: <span style='font-size:11px;'>" + d.count + " elements total</span>";
+								});
+
+							self.tip.show.apply(context, args);
+						}, 500);
+
+					})
+					.on("mouseout", function(d, i) {
+						clearTimeout(delay);
+						self.tip.hide();
+					});
 			}
 
 			function renderYaxisLabels(setGroup, index) {

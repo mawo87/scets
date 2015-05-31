@@ -13,6 +13,11 @@ var scats = (function(vis) {
 	function Tooltip(initializer) {
 		this.container = initializer.container;
 		this.templates = {
+			"set": function (data) {
+				var text = "Total: " + data.data.count;
+				d3.select(this.container)
+					.text(text);
+			},
 			"aggregate": function(data) {
 				var d3Tooltip = d3.select(this.container),
 					maxValue = Math.max.apply(Math, data.aggregate.subsets.map(function(element) {
@@ -137,6 +142,16 @@ var scats = (function(vis) {
 		 */
 		getWidth: function() {
 			return $(this.container).width();
+		},
+		/**
+		 * Gets the tooltip's height
+		 *
+		 * @memberOf scats.Tooltip
+		 * @returns {int} - The height of the tooltip in px.
+		 * @method getHeight
+		 */
+		getHeight: function() {
+			return $(this.container).height();
 		},
 		/**
 		 * Sets the tooltips x and y position
