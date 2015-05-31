@@ -140,7 +140,11 @@ var scats = (function(vis) {
 				b = refElements.map(function(el) { return el.name; }),
 				intersection = vis.helpers.intersect(a, b);
 
-			return intersection.length / b.length;
+			/* deprecated */
+			//return intersection.length / b.length;
+
+			//return refElements.length / currElements.length;
+			return intersection.length / a.length;
 		},
 		initBins: function(data, k) {
 			var H = vis.helpers.getElementsPerDegree(data), //histogram data

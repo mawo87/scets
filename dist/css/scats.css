@@ -564,6 +564,17 @@ input[type="checkbox"] {
 .ui-controls #buttonBar {
   float: left;
   margin-top: 30px; }
+  .ui-controls #buttonBar .btn-remove-selection {
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out; }
+    .ui-controls #buttonBar .btn-remove-selection:hover {
+      background: #329bd1; }
+    .ui-controls #buttonBar .btn-remove-selection.enabled {
+      background: #2B8CBE;
+      border-color: #226d94;
+      color: #FFFFFF; }
 .ui-controls #searchBar {
   float: left;
   width: 200px;
@@ -643,7 +654,6 @@ input[type="checkbox"] {
     stroke: #FFFFFF; }
   #canvas #tooltip {
     position: absolute;
-    width: 200px;
     height: auto;
     padding: 10px;
     background-color: rgba(51, 51, 51, 0.9);
@@ -655,8 +665,8 @@ input[type="checkbox"] {
     font-size: 11px;
     line-height: 20px;
     color: #FFFFFF;
-    /* degree table */ }
-    #canvas #tooltip:before {
+    /*
+    &:before {
       border: solid;
       border-color: #333333 transparent;
       border-color: rgba(51, 51, 51, 0.9) transparent;
@@ -665,7 +675,32 @@ input[type="checkbox"] {
       display: block;
       position: absolute;
       top: -8px;
-      left: 96px; }
+      left: 96px;
+    }
+    */
+    /* Creates a small triangle extender for the tooltip */
+    /*
+    &:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: rgba(1, 56, 98, 0.9);
+      content: "\25BC";
+      position: absolute;
+      text-align: center;
+    }
+    */
+    /* Style northward tooltips differently */
+    /*
+    &.n:after {
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+    */
+    /* degree table */ }
     #canvas #tooltip.hidden {
       display: none; }
     #canvas #tooltip hr {
@@ -740,5 +775,33 @@ input[type="checkbox"] {
   overflow-y: scroll;
   background: #FFFFFF;
   margin-top: 10px; }
+
+/* d3 and custom tooltips */
+.d3-tip {
+  line-height: 22px;
+  padding: 6px 12px;
+  background: rgba(1, 56, 98, 0.9);
+  color: #efefef;
+  border-radius: 2px;
+  font-size: 14px;
+  font-family: sans-serif;
+  font-weight: 300;
+  z-index: 10000;
+  /* Creates a small triangle extender for the tooltip */
+  /* Style northward tooltips differently */ }
+  .d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(1, 56, 98, 0.9);
+    content: "\25BC";
+    position: absolute;
+    text-align: center; }
+  .d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0; }
 
 /*# sourceMappingURL=scats.css.map */
