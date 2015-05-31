@@ -66,8 +66,6 @@ var scats = (function(vis) {
 		this.sortedValues = [];
 		this.currentSelection = undefined;
 		this.table = undefined;
-		/* deprecated */
-		/* this.tooltip = undefined; */
 		this.data_y_axis = [];
 		this.user_expanded_bins = []; //bins expanded by user (click)
 		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
@@ -120,14 +118,7 @@ var scats = (function(vis) {
 			//initialize tooltip
 			this.tip = d3.tip()
 				.attr("class", "d3-tip")
-				.html(function(d) { return "foo"; })
-
-			/* deprecated */
-			/*
-			this.tooltip = new vis.Tooltip({
-				container: "#tooltip"
-			});
-			*/
+				.html(function(d) { return "foo"; });
 
 			function initScales() {
 				self.scales.x = d3.scale.ordinal()
@@ -542,12 +533,6 @@ var scats = (function(vis) {
 			$('#canvas')
 				.empty();
 
-			/* deprecated */
-			/*
-			$('#canvas')
-				.append('<div id="tooltip" class="hidden"></div>');
-			*/
-
 			this.svg = d3.select('#canvas').append("svg")
 				.attr("width", width + self.settings.canvas.margin.left)
 				.attr("height", height)
@@ -901,10 +886,6 @@ var scats = (function(vis) {
 					bin_entries = d3.select(this).data()[0].subsets,
 					binIndex = parseInt(d3.select(this).attr("data-bin"));
 
-				//console.log("this ", this);
-				//console.log("bin_entries ", bin_entries);
-				//console.log("data-bin :: ", d3.select(this).attr("data-bin"));
-
 				//level is the index of the bin the parent aggregate belongs to (starting from 0)
 				d3.select(this.parentNode).selectAll('.subset.level-' + binIndex)
 					.data(bin_entries)
@@ -953,20 +934,6 @@ var scats = (function(vis) {
 									html += " <strong>" + d.elements.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
 								}
 
-								/*
-								var subset_first = d.subsets[0],
-									subset_last = d.subsets[d.subsets.length - 1],
-									text = d.count + " elements shared with " + subset_first.degree;
-
-								if (subset_first.degree != subset_last.degree) {
-									text += " to " + subset_last.degree;
-								}
-
-								text += " other sets";
-
-								return text;
-								*/
-
 								return html;
 
 							});
@@ -977,8 +944,6 @@ var scats = (function(vis) {
 				})
 				.on("mouseout", function(d, i) {
 					clearTimeout(delay);
-					/* deprecated */
-					//self.tooltip.hide();
 					self.tip.hide();
 				})
 				.on("click", onClickHandler);
@@ -1039,9 +1004,7 @@ var scats = (function(vis) {
 				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group))
 
 			console.log("aggregated_bin_data ", this.aggregated_bin_data);
-
 			console.log("vis.data.bins ", vis.data.bins);
-
 			console.log("aggregated bin data ", this.aggregated_bin_data);
 
 			//set number of set groups
@@ -1116,23 +1079,6 @@ var scats = (function(vis) {
 				function onMouseover(d, i) {
 					console.log("d ", d);
 
-					/* deprecated */
-					/*
-					var that = this;
-
-					//delay mouseover event for 500ms
-					delay = setTimeout(function() {
-						var xPos = parseFloat($(that).offset().left),
-							yPos = parseFloat($(that).offset().top) + 3 * self.settings.subset.r;
-
-						self.tooltip.update({
-							aggregate: d
-						}, "aggregate")
-							.show(xPos, yPos);
-
-					}, 500);
-					*/
-
 					var context = this;
 					var args = [].slice.call(arguments);
 					args.push(this);
@@ -1168,8 +1114,6 @@ var scats = (function(vis) {
 
 				function onMouseout() {
 					clearTimeout(delay);
-					/* deprecated */
-					//self.tooltip.hide();
 					self.tip.hide();
 				}
 
