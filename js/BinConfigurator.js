@@ -115,12 +115,21 @@ var scats = (function(vis) {
 
 				console.log("save button clicked");
 
+				self.removeErrors();
+
 				$(self.container).find('.bin-range').each(function(k, v) {
 					var start = parseInt($(this).find('input.bin-start').val()) - 1,
 						end = parseInt($(this).find('input.bin-end').val()) - 1;
 
 					ranges.push({ start: start, end: end });
 				});
+
+				var errors = self.validate(ranges);
+
+				if (errors.length > 0) {
+					self.showErrors(errors);
+					return;
+				}
 
 				//update bin ranges
 				self.updateBinRanges(ranges);
@@ -173,6 +182,39 @@ var scats = (function(vis) {
 			if (ranges && ranges.length > 0) {
 				vis.data.bins.ranges = ranges;
 			}
+		},
+		validate: function(ranges) {
+			var errors = [],
+				errorText = [
+					"'From' cannot be greater than 'to' index.",
+					"Overlapping bin ranges are not allowed ('from' has to be greater than previous 'start' index)",
+					"Overlapping bin ranges are not allowed ('to' has to be greater than previous 'to' index)."
+				];
+			_.each(ranges, function(range, idx) {
+				console.log("range :: ", range, idx);
+
+				if (range.start > range.end) {
+					errors.push({ text: errorText[0] });
+				}
+
+				//check start and end values
+				_.each(ranges, function(r, i) {
+					if (idx > i && range.start <= r.start) {
+						errors.push({ text: errorText[1] });
+					} else if (idx > i && range.end <= r.end) {
+						errors.push({ text: errorText[2] });
+					}
+				});
+			});
+
+			return errors;
+		},
+		showErrors: function(errors) {
+			var $errorDiv = $("<div class='alert alert-danger error-container'><strong>Error</strong>:" + errors[0].text + "</div>");
+			$errorDiv.insertBefore("#saveBtn");
+		},
+		removeErrors: function() {
+			$(this.container).find(".error-container").remove();
 		}
   };
 

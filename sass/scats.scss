@@ -18,7 +18,7 @@ $highlightColor: #2B8CBE;
 .data-navigator {
   &.lg {
     width: 280px;
-    height: 160px;
+    /*height: 160px;*/
     position: absolute;
     top: 50%;
     left: 50%;
@@ -34,8 +34,33 @@ $highlightColor: #2B8CBE;
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   }
 
-  #loadBtn {
-    margin-top: 10px;
+  .btn-file {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    background: red;
+    cursor: inherit;
+    display: block;
+  }
+  input[readonly] {
+    background-color: white !important;
+    cursor: text !important;
+  }
+
+  #uploadForm {
+    .alert-danger {
+      margin-top: 5px;
+    }
   }
 }
 

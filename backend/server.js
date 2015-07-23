@@ -1,17 +1,19 @@
 var express = require("express");
-var bodyParser = require("body-parser");
 var parse = require("csv-parse");
 var fs = require("fs");
+var multer = require("multer");
 var config = require("./modules/config.js");
 var scatsParser = require("./modules/parser.js");
 
 var app = express();
 
+var uploadDone = false;
+
 // Add headers (for CORS)
 app.use(function (req, res, next) {
 
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', config.localhost.url);
+  res.setHeader('Access-Control-Allow-Origin', config.localhost.url + ":" + config.localhost.port);
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -27,11 +29,20 @@ app.use(function (req, res, next) {
   next();
 });
 
-// configure app to use bodyParser()
-// this will let us get the data from a POST
-// increase limit according to: http://stackoverflow.com/questions/19917401/node-js-express-request-entity-too-large
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-app.use(bodyParser.json({ limit: '50mb' }));
+//configure app to use multer (for file upload)
+app.use(multer({
+  dest: config.data.uploads,
+  rename: function (fieldname, filename) {
+    return filename;
+  },
+  onFileUploadStart: function (file) {
+    console.log(file.originalname + " is starting ...");
+  },
+  onFileUploadComplete: function (file) {
+    console.log(file.fieldname + " uploaded to " + file.path);
+    uploadDone = true;
+  }
+}));
 
 var port = process.env.PORT || config.server.port; //set the port
 
@@ -51,7 +62,7 @@ router.get('/', function(req, res) {
   res.json({ message: 'hooray! welcome to our api!' });
 });
 
-// get a list of examples
+// gets a list of sample files
 // ----------------------------------------------------
 router.route('/examples')
   .get(function(req, res) {
@@ -108,7 +119,6 @@ router.route('/examples')
 
 // get a singe example
 // ----------------------------------------------------
-
 router.route('/examples/:file')
   .get(function(req, res) {
     res.contentType('application/json');
@@ -145,33 +155,46 @@ router.route('/examples/:file')
 
   });
 
-// on routes that end in /upload
+// uploads a CSV and a description file to the server
 // ----------------------------------------------------
 router.route('/upload')
   .post(function(req, res) {
     res.contentType('application/json');
 
-    //console.log("POST /upload req.body ", req.body);
+    if (uploadDone === true) {
 
-    var fs = require('fs'),
-      setDescription = req.body.set_description,
-      csvData = req.body.data;
+      console.log("File uploaded :: ", req.files);
 
-    //read the set description asynchronously
-    //fs.readFile('data/skillmatrix_final.json', 'utf8', function (err, data) {
-    /*
-    fs.readFile('data/skillmat.json', 'utf8', function (err, data) {
-      if (err) throw err;
-      onSetDescriptionLoaded(JSON.parse(data), csvData);
-    });
-    */
+      var fs = require('fs'),
+        fileName = req.files.descriptionFile.originalname;
 
-    if (setDescription && csvData) {
-      onCSVDataLoaded(setDescription, csvData, function(data) {
-        res.json({ success: true, result: data });
+      uploadDone = false;
+
+      //read description file first
+      fs.readFile(config.data.uploads + "/" + fileName, 'utf8', function (err, data) {
+        if (err) throw err;
+
+        var setDescription = JSON.parse(data);
+
+        console.log("setDescription loaded :: setDescription : ", setDescription);
+
+        onSetDescriptionLoaded(setDescription);
       });
-    }
 
+      function onSetDescriptionLoaded(setDescription) {
+
+        //then read CSV file
+        fs.readFile(config.data.uploads + "/" + setDescription.file, 'utf8', function (err, data) {
+          if (err) throw err;
+
+          console.log("CSV loaded :: csv : ", data);
+
+          onCSVDataLoaded(setDescription, data, function(data) {
+            res.json({ success: true, result: data });
+          });
+        });
+      }
+    }
   });
 
 function onCSVDataLoaded(setDescription, csvData, cb) {
