@@ -2,6 +2,7 @@
 
 	//global namespace
 	scats.data = {
+		selectedFile: "",
 		sets: [],
 		elements: [],
 		aggregates: [],
@@ -26,6 +27,9 @@
 		new scats.DataNavigator({
 			container: "#dataNavigator",
 			loader: "#loader",
+			onSelectCallback: function (data) {
+				scats.data.selectedFile = data.file;
+			},
 			onLoadedCallback: function(resp) {
 
 				if (resp.result && resp.result) {
@@ -68,7 +72,7 @@
 				}
 
 				$(this.loader).velocity("transition.fadeOut");
-				$('#main').velocity("transition.slideUpIn", {
+				$("#main").velocity("transition.slideUpIn", {
 					complete: function () {
 						var renderer = new scats.Renderer();
 						renderer.render();
