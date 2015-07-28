@@ -8,6 +8,7 @@ var scats = (function(vis) {
    * @property {scats.Renderer} setRenderer - A reference to the renderer instance
    * @property {string} container - The container where the binning view will be rendered in
    * @property {scats.BinConfigurator} binConfigurator - The BinConfigurator instance
+   * @params {object} initializer - A settings object
    */
   function BinningView(initializer) {
     var self = this;

@@ -99,6 +99,66 @@ var scats = (function(vis) {
 				container: "#binningViewModal"
 			});
 
+			this.dataNavigator = new scats.DataNavigator({
+				container: "#dataNavigatorSmall",
+				loader: "#loader",
+				size: "small",
+				selectedFile: scats.data.selectedFile,
+				onSelectCallback: function (data) {
+					scats.data.selectedFile = data.file;
+				},
+				onLoadedCallback: function(resp) {
+
+					if (resp.result && resp.result) {
+						var sets = resp.result.sets,
+							elements = resp.result.elements,
+							tmp = { sets: [], elements: [] };
+
+						//extend the global scats variable and delete sets and elements as we create new instances below
+						$.extend(scats.data, resp.result);
+						delete scats.data.sets;
+						delete scats.data.elements;
+
+						console.log("scats.data :: ", scats.data);
+
+						//create sets
+						for (var i = 0, len = sets.length, s; i < len; i++) {
+							s = new scats.Set(sets[i].name);
+							s.count = sets[i].count;
+							tmp.sets.push(s);
+						}
+
+						//create elements
+						for (var i = 0, len = elements.length, e; i < len; i++) {
+							e = new scats.Element(elements[i].id, elements[i].name);
+							e.sets = elements[i].sets;
+							e.degree = elements[i].degree;
+							tmp.elements.push(e);
+						}
+
+						$.extend(scats.data, tmp);
+
+						console.log("scats.data :: after adding sets and elements ", scats.data);
+
+						//initialize bins
+						scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
+						scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
+
+						//classify bin data
+						scats.helpers.classifyBinData(this.data);
+					}
+
+					$(this.loader).velocity("transition.fadeOut");
+					$('#main').velocity("transition.slideUpIn", {
+						complete: function () {
+							var renderer = new scats.Renderer();
+							renderer.render();
+						}
+					});
+				}
+			});
+
+
 			this.aggregated_bin_data = vis.helpers.createAggregatedData(vis.data.bins.data);
 
 			this.sortedValues = vis.helpers.computeSortedValuesArray(vis.data.elements, vis.data.aggregates);
