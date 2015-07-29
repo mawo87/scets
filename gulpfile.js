@@ -1,6 +1,5 @@
 var gulp = require('gulp'),
     connect = require('gulp-connect'),
-    //traceur = require('gulp-traceur'),
     sass = require('gulp-ruby-sass');
 
 gulp.task('connect', function() {
@@ -26,18 +25,9 @@ gulp.task('js', function() {
         .pipe(gulp.dest('dist/js'));
 });
 
-/*
-gulp.task('traceur', function() {
-    gulp.src('./js/*.js')
-        .pipe(traceur())
-        .pipe(gulp.dest('dist/js'));
-});
-*/
-
 gulp.task('watch', function() {
     gulp.watch(['./sass/*.scss'], ['sass']);
     gulp.watch(['./js/*.js'], ['js']);
-    //gulp.watch(['./js/*.js'], ['traceur']);
     gulp.watch(['./dist/**/*.*'], ['reload']);
 });
 
