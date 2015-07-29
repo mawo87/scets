@@ -4,10 +4,21 @@ var fs = require("fs");
 var multer = require("multer");
 var config = require("./modules/config.js");
 var scatsParser = require("./modules/parser.js");
+var walker = require("./modules/walker.js");
 
 var app = express();
 
-var uploadDone = false;
+//upload specific
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, config.data.dir + "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+});
+var upload = multer({ storage: storage });
+var cpUpload = upload.fields([{ name: 'dataFile', maxCount: 1 }, { name: 'descriptionFile', maxCount: 1 }]);
 
 // Add headers (for CORS)
 app.use(function (req, res, next) {
@@ -28,21 +39,6 @@ app.use(function (req, res, next) {
   // Pass to next layer of middleware
   next();
 });
-
-//configure app to use multer (for file upload)
-app.use(multer({
-  dest: config.data.uploads,
-  rename: function (fieldname, filename) {
-    return filename;
-  },
-  onFileUploadStart: function (file) {
-    console.log(file.originalname + " is starting ...");
-  },
-  onFileUploadComplete: function (file) {
-    console.log(file.fieldname + " uploaded to " + file.path);
-    uploadDone = true;
-  }
-}));
 
 var port = process.env.PORT || config.server.port; //set the port
 
@@ -70,63 +66,53 @@ router.route('/examples')
 
     console.log("Now give me the examples");
 
-    var responseData = [];
+    walker.walk(config.data.dir, function(err, resp) {
+      console.log("WALK DONE :: resp : ", resp);
 
-    fs.readdir(config.data.dir, function(err, files) {
-      if (err) {
-        throw err;
-      }
+      var responseData = [],
+        remaining = resp.length;
 
-      var jsonFiles = [];
+      resp.forEach(function(file) {
 
-      //browse json files only and exclude files listed in config
-      files.forEach(function(file) {
-        if (file.match(/\.(json)$/) && config.data.excludedFiles.indexOf(file.replace(/\.[^/.]+$/, "")) == -1) {
-          jsonFiles.push(file);
-        }
-      });
+        console.log("READ FILE :: ", file);
 
-      //keep track of how many we have to go.
-      var remaining = jsonFiles.length;
-
-      //read all json files in the folder in parallel
-      jsonFiles.forEach(function(file) {
-
-        fs.readFile(config.data.dir + file, 'utf-8', function (fileErr, data) {
+        fs.readFile(file, 'utf-8', function (fileErr, data) {
 
           if (fileErr) {
             console.log("Error ", fileErr);
           }
 
           var parsedData = JSON.parse(data),
-            fileName = file.replace(/\.[^/.]+$/, ""); //without extension (.json)
+            tmp = file.lastIndexOf('data/'),
+            path = file.substring(tmp + 5).replace(/\.[^/.]+$/, ""); //without extension (.json)
 
-          responseData.push({ name: fileName, title: parsedData.name });
+          responseData.push({ title: parsedData.name, path: path });
 
           remaining -= 1;
 
           //done reading files, return response
           if (remaining == 0) {
             res.json({ success: true, result: responseData });
+            console.log("WALK DONE :: responseData : ", responseData);
           }
 
         });
-
       });
 
     });
+
   });
 
 // get a singe example
 // ----------------------------------------------------
-router.route('/examples/:file')
+router.route('/example')
   .get(function(req, res) {
     res.contentType('application/json');
 
-    console.log("Now give me the example file " + req.params.file);
+    console.log("Now give me the example file " + req.query.file);
 
     var fs = require('fs'),
-      fileName = req.params.file + ".json";
+      fileName = req.query.file + ".json";
 
     //read description file first
     fs.readFile(config.data.dir + fileName, 'utf8', function (err, data) {
@@ -141,11 +127,11 @@ router.route('/examples/:file')
 
     function onSetDescriptionLoaded(setDescription) {
 
-      //then read CSV file
-      fs.readFile(config.data.dir + setDescription.file, 'utf8', function (err, data) {
-        if (err) throw err;
+      var isUploadedFile = fileName.indexOf("uploads/") !== -1;
 
-        console.log("CSV loaded :: csv : ", data);
+      //then read CSV file
+      fs.readFile(config.data.dir + (isUploadedFile ? "uploads/" : "") + setDescription.file, 'utf8', function (err, data) {
+        if (err) throw err;
 
         onCSVDataLoaded(setDescription, data, function(data) {
           res.json({ success: true, result: data });
@@ -158,43 +144,16 @@ router.route('/examples/:file')
 // uploads a CSV and a description file to the server
 // ----------------------------------------------------
 router.route('/upload')
-  .post(function(req, res) {
+  .post(cpUpload, function(req, res) {
     res.contentType('application/json');
 
-    if (uploadDone === true) {
+    console.log("File uploaded :: ", req.files);
 
-      console.log("File uploaded :: ", req.files);
+    var fileName = req.files.descriptionFile[0].originalname.replace(/\.[^/.]+$/, ""), //without extension (.json)
+      path = "uploads/" + fileName;
 
-      var fs = require('fs'),
-        fileName = req.files.descriptionFile.originalname;
+    res.json({ success: true, result: path });
 
-      uploadDone = false;
-
-      //read description file first
-      fs.readFile(config.data.uploads + "/" + fileName, 'utf8', function (err, data) {
-        if (err) throw err;
-
-        var setDescription = JSON.parse(data);
-
-        console.log("setDescription loaded :: setDescription : ", setDescription);
-
-        onSetDescriptionLoaded(setDescription);
-      });
-
-      function onSetDescriptionLoaded(setDescription) {
-
-        //then read CSV file
-        fs.readFile(config.data.uploads + "/" + setDescription.file, 'utf8', function (err, data) {
-          if (err) throw err;
-
-          console.log("CSV loaded :: csv : ", data);
-
-          onCSVDataLoaded(setDescription, data, function(data) {
-            res.json({ success: true, result: data });
-          });
-        });
-      }
-    }
   });
 
 function onCSVDataLoaded(setDescription, csvData, cb) {

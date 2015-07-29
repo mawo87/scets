@@ -3,8 +3,7 @@ var config = {
   /* settings for example files and excludes files */
   data: {
     dir: "./data/",
-    uploads: "./uploads",
-    excludedFiles: ["skillmatrix_final", "skillmatrix_final_small", "skillmatrix_small"]
+    excludedDir: ["deprecated"]
   },
 
   /* settings for the Node.js server */
