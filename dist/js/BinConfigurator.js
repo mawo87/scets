@@ -7,15 +7,13 @@ var scats = (function(vis) {
 	 *
 	 * @property {string} container - The container where the binning view will be rendered in
 	 * @property {array} bins - An array of bins.
-	 * @property {defaults} defaults
-	 * @property {function} onSaveCallback
-	 * @property {object} templates
-	 * @params {object} initializer
+	 * @property {function} onSaveCallback - A callback function getting executed when the save button is clicked
+	 * @property {object} templates - The separate template pieces to be rendered
+	 * @params {object} initializer - A settings object
 	 */
   function BinConfigurator(initializer) {
     this.container = initializer.container;
     this.bins = initializer.bins;
-    this.defaults = this.defaults || initializer.bins;
     this.onSaveCallback = initializer.onSaveCallback;
     this.templates = {
 	    "totalBins": function(k) {

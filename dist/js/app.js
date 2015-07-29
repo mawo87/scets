@@ -30,6 +30,9 @@
 			onSelectCallback: function (data) {
 				scats.data.selectedFile = data.file;
 			},
+			onUploadCallback: function (data) {
+				scats.data.selectedFile = data.file;
+			},
 			onLoadedCallback: function(resp) {
 
 				if (resp.result && resp.result) {

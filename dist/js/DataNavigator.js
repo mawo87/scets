@@ -19,14 +19,15 @@ var scats = (function (vis) {
 
       return deferred.promise();
     },
-    loadExample: function (fileName) {
+    loadExample: function (file) {
       var self = this,
         deferred = $.Deferred();
 
       $.ajax({
         type: "GET",
         dataType: "json",
-        url: self.baseUrl() + "/examples/" + fileName,
+        //url: self.baseUrl() + "/examples/" + fileName,
+        url: self.baseUrl() + "/example?file=" + file,
         success: function (resp) {
           deferred.resolve(resp);
         },
@@ -43,6 +44,16 @@ var scats = (function (vis) {
    * @class DataNavigator
    * @classDesc The Data Navigator retrieves sample files from the backend and enables users to upload new data sets
    * @memberOf scats
+   *
+   * @property {string} container - A selector of the container where the data navigator will ber rendered in
+   * @property {string} loader - A selector of the loading container
+   * @property {array} dataSets - An array of selectable files
+   * @property {string} selectedFile - The name of the sample file to be selected in the list
+   * @property {string} size - The size of the template to be rendered (either "large" or "small")
+   * @property {function} onSelectCallback - A callback function getting executed when a sample file is selected
+   * @property {function} onLoadedCallback - A callback function getting executed when the sample files are loaded
+   * @property {object} templates - The different templates to be rendered
+   * @params {object} initializer - A settings object
    */
   function DataNavigator(initializer) {
     var self = this;
@@ -53,6 +64,7 @@ var scats = (function (vis) {
     this.size = initializer.size || "large";
     this.onSelectCallback = initializer.onSelectCallback || $.noop();
     this.onLoadedCallback = initializer.onLoadedCallback || $.noop();
+    this.onUploadCallback = initializer.onUploadCallback || $.noop();
     this.templates = {
       main: function(dataSets) {
         var sorted = _.sortBy(dataSets, "title");
@@ -64,7 +76,7 @@ var scats = (function (vis) {
         html += '<div class="col-md-8">';
         html += '<select class="form-control" id="fileSelect">';
         _.each(sorted, function(d, i) {
-          html += '<option value="' + d.name + '" ' + (d.name === self.selectedFile ? "selected" : "") + '>' + d.title + '</option>';
+          html += '<option value="' + d.path + '" ' + (d.path === self.selectedFile ? "selected" : "") + '>' + d.title + '</option>';
         });
         html += '</select></div>';
         html += '<div class="col-md-4"><button class="btn btn-primary" id="loadBtn">Load</button></div>';
@@ -83,7 +95,7 @@ var scats = (function (vis) {
         html += '<div class="col-sm-8">';
         html += '<select class="form-control" id="fileSelect">';
         _.each(sorted, function(d, i) {
-          html += '<option value="' + d.name + '" ' + (d.name  === self.selectedFile? "selected" : "") + '>' + d.title + '</option>';
+          html += '<option value="' + d.path + '" ' + (d.path  === self.selectedFile? "selected" : "") + '>' + d.title + '</option>';
         });
         html += '</select>';
         html += '</div>';
@@ -191,9 +203,12 @@ var scats = (function (vis) {
 
             if (resp.result && resp.result) {
 
-              if (self.onLoadedCallback) {
-                self.onLoadedCallback.call(self, resp);
+              if (self.onUploadCallback) {
+                self.onUploadCallback.call(self, { file: resp.result });
               }
+
+              self.loadFile(resp.result);
+
             }
           }
         });
@@ -211,7 +226,7 @@ var scats = (function (vis) {
    * @memberOf scats.DataNavigator
    * @method attachFormEventHandlers
    */
-  DataNavigator.prototype.attachFormEventHandlers = function() {
+    DataNavigator.prototype.attachFormEventHandlers = function() {
     console.log("initEventHandlers");
 
     var self = this;
