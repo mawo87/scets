@@ -1,1 +1,6 @@
+# Project files
+/.sass-cache/
+/data/uploads/
 
+# NPM files
+/node_modules/
