@@ -52,6 +52,7 @@ var scats = (function (vis) {
    * @property {string} size - The size of the template to be rendered (either "large" or "small")
    * @property {function} onSelectCallback - A callback function getting executed when a sample file is selected
    * @property {function} onLoadedCallback - A callback function getting executed when the sample files are loaded
+   * * @property {function} onUploadCallback - A callback function getting executed after a new file is uploaded
    * @property {object} templates - The different templates to be rendered
    * @params {object} initializer - A settings object
    */

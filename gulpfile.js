@@ -1,6 +1,8 @@
 var gulp = require('gulp'),
     connect = require('gulp-connect'),
-    sass = require('gulp-ruby-sass');
+    sass = require('gulp-ruby-sass'),
+    shell = require('gulp-shell'),
+    apidoc = require('gulp-apidoc');
 
 gulp.task('connect', function() {
     connect.server({
@@ -29,6 +31,18 @@ gulp.task('watch', function() {
     gulp.watch(['./sass/*.scss'], ['sass']);
     gulp.watch(['./js/*.js'], ['js']);
     gulp.watch(['./dist/**/*.*'], ['reload']);
+});
+
+gulp.task('jsdoc', shell.task([
+    './node_modules/.bin/jsdoc -c ./jsdoc.json -d ./doc/frontend'
+]));
+
+gulp.task('apidoc', function(){
+    apidoc.exec({
+        src: "backend/",
+        dest: "doc/backend",
+        includeFilters: [ ".*\\.js$" ]
+    });
 });
 
 gulp.task('default', ['connect', 'watch', 'sass', 'js']);
