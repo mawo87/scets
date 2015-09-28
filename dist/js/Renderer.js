@@ -992,12 +992,13 @@ var scats = (function(vis) {
 									html = "<strong>" + d.count + "</strong> " + text_elements + " shared with <strong>" + d.degree + "</strong> other " + text_sets + ".";
 
 								if (d3.select(context).classed("segment-tooltip")) {
-									var segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.currentSelection.elements),
+									var intersection = vis.helpers.calcIntersection(d.elements, self.currentSelection.elements),
+										segment_percentage = vis.helpers.calcSegmentPercentage(d.elements, self.currentSelection.elements),
 										rounded = Math.round(segment_percentage * 1000) / 1000 * 100;
 
 									console.log("SUBSET TOOLTIP :: SEGMENT TOOLTIP : ", self.currentSelection.elements, d.elements);
 
-									html += " <strong>" + d.elements.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
+									html += " <strong>" + intersection.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
 								}
 
 								return html;

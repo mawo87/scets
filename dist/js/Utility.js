@@ -128,6 +128,21 @@ var scats = (function(vis) {
 			);
 		},
 		/**
+		 * @method calcIntersection
+		 * @description calculates the intersection between a selected subset and a given neighboring element
+		 * @memberOf scats.helpers
+		 * @param currElements
+		 * @param refElements
+		 * @returns {number}
+		 */
+		calcIntersection: function(currElements, refElements) {
+			var a = currElements.map(function(el) { return el.name; }),
+				b = refElements.map(function(el) { return el.name; }),
+				intersection = vis.helpers.intersect(a, b);
+
+			return intersection;
+		},
+		/**
 		 * @method calcSegmentPercentage
 		 * @description calculates the percentage of the colored circle segment for a selected subset and a given neighboring element
 		 * @memberOf scats.helpers
