@@ -58,8 +58,17 @@ router.get('/', function(req, res) {
   res.json({ message: 'hooray! welcome to our api!' });
 });
 
-// gets a list of sample files
-// ----------------------------------------------------
+/**
+ * @api {get} /examples
+ * @apiDescription Request a list of sample files.
+ * @apiGroup Examples
+ * @apiVersion 0.1.0
+ *
+ * @apiSuccess {Boolean} success True if the example list was loaded successfully. False otherwise.
+ * @apiSuccess {Object[]} result List of example files.
+ * @apiSuccess {String} result.title The file title.
+ * @apiSuccess {String} result.path The file path.
+ */
 router.route('/examples')
   .get(function(req, res) {
     res.contentType('application/json');
@@ -103,8 +112,24 @@ router.route('/examples')
 
   });
 
-// get a singe example
-// ----------------------------------------------------
+/**
+ * @api {get} /example?file=fileName
+ * @apiDescription Gets a single example.
+ * @apiGroup Examples
+ * @apiVersion 0.1.0
+ * @apiParam {String} file The name of the file to be loaded.
+ *
+ * @apiSuccess {Boolean} success True if the example list was loaded successfully. False otherwise.
+ * @apiSuccess {Object[]} result List of example files.
+ * @apiSuccess {Object[]} result.sets Array of sets.
+ * @apiSuccess {Object[]} result.elements Array of elements.
+ * @apiSuccess {Array} result.grid An array (cols x rows) containing the degrees.
+ * @apiSuccess {Array} result.fullGrid Similar to the grid but the grid cells contain more information than just the degree, i.e., subsets with degree and elements.
+ * @apiSuccess {Array} result.degreeVector Array of degrees
+ * @apiSuccess {Integer} result.max
+ * @apiSuccess {Integer} result.min
+ * @apiSuccess {Integer} result.maxDegree The max value in the degreeVector.
+ */
 router.route('/example')
   .get(function(req, res) {
     res.contentType('application/json');
@@ -141,8 +166,18 @@ router.route('/example')
 
   });
 
-// uploads a CSV and a description file to the server
-// ----------------------------------------------------
+/**
+ * @api {post} /upload
+ * @apiDescription Uploads a CSV and a description file to the server.
+ * @apiGroup Examples
+ * @apiVersion 0.1.0
+ * @apiParam {String} file The name of the file to be loaded.
+ *
+ * @apiSuccess {Boolean} success True if the example list was loaded successfully. False otherwise.
+ * @apiSuccess {Object[]} result List of example files.
+ * @apiSuccess {String} result.title The file title.
+ * @apiSuccess {String} result.path The file path.
+ */
 router.route('/upload')
   .post(cpUpload, function(req, res) {
     res.contentType('application/json');
