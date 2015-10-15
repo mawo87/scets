@@ -1,0 +1,14 @@
+{
+  "file": "countries.csv",
+  "name": "Countries Data",
+  "header": 0,
+  "separator": "\t",
+  "set": {
+    "start": 1,
+    "end": 194,
+    "format": "binary"
+  },
+  "author": "romsson",
+  "description": "Countries",
+  "source": "https://github.com/VCG/upset/blob/master/data/countries/countries.csv"
+}
