@@ -49,7 +49,7 @@ var router = express.Router(); // get an instance of the express Router
 // middleware to use for all requests
 router.use(function(req, res, next) {
   // do logging
-  console.log('Something is happening.');
+  //console.log('Something is happening.');
   next(); // make sure we go to the next routes and don't stop here
 });
 
@@ -73,17 +73,17 @@ router.route('/examples')
   .get(function(req, res) {
     res.contentType('application/json');
 
-    console.log("Now give me the examples");
+    //console.log("Now give me the examples");
 
     walker.walk(config.data.dir, function(err, resp) {
-      console.log("WALK DONE :: resp : ", resp);
+      //console.log("WALK DONE :: resp : ", resp);
 
       var responseData = [],
         remaining = resp.length;
 
       resp.forEach(function(file) {
 
-        console.log("READ FILE :: ", file);
+        //console.log("READ FILE :: ", file);
 
         fs.readFile(file, 'utf-8', function (fileErr, data) {
 
@@ -102,7 +102,7 @@ router.route('/examples')
           //done reading files, return response
           if (remaining == 0) {
             res.json({ success: true, result: responseData });
-            console.log("WALK DONE :: responseData : ", responseData);
+            //console.log("WALK DONE :: responseData : ", responseData);
           }
 
         });
@@ -134,7 +134,7 @@ router.route('/example')
   .get(function(req, res) {
     res.contentType('application/json');
 
-    console.log("Now give me the example file " + req.query.file);
+    //console.log("Now give me the example file " + req.query.file);
 
     var fs = require('fs'),
       fileName = req.query.file + ".json";
@@ -145,7 +145,7 @@ router.route('/example')
 
       var setDescription = JSON.parse(data);
 
-      console.log("setDescription loaded :: setDescription : ", setDescription);
+      //console.log("setDescription loaded :: setDescription : ", setDescription);
 
       onSetDescriptionLoaded(setDescription);
     });
@@ -182,7 +182,7 @@ router.route('/upload')
   .post(cpUpload, function(req, res) {
     res.contentType('application/json');
 
-    console.log("File uploaded :: ", req.files);
+    //console.log("File uploaded :: ", req.files);
 
     var fileName = req.files.descriptionFile[0].originalname.replace(/\.[^/.]+$/, ""), //without extension (.json)
       path = "uploads/" + fileName;
@@ -201,7 +201,7 @@ function onCSVDataLoaded(setDescription, csvData, cb) {
   // Use the writable stream api
   parser.on('readable', function(){
     while(record = parser.read()){
-      //console.log("record ", record);
+      console.log("record ", record);
       output.push(record);
     }
   });
@@ -243,4 +243,4 @@ app.use('/api', router);
 // START THE SERVER
 // =============================================================================
 app.listen(port);
-console.log('Magic happens on port ' + port);
+//console.log('Magic happens on port ' + port);
