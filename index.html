@@ -59,9 +59,20 @@
                 <div class="row">
                     <div class="col-md-12">
                         <button class="btn btn-default btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
+                        <div class="dropdown" style="float:left;">
+                            <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="sortingDropMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Sorting
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                <li><a href="#" class="sort-link" data-type="default">Default</a></li>
+                                <li><a href="#" class="sort-link" data-type="name">Name</a></li>
+                                <li><a href="#" class="sort-link" data-type="quantity">Quantity</a></li>
+                            </ul>
+                        </div>
                         <button class="btn btn-default btn-sm btn-expand-all"><i class="fa fa-caret-down"></i>Expand all bins</button>
                         <button class="btn btn-default btn-sm btn-collapse-all"><i class="fa fa-caret-up"></i>Collapse all bins</button>
-                        <button class="btn btn-default btn-sm btn-remove-selection disabled"><i class="fa fa-remove"></i>Remove Selection</button>
+                        <button class="btn btn-default btn-sm btn-remove-selection" disabled="disabled"><i class="fa fa-remove"></i>Remove Selection</button>
                     </div>
                 </div>
             </div>

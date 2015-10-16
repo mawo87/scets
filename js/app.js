@@ -4,6 +4,7 @@
 	scats.data = {
 		selectedFile: "",
 		sets: [],
+		sets_default_sorted: [],
 		elements: [],
 		aggregates: [],
 		grid: [],
@@ -12,6 +13,7 @@
 		max: 0,
 		min: 0,
 		maxDegree: 0,
+		sortType: "default", //default | name | quantity
 		bins: {
 			k: 5,
 			data: [],
@@ -63,6 +65,9 @@
 					}
 
 					$.extend(scats.data, tmp);
+
+					//also save a copy of the raw/default sets we can use for sorting later on
+					scats.data.sets_default_sorted = scats.data.sets;
 
 					console.log("scats.data :: after adding sets and elements ", scats.data);
 
