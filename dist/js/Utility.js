@@ -253,6 +253,10 @@ var scats = (function(vis) {
 
 			//eliminate duplicates and sort ascending
 			return _.uniq(result).sort(function(a, b) { return a - b; });
+		},
+		getSetIdFromName: function (setName) {
+			var regex = /[\s,\.]/g;
+			return setName.replace(regex, '');
 		}
 	};
 

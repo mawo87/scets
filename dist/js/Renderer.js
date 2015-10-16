@@ -69,6 +69,7 @@ var scats = (function(vis) {
 		this.data_y_axis = [];
 		this.user_expanded_bins = []; //bins expanded by user (click)
 		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
+
 		this.init();
 	}
 
@@ -89,6 +90,11 @@ var scats = (function(vis) {
 			}
 
 			this.computeWidth();
+
+			//this.sortSets();
+
+			//set sets to default sorted array
+			vis.data.sets = vis.data.sets_default_sorted;
 
 			//this.data = new vis.Parser().helpers.transpose(vis.data.grid);
 			//this.data = vis.data.fullGrid;
@@ -242,6 +248,7 @@ var scats = (function(vis) {
 		 * @method unbindEventHandlers
 		 */
 		unbindEventHandlers: function() {
+			$('.ui-controls .sort-link').unbind('click');
 			$('.ui-controls .btn-edit-binning').unbind('click');
 			$('.ui-controls .btn-expand-all').unbind('click');
 			$('.ui-controls .btn-collapse-all').unbind('click');
@@ -257,6 +264,16 @@ var scats = (function(vis) {
 			var self = this;
 
 			this.unbindEventHandlers();
+
+			//setup sort dropmenu
+			$(".sort-link").on("click", function(ev) {
+					ev.preventDefault();
+
+					var sortType = $(ev.currentTarget).data("type");
+
+					vis.data.sortType = sortType;
+					self.init().render();
+			});
 
 			//setup modal window for binning
 			$('#binningViewModal').modal({ show: false });
@@ -297,8 +314,7 @@ var scats = (function(vis) {
 
 				//toggle status
 				$(this)
-					.toggleClass("disabled", true)
-					.toggleClass("enabled", false);
+					.attr("disabled", "disabled");
 
 				self.clearSelection();
 				self.table.clear();
@@ -394,21 +410,16 @@ var scats = (function(vis) {
 			var set_occurrence_map = vis.helpers.getElementsGroupedBySetAndDegree(elements);
 
 			console.log("createSelection :: set_occurrence_map : ", set_occurrence_map);
+			console.log("createSelection :: currentSelection : ", self.currentSelection);
 
 			//if subset, then highlight subset first
 			if (type === "subset") {
-				/* deprecated */
-				//var subset = d3.select('.set#' + self.selectedSubset.set_name + ' .subset[data-degree="' + self.selectedSubset.degree + '"]').node();
-
-				var subset = d3.select('.set#' + self.currentSelection.subset.set_name + ' .subset[data-degree="' + self.currentSelection.subset.degree + '"]').node();
+				var subset = d3.select('.set#' + vis.helpers.getSetIdFromName(self.currentSelection.subset.set_name) + ' .subset[data-degree="' + self.currentSelection.subset.degree + '"]').node();
 				d3.select(subset).classed("selected", true);
 
 			//if aggregate, then highlight aggregate first
 			} else if (type === "aggregate") {
-					/* deprecated */
-					//var aggregate = d3.select('.set#' + self.selectedAggregate.subsets[0].set_name + ' .aggregate[data-bin="' + rowIndex + '"]').node();
-
-					var aggregate = d3.select('.set#' + self.currentSelection.aggregate.subsets[0].set_name + ' .aggregate[data-bin="' + self.currentSelection.rowIndex + '"]').node();
+					var aggregate = d3.select('.set#' + vis.helpers.getSetIdFromName(self.currentSelection.aggregate.subsets[0].set_name) + ' .aggregate[data-bin="' + self.currentSelection.rowIndex + '"]').node();
 					d3.select(aggregate).classed("selected", true);
 			}
 
@@ -422,8 +433,7 @@ var scats = (function(vis) {
 
 			//toggle button status
 			$('.ui-controls .btn-remove-selection')
-				.toggleClass("disabled", false)
-				.toggleClass("enabled", true);
+				.removeAttr("disabled");
 		},
 		/**
 		 * @method createSegmentSelectio
@@ -443,48 +453,22 @@ var scats = (function(vis) {
 			_.each(set_occurrence_map, function(entry, idx) {
 				//4. select the subset
 
-				var setName = entry.set;
+				var setId = vis.helpers.getSetIdFromName(entry.set);
 
-				highlighted_set_labels.push(parseInt(d3.select('.set#' + setName).attr("data-set")));
+				highlighted_set_labels.push(parseInt(d3.select('.set#' + setId).attr("data-set")));
 
 				_.each(entry.degrees, function(degreeItem) {
-					var subset = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').node(),
-						subset_data = d3.select('.set#' + setName + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0],
-						segment_percentage = undefined;
+					console.log("EACH :: ", degreeItem, setId, d3.select('.set#' + setId + ' .subset[data-degree="' + degreeItem.degree + '"]'), d3.select('.set#' + setId + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0]);
 
-					console.log("createSegmentSelection :: entry : ", entry);
-					console.log("createSegmentSelection :: subset data : ", subset_data);
+					var subset = d3.select('.set#' + setId + ' .subset[data-degree="' + degreeItem.degree + '"]').node(),
+						subset_data = d3.select('.set#' + setId + ' .subset[data-degree="' + degreeItem.degree + '"]').data()[0],
+						segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
 
 					highlighted_degrees.push(degreeItem.degree);
 
-					/* deprecated */
-					/*
-					if (type === "search") {
-						console.log("createSegmentSelection :: TYPE SEARCH : current ", subset_data);
-						console.log("createSegmentSelection :: TYPE SEARCH : reference ", degreeItem);
-
-						//segment_percentage = degreeItem.count / subset_data.count * 100; //e.g., 33.3
-						segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
-
-					} else if (type === "aggregate") {
-						console.log("createSegmentSelection :: TYPE AGGREGATE : current ", subset_data);
-						console.log("createSegmentSelection :: TYPE AGGREGATE : reference ", elements);
-						console.log("createSegmentSelection :: TYPE AGGREGATE : segment_percentage ", vis.helpers.calcSegmentPercentage(subset_data.elements, elements));
-
-						segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
-					} else if (type === "subset") {
-						console.log("createSegmentSelection :: TYPE SUBSET : current ", subset_data);
-						console.log("createSegmentSelection :: TYPE SUBSET : reference ", elements);
-						console.log("createSegmentSelection :: TYPE SUBSET : segment_percentage ", vis.helpers.calcSegmentPercentage(subset_data.elements, elements));
-
-						segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
-					}
-					*/
-
-					//segment_percentage = degreeItem.count / subset_data.count * 100; //e.g., 33.3
-
-
-					segment_percentage = vis.helpers.calcSegmentPercentage(subset_data.elements, elements) * 100;
+					//console.log("createSegmentSelection :: entry : ", entry);
+					//console.log("createSegmentSelection :: subset data : ", subset_data);
+					//console.log("createSegmentSelection :: segment_percentage : ", segment_percentage);
 
 					//if the current subset is not the selected one, create a circle segment
 					if (!d3.select(subset).classed("selected")) {
@@ -998,7 +982,7 @@ var scats = (function(vis) {
 
 									console.log("SUBSET TOOLTIP :: SEGMENT TOOLTIP : ", self.currentSelection.elements, d.elements);
 
-									html += " <strong>" + intersection.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
+									html += "<br/><strong>" + intersection.length + "</strong> elements selected (" + Math.min(100, rounded) + "%)";
 								}
 
 								return html;
@@ -1061,6 +1045,21 @@ var scats = (function(vis) {
 
 			return result;
 		},
+		sortSets: function () {
+
+			if (vis.data.sortType === "name") {
+				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return s.name; });
+			} else if (vis.data.sortType === "quantity") {
+				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return -s.count; });
+			}
+			/*else {
+				vis.data.sets = vis.data.sets_default_sorted;
+			}
+			*/
+
+			console.log("sortSets :: sortType : ", vis.data.sortType);
+
+		},
 		renderSets: function() {
 
 			//TODO: remove --> just added for testing
@@ -1068,11 +1067,32 @@ var scats = (function(vis) {
 
 			var self = this,
 				transposed = vis.helpers.transpose(this.aggregated_bin_data),
-				data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group))
+				//data_per_setGroup = vis.helpers.chunk(transposed, Math.ceil(this.max_sets_per_group));
+				data_per_setGroup = undefined;
 
-			console.log("aggregated_bin_data ", this.aggregated_bin_data);
 			console.log("vis.data.bins ", vis.data.bins);
 			console.log("aggregated bin data ", this.aggregated_bin_data);
+			console.log("renderSets :: transposed : ", transposed);
+
+			/*** HACK BEGIN ***/
+
+			//first bind binned data to sets
+			_.each(vis.data.sets, function(s, idx) {
+				s.binData = transposed[idx];
+			});
+
+			//then sort
+			this.sortSets();
+
+			//finally retrieve the sorted data again
+			var sorted_transposed = _.map(vis.data.sets, function(s) {
+				return s.binData;
+			});
+
+			//overwrite data in set group
+			data_per_setGroup = vis.helpers.chunk(sorted_transposed, Math.ceil(this.max_sets_per_group));
+
+			/*** HACK END ***/
 
 			//set number of set groups
 			this.no_set_groups = data_per_setGroup.length;
@@ -1099,7 +1119,10 @@ var scats = (function(vis) {
 					.data(data_per_setGroup[i])
 					.enter().append("g")
 					.attr("class", "set")
-					.attr("id", function(d, i) { return vis.data.sets[i + (setGroup * self.max_sets_per_group)].name; })
+					.attr("id", function(d, i) {
+						var name = vis.data.sets[i + (setGroup * self.max_sets_per_group)].name;
+						return vis.helpers.getSetIdFromName(name);
+					})
 					.attr("transform", function(d, i) {
 						//console.log("d ", d, "i ", i);
 						return "translate(" + self.scales.x(i) + ", 0)";
@@ -1189,7 +1212,7 @@ var scats = (function(vis) {
 			function renderXaxisLabels(setGroup, index) {
 				//x axis data depends on set group whereas the y labels remain the same for each set group
 				var delay,
-					data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
+						data_x_axis = vis.data.sets.slice(index * self.max_sets_per_group, index * self.max_sets_per_group + self.max_sets_per_group);
 
 				//render labels for x axis
 				d3.select(this).selectAll('.x-label')
