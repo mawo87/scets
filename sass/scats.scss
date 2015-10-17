@@ -1,8 +1,6 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800);
 @import "layout";
 @import "loading";
-//deprecated
-//@import "tooltip";
 
 $space: 4px;
 $listWidth: 180px;
@@ -64,7 +62,7 @@ $highlightColor: #2B8CBE;
   }
 }
 
-.ui-header {
+#header {
   .title, .subtitle {
     font-family: 'Open Sans';
   }
@@ -75,41 +73,6 @@ $highlightColor: #2B8CBE;
 
   .subtitle.light {
     font-weight: 300;
-  }
-}
-
-.ui-controls {
-  .fa {
-    margin-right: 5px;
-  }
-
-  #buttonBar {
-    float: left;
-    margin-top: 30px;
-
-    .btn-remove-selection {
-      -moz-transition: all 0.3s ease-in-out;
-      -o-transition: all 0.3s ease-in-out;
-      -webkit-transition: all 0.3s ease-in-out;
-      transition: all 0.3s ease-in-out;
-
-      &:hover {
-        background: lighten($highlightColor, 5%);
-      }
-
-      &.enabled {
-        background: $highlightColor;
-        border-color: darken($highlightColor, 10%);
-        color: #FFFFFF;
-      }
-    }
-  }
-
-  #searchBar {
-    float: left;
-    width: 200px;
-    margin-top: 28px;
-    margin-left: 20px;
   }
 }
 
@@ -270,6 +233,7 @@ $highlightColor: #2B8CBE;
 #legend {
   /* padding: 1.5em 0 0 1.5em; */
   width: 300px;
+  margin-bottom: 20px;
 
   h3.legend-title {
     font-size: 0.8em;
@@ -288,13 +252,13 @@ $highlightColor: #2B8CBE;
 /**************
 * ELEMENT-TABLE
 **************/
-#element-table {
+#elementTable {
   /* width: 340px; */
   /* padding: 10px; */
-  height: 300px;
+  /*height: 300px;*/
+  height: 100%;
   overflow-y: scroll;
   background: #FFFFFF;
-  margin-top: 10px;
 }
 
 /* d3 and custom tooltips */

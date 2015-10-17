@@ -43,19 +43,21 @@
 
     <div id="dataNavigator" class="init-hide"></div>
 
-    <div id="main" class="init-hide">
-        <div class="row ui-header">
-            <div class="col-md-6">
+    <div id="header" class="navbar navbar-fixed-top">
+        <div class="navbar-header">
+            <div class="navbar-brand">
                 <span class="title">scats</span>
                 <span class="subtitle light">a scalable visualization of sets</span>
             </div>
-            <div class="col-md-6">
-                <div id="dataNavigatorSmall" class="pull-right"></div>
-            </div>
         </div>
+        <div class="nav navbar-nav pull-right">
+            <div id="dataNavigatorSmall" class="pull-right"></div>
+        </div>
+    </div>
 
-        <div class="container-fluid">
-            <div id="buttonBar" class="ui-controls">
+    <div id="wrapper" class="init-hide">
+        <div id="main-wrapper" class="col-md-9">
+            <div id="buttonBar">
                 <div class="row">
                     <div class="col-md-12">
                         <button class="btn btn-default btn-sm btn-edit-binning" data-toggle="modal"><i class="fa fa-cog"></i>Binning Settings</button>
@@ -76,16 +78,16 @@
                     </div>
                 </div>
             </div>
+            <div id="legend"></div>
+            <div id="canvas"></div>
+        </div>
 
-            <div class="row">
-                <div class="col-md-8 ui-layout-center">
-                    <div id="legend" class="pull-right"></div>
-                    <div id="canvas"></div>
-                </div>
-                <div class="col-md-4 ui-layout-right">
+        <div id="sidebar-wrapper" class="col-md-3 pull-right">
+            <div id="sidebar">
+                <div id="search-wrapper">
                     <input type="text" class="form-control" placeholder="Search" id="searchInput">
-                    <div id="element-table"></div>
                 </div>
+                <div id="elementTable"></div>
             </div>
         </div>
     </div>
