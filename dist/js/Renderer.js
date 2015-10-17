@@ -144,6 +144,9 @@ var scats = (function(vis) {
 
 						$.extend(scats.data, tmp);
 
+						//also save a copy of the raw/default sets we can use for sorting later on
+						scats.data.sets_default_sorted = scats.data.sets;
+
 						console.log("scats.data :: after adding sets and elements ", scats.data);
 
 						//initialize bins
@@ -155,7 +158,7 @@ var scats = (function(vis) {
 					}
 
 					$(this.loader).velocity("transition.fadeOut");
-					$('#main').velocity("transition.slideUpIn", {
+					$('#wrapper').velocity("transition.slideUpIn", {
 						complete: function () {
 							var renderer = new scats.Renderer();
 							renderer.render();
@@ -179,7 +182,7 @@ var scats = (function(vis) {
 			this.setupLegend();
 
 			//initialize table
-			this.table = new vis.Table({ container: "#element-table", tableClass: "table table-bordered" });
+			this.table = new vis.Table({ container: "#elementTable", tableClass: "table table-bordered" });
 
 			//initialize tooltip
 			this.tip = d3.tip()
@@ -232,7 +235,8 @@ var scats = (function(vis) {
 		 * @method computeWidth
 		 */
 		computeWidth: function() {
-			var $container = $(".ui-layout-center"),
+			//var $container = $(".ui-layout-center"),
+			var $container = $("#main-wrapper"),
 				containerWidth = $container.width(),
 				padding = {
 					left: parseInt($container.css("padding-left").replace("px", "")),
@@ -248,11 +252,11 @@ var scats = (function(vis) {
 		 * @method unbindEventHandlers
 		 */
 		unbindEventHandlers: function() {
-			$('.ui-controls .sort-link').unbind('click');
-			$('.ui-controls .btn-edit-binning').unbind('click');
-			$('.ui-controls .btn-expand-all').unbind('click');
-			$('.ui-controls .btn-collapse-all').unbind('click');
-			$('.ui-controls .btn-remove-selection').unbind('click');
+			$('#buttonBar .sort-link').unbind('click');
+			$('#buttonBar .btn-edit-binning').unbind('click');
+			$('#buttonBar .btn-expand-all').unbind('click');
+			$('#buttonBar .btn-collapse-all').unbind('click');
+			$('#buttonBar .btn-remove-selection').unbind('click');
 		},
 		/**
 		 * Binds click events to the UI control elements
@@ -278,14 +282,14 @@ var scats = (function(vis) {
 			//setup modal window for binning
 			$('#binningViewModal').modal({ show: false });
 
-			$('.ui-controls .btn-edit-binning').on("click", function() {
+			$('#buttonBar .btn-edit-binning').on("click", function() {
 				console.log("Edit Binning clicked");
 				self.binningView.render();
 				$('#binningViewModal').modal('show');
 			});
 
 			//setup expand-all button
-			$('.ui-controls .btn-expand-all').on("click", function() {
+			$('#buttonBar .btn-expand-all').on("click", function() {
 				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (!d3.select(this).classed("expanded")) {
 						self.clearSelection();
@@ -295,7 +299,7 @@ var scats = (function(vis) {
 			});
 
 			//setup collapse-all button
-			$('.ui-controls .btn-collapse-all').on("click", function() {
+			$('#buttonBar .btn-collapse-all').on("click", function() {
 				d3.select('.set-group').selectAll('.y-label-group').each(function(d, i) {
 					if (d3.select(this).classed("expanded")) {
 						self.clearSelection();
@@ -309,7 +313,7 @@ var scats = (function(vis) {
 			});
 
 			//setup clear selection button
-			$('.ui-controls .btn-remove-selection').on("click", function() {
+			$('#buttonBar .btn-remove-selection').on("click", function() {
 				self.currentSelection = undefined;
 
 				//toggle status
@@ -432,7 +436,7 @@ var scats = (function(vis) {
 			self.table.update(elements);
 
 			//toggle button status
-			$('.ui-controls .btn-remove-selection')
+			$('#buttonBar .btn-remove-selection')
 				.removeAttr("disabled");
 		},
 		/**
@@ -1051,11 +1055,9 @@ var scats = (function(vis) {
 				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return s.name; });
 			} else if (vis.data.sortType === "quantity") {
 				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return -s.count; });
-			}
-			/*else {
+			} else {
 				vis.data.sets = vis.data.sets_default_sorted;
 			}
-			*/
 
 			console.log("sortSets :: sortType : ", vis.data.sortType);
 

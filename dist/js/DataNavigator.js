@@ -90,9 +90,8 @@ var scats = (function (vis) {
         var sorted = _.sortBy(dataSets, "title");
 
         var html = '<div class="data-navigator sm">';
-        html += '<form class="form-horizontal">';
+        html += '<form class="navbar-form">';
         html += '<div id="selectForm" class="form-group">';
-        html += '<label class="col-sm-4 control-label">Data sets</label>';
         html += '<div class="col-sm-8">';
         html += '<select class="form-control" id="fileSelect">';
         _.each(sorted, function(d, i) {

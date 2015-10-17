@@ -80,7 +80,7 @@
 				}
 
 				$(this.loader).velocity("transition.fadeOut");
-				$("#main").velocity("transition.slideUpIn", {
+				$("#wrapper").velocity("transition.slideUpIn", {
 					complete: function () {
 						var renderer = new scats.Renderer();
 						renderer.render();
