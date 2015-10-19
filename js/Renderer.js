@@ -243,7 +243,8 @@ var scats = (function(vis) {
 					right: parseInt($container.css("padding-right").replace("px", ""))
 				};
 
-			this.settings.canvas.width = containerWidth - this.settings.canvas.margin.left + padding.left + padding.right;
+			//this.settings.canvas.width = containerWidth - this.settings.canvas.margin.left + padding.left + padding.right;
+			this.settings.canvas.width = containerWidth - this.settings.canvas.margin.left + padding.left;
 		},
 		/**
 		 * Unbinds all event handlers for the UI control elements
