@@ -22,9 +22,15 @@ var cpUpload = upload.fields([{ name: 'dataFile', maxCount: 1 }, { name: 'descri
 
 // Add headers (for CORS)
 app.use(function (req, res, next) {
+  var fromConfig = config.localhost.url + ":" + config.localhost.port,
+    allowedOrigins = [fromConfig, 'scats.sybdev.com'],
+    origin = req.headers.origin;
 
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', config.localhost.url + ":" + config.localhost.port);
+
+  if (allowedOrigins.indexOf(origin) > -1) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
