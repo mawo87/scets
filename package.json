@@ -35,5 +35,7 @@
     "underscore": "^1.8.3",
     "velocity-animate": "^1.2.2"
   },
-  "start": "node backend/server.js"
+  "scripts": {
+    "start": "node backend/server.js"
+  }
 }
