@@ -22,7 +22,7 @@
   "devDependencies": {
     "bootstrap": "^3.3.5",
     "colorbrewer": "0.0.2",
-    "csv-parse": "~0.4.1",
+    "csv-parse": "1.0.0",
     "d3": "^3.5.6",
     "d3-tip": "^0.6.7",
     "express": "~4.0.0",
@@ -35,13 +35,13 @@
     "gulp-shell": "^0.4.2",
     "jquery": "^2.1.4",
     "jquery-form": "^3.50.0",
-    "multer": "0.1.6",
+    "multer": "1.0.6",
     "underscore": "^1.8.3",
     "velocity-animate": "^1.2.2"
   },
   "dependencies": {
     "csv-parse": "1.0.0",
     "express": "~4.0.0",
-    "multer": "0.1.6"
+    "multer": "1.0.6"
   }
 }
