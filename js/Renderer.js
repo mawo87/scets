@@ -144,6 +144,9 @@ var scats = (function(vis) {
 
 						$.extend(scats.data, tmp);
 
+						//create full grid
+						scats.data.fullGrid = scats.helpers.createFullGrid();
+
 						//also save a copy of the raw/default sets we can use for sorting later on
 						scats.data.sets_default_sorted = scats.data.sets;
 
