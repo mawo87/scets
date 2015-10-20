@@ -23,7 +23,7 @@ var cpUpload = upload.fields([{ name: 'dataFile', maxCount: 1 }, { name: 'descri
 // Add headers (for CORS)
 app.use(function (req, res, next) {
   var fromConfig = config.localhost.url + ":" + config.localhost.port,
-    allowedOrigins = [fromConfig, 'scats.sybdev.com'],
+    allowedOrigins = [fromConfig, 'scats.sybdev.com', 'http://scats.sybdev.com'],
     origin = req.headers.origin;
 
   // Website you wish to allow to connect
