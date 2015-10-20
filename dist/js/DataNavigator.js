@@ -2,7 +2,7 @@ var scats = (function (vis) {
 
   var scatsApi = {
     baseUrl: function() {
-      return "http://localhost:8080/api";
+      return window.location.href.indexOf("localhost") > -1 ? "http://localhost:8080/api" : "https://scats.herokuapp.com/api";
     },
     getExampleList: function () {
       var self = this,
