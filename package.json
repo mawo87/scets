@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "scats - a scalable visualization of set-typed data",
   "engines": {
-    "node": "0.12.2"
+    "node": "0.12.2",
+    "npm": "2.7.4"
   },
   "main": "app.js",
   "scripts": {
