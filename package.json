@@ -4,7 +4,7 @@
   "description": "scats - a scalable visualization of set-typed data",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend/server.js"
   },
   "repository": {
     "type": "git",
@@ -34,8 +34,5 @@
     "multer": "0.1.6",
     "underscore": "^1.8.3",
     "velocity-animate": "^1.2.2"
-  },
-  "scripts": {
-    "start": "node backend/server.js"
   }
 }
