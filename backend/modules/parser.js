@@ -129,7 +129,7 @@
 
       //create grid and fullGrid
       this.data.grid = this.createGrid(reducedFile, degreeVector, maxDegree, setCount);
-      this.data.fullGrid = this.createFullGrid();
+      //this.data.fullGrid = this.createFullGrid();
 
       console.timeEnd("parseFile");
 

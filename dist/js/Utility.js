@@ -257,6 +257,61 @@ var scats = (function(vis) {
 		getSetIdFromName: function (setName) {
 			var regex = /[\s,\.]/g;
 			return setName.replace(regex, '');
+		},
+		//this will create the full create where each cell contains an array of elements instead of an int value only
+		createFullGrid: function() {
+			console.time("createFullGrid");
+
+			var result = [],
+				row = [],
+				setName = "",
+				degree = 0,
+				subset = undefined,
+				re = undefined,
+				match = false;
+
+			//console.log("vis.data.elements[5] ", vis.data.elements[5]);
+
+			for (var i = 0, len = vis.data.sets.length; i < len; i++) {
+				row = [];
+				setName = vis.data.sets[i].name;
+				re = new RegExp("\\b("+setName+")\\b", "g"); //regex for matching the exact set name in the string returned by getSets()
+
+				for (var j = 0; j < vis.data.maxDegree; j++) {
+					degree = j + 1;
+					subset = new vis.SubSet(setName, degree);
+
+					/*
+					 * slower than another for loop
+					 *
+					 subset.elements = vis.data.elements.filter(function(d, i) {
+					 return d.getSets().split(",").indexOf(setName) != -1 && d.degree == degree;
+					 });
+					 */
+
+					//for (var k = 0, l = vis.data.elements.length; k < l; k++) {
+					for (var k = vis.data.elements.length; k--;) {
+
+						//using regex is much faster than split + indexOf
+						match = vis.data.elements[k].getSets().match(re);
+
+						if (match && vis.data.elements[k].degree == degree) {
+							//console.log("fullGrid match :: pushing vis.data.elements[k] ", vis.data.elements[k]);
+							subset.elements.push(vis.data.elements[k]);
+						}
+
+					}
+
+					subset.count = subset.elements.length;
+					row.push(subset);
+				}
+				result.push(row);
+			}
+
+			//console.log("fullGrid :: ", result);
+			console.timeEnd("createFullGrid");
+
+			return result;
 		}
 	};
 
