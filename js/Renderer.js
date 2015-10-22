@@ -1232,7 +1232,13 @@ var scats = (function(vis) {
 					.attr("y", function(d, i) { return self.scales.x(i) + 7; })
 					.attr("dy", ".32em")
 					.attr("text-anchor", "start")
-					.text(function(d, i) { return d.name; })
+					.text(function(d, i) {
+						if (d.name.length > 7) {
+							return d.name.substring(0, 7) + "...";
+						} else {
+							return d.name;
+						}
+					})
 					.on("mouseover", function(d, i) {
 
 						var context = this;
