@@ -14,9 +14,10 @@ var scats = (function(vis) {
 	 * @property {object} scales - A scales object
 	 * @property {d3.scale} scales.x - The x scale used for the visualization
 	 * @property {d3.scale} scales.y - The y scale used for the visualization
-	 * @property {d3.scale} scales.color - The color scale used for coloring aggregates and sets based on the number of elements
+	 * @property {d3.scale} scales.aggregateColor - The color scale used for coloring aggregates and sets based on the number of elements
 	 * @property {d3.scale} scales.radianToPercent - The scale for converting percentage to radians
-	 * @property {array} sortedValues - An array of unique values (elements per aggregate and elements per set) sorted ascending
+	 * @property {array} sortedAggregateTotals - An array of unique values (total number of elements per aggregate) sorted ascending
+	 * @property {array} sortedSubsetTotals - An array of unique values (total number of elements per set) sorted ascending
 	 * @property {subset} selectedSubset  - The currently selected subset.
 	 * @property {table} table - The table object that shows the active selection
 	 * @property {array} data_y_axis - A two-dimensional array. First dimension are the bins, second dimension the degrees per bin.
@@ -42,7 +43,10 @@ var scats = (function(vis) {
 			subset: {
 				r: 6
 			},
-			colors: colorbrewer.Oranges[9],
+			colors: {
+				aggregates: colorbrewer.Oranges[1],
+				subsets: colorbrewer.Greens[1]
+			},
 			labelButton: {
 				width: 14,
 				height: 14,
@@ -60,10 +64,11 @@ var scats = (function(vis) {
 		this.scales = {
 			x: undefined,
 			y: undefined,
-			color: undefined,
+			aggregateColor: undefined,
+			subsetColor: undefined,
 			radianToPercent: d3.scale.linear().domain([0, 100]).range([0, 2 * Math.PI])
 		};
-		this.sortedValues = [];
+		this.sortedAggregateTotals = [];
 		this.currentSelection = undefined;
 		this.table = undefined;
 		this.data_y_axis = [];
@@ -173,7 +178,11 @@ var scats = (function(vis) {
 
 			this.aggregated_bin_data = vis.helpers.createAggregatedData(vis.data.bins.data);
 
-			this.sortedValues = vis.helpers.computeSortedValuesArray(vis.data.elements, vis.data.aggregates);
+			this.sortedAggregateTotals = vis.helpers.getSortedAggregateTotals(vis.data.aggregates);
+			this.sortedSubsetTotals = vis.helpers.getSortedSubsetTotals(vis.data.fullGrid);
+
+			this.settings.colors.aggregates = this.sortedAggregateTotals.length < 9 ? colorbrewer.Oranges[this.sortedAggregateTotals.length] : colorbrewer.Oranges[9];
+			this.settings.colors.subsets = this.sortedSubsetTotals.length < 9 ? colorbrewer.Greens[this.sortedSubsetTotals.length] : colorbrewer.Greens[9];
 
 			//sets y axis data
 			this.data_y_axis = this.createYAxisLabelData();
@@ -202,13 +211,13 @@ var scats = (function(vis) {
 					.domain(d3.range(vis.data.bins.k));
 
 				/*
-				self.scales.color = d3.scale.linear()
+				self.scales.aggregateColor = d3.scale.linear()
 					.domain([vis.data.min, vis.data.max])
 					.range([0, self.settings.colors.length - 1]);
 				*/
 
 				/*
-				self.scales.color = d3.scale.quantize()
+				self.scales.aggregateColor = d3.scale.quantize()
 					.domain([vis.data.min, vis.data.max])
 					.range(self.settings.colors);
 				*/
@@ -223,9 +232,13 @@ var scats = (function(vis) {
 				 * http://stackoverflow.com/questions/10579944/how-does-d3-scale-quantile-work (!!)
 				 * example: http://jsfiddle.net/euSfG/2/
 				 */
-				self.scales.color = d3.scale.quantile()
-					.domain(self.sortedValues)
-					.range(self.settings.colors);
+				self.scales.aggregateColor = d3.scale.quantile()
+					.domain(self.sortedAggregateTotals)
+					.range(self.settings.colors.aggregates);
+
+				self.scales.subsetColor = d3.scale.quantile()
+					.domain(self.sortedSubsetTotals)
+					.range(self.settings.colors.subsets);
 
 			}
 
@@ -298,6 +311,9 @@ var scats = (function(vis) {
 					if (!d3.select(this).classed("expanded")) {
 						self.clearSelection();
 						self.expandRowIndex(i, true);
+
+						//show subset legend
+						$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
 					}
 				});
 			});
@@ -312,6 +328,9 @@ var scats = (function(vis) {
 						//empty all bins
 						self.user_expanded_bins = [];
 						self.auto_expanded_bins = [];
+
+						//hide subset legend
+						$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
 					}
 				})
 			});
@@ -532,7 +551,7 @@ var scats = (function(vis) {
 			}
 		},
 		/**
-		 * Creates the HTML for the legend based on the scales.color object
+		 * Creates the HTML for the legend based on the scales.aggregateColor object
 		 *
 		 * @memberOf scats.Renderer
 		 * @method setupLegend
@@ -541,39 +560,70 @@ var scats = (function(vis) {
 			var self = this;
 
 			/*
-			console.log("colors.quantiles() ", this.scales.color.quantiles());
-			console.log("colors(3) ", this.scales.color(3));
+			console.log("colors.quantiles() ", this.scales.aggregateColor.quantiles());
+			console.log("colors(3) ", this.scales.aggregateColor(3));
 			*/
+			console.log("setupLegend :: sorted values : ", self.sortedAggregateTotals, self.sortedSubsetTotals);
 
 			//empty container first
-			$('#legend').empty();
+			$('#legend-wrapper').empty();
 
-			d3.select("#legend")
+			//setup legend for aggregates
+			var aggregateLegend = d3.select("#legend-wrapper")
+				.append("div")
+				.attr("class", "legend aggregate-legend");
+
+			aggregateLegend
 				.append("h5")
-				.text("No. of elements:");
+				.text("Total elements per aggregate:");
 
-			var legend = d3.select("#legend")
+			aggregateLegend
 				.append("ul")
 				.attr("class", "list-inline");
 
-			console.log("LEGEND DATA :: range : ", this.scales.color.range());
+			console.log("LEGEND DATA :: range : ", this.scales.aggregateColor.range());
 
-			var keys = legend.selectAll("li.key")
-				.data(this.scales.color.range())
+			var aggregateKeys = aggregateLegend.select("ul").selectAll("li.key")
+				.data(this.scales.aggregateColor.range())
 				.enter()
 				.append("li")
 				.attr("class", "key")
 				.style("border-top-color", String)
-				.style("width", 100/this.settings.colors.length + "%")
+				.style("width", 100/this.settings.colors.aggregates.length + "%")
 				.text(function(d) {
-					var r = self.scales.color.invertExtent(d);
+					var r = self.scales.aggregateColor.invertExtent(d);
 					//console.log("LEGEND DATA :: r ", r);
 					//return "≥ " + Math.round(r[0]);
 					return "≥ " + Math.ceil(r[0]);
 				});
 
-			//console.log("LEGEND DATA :: 18.333333333333332 : ", this.scales.color(18.333333333333332));
-			//console.log("LEGEND DATA :: 18 : ", this.scales.color(18));
+			//setup legend for subsets
+			var subsetLegend = d3.select("#legend-wrapper")
+				.append("div")
+				.attr("class", "legend subset-legend init-hide");
+
+			subsetLegend
+				.append("h5")
+				.text("Total elements per subset:");
+
+			subsetLegend
+				.append("ul")
+				.attr("class", "list-inline");
+
+			var subsetKeys = subsetLegend.select("ul").selectAll("li")
+				.data(this.scales.subsetColor.range())
+				.enter()
+				.append("li")
+				.attr("class", "key")
+				.style("border-top-color", String)
+				.style("width", 100/this.settings.colors.subsets.length + "%")
+				.text(function(d) {
+					var r = self.scales.subsetColor.invertExtent(d);
+					return "≥ " + Math.ceil(r[0]);
+				});
+
+			//console.log("LEGEND DATA :: 18.333333333333332 : ", this.scales.aggregateColor(18.333333333333332));
+			//console.log("LEGEND DATA :: 18 : ", this.scales.aggregateColor(18));
 
 		},
 		/**
@@ -827,6 +877,9 @@ var scats = (function(vis) {
 				this.updateExpandedBins(rowIndex, this.auto_expanded_bins);
 			}
 
+			//show subset legend
+			$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
+
 			//re-add selection if one exists
 			this.restoreSelection();
 
@@ -906,6 +959,11 @@ var scats = (function(vis) {
 				this.updateExpandedBins(rowIndex, this.auto_expanded_bins);
 			}
 
+			//hide legend for subsets if all rows are collapsed
+			if (this.user_expanded_bins.length === 0 && this.auto_expanded_bins.length === 0) {
+				$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
+			}
+
 			//re-add selection if one exists
 			this.restoreSelection();
 
@@ -954,8 +1012,9 @@ var scats = (function(vis) {
 					.attr("cy", function(d, i) { return subset_y_pos + (i + 1) * self.settings.set.height; })
 					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r * 0.75 : 0; }) //set radius to 0 for subsets with 0 elements
 					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show subsets with 0 elements
-					//.attr("fill", function(d) { return d.count > 0 ? self.settings.colors[Math.ceil(self.scales.color(d.count))] : "#FFFFFF"; });
-					.attr("fill", function(d) { return d.count > 0 ? self.scales.color(d.count) : "#FFFFFF"; })
+					//.attr("fill", function(d) { return d.count > 0 ? self.settings.colors[Math.ceil(self.scales.aggregateColor(d.count))] : "#FFFFFF"; });
+					//.attr("fill", function(d) { return d.count > 0 ? self.scales.aggregateColor(d.count) : "#FFFFFF"; })
+					.attr("fill", function(d) { return d.count > 0 ? self.scales.subsetColor(d.count) : "#FFFFFF"; })
 					.attr("data-degree", function(d, i) { return d.degree; });
 			});
 
@@ -1163,8 +1222,8 @@ var scats = (function(vis) {
 					.attr("r", function(d) { return d.count > 0 ? self.settings.subset.r : 0; }) //set radius to 0 for aggregates with 0 elements
 					.attr("display", function(d) { return d.count > 0 ? null : "none"; }) //don't show aggregates with 0 elements
 					.attr("data-bin", function(d, i) { return i; })
-					//.style("fill", function(d) { return self.settings.colors[Math.ceil(self.scales.color(d.getTotalElements()))]; })
-					.style("fill", function(d) { return self.scales.color(d.count); })
+					//.style("fill", function(d) { return self.settings.colors[Math.ceil(self.scales.aggregateColor(d.getTotalElements()))]; })
+					.style("fill", function(d) { return self.scales.aggregateColor(d.count); })
 					.on("mouseover", onMouseover)
 					.on("mouseout", onMouseout)
 					.on("click", function(aggregate, rowIndex) {

@@ -356,13 +356,15 @@ input[type="checkbox"] {
 /*******
 * LEGEND
 ********/
-#legend {
+.legend {
   /* padding: 1.5em 0 0 1.5em; */
   width: 300px;
-  margin-bottom: 20px; }
-  #legend h3.legend-title {
+  margin-bottom: 20px;
+  float: left;
+  margin-right: 50px; }
+  .legend h3.legend-title {
     font-size: 0.8em; }
-  #legend li.key {
+  .legend li.key {
     border-top-width: 15px;
     border-top-style: solid;
     font-size: .75em;

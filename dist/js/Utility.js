@@ -238,20 +238,54 @@ var scats = (function(vis) {
 			return result;
 		},
 		/* creates a sorted array of unique values based on the elements and aggregates array */
+		/* deprecated */
 		computeSortedValuesArray: function(elements, aggregates) {
 			var result = elements.map(function(el) {
 					return el.degree;
 				});
 
+			console.log("computeSortedValuesArray :: ", elements, aggregates, result);
+
 			for (var i = 0, len = aggregates.length; i < len; i++) {
 				for (var j = 0, l = aggregates[i].length; j < l; j++) {
-					if (result.indexOf(aggregates[i][j].count) != -1) {
 						result.push(aggregates[i][j].count);
-					}
 				}
 			}
 
+			console.log("computeSortedValuesArray :: ", _.uniq(result).sort(function(a, b) { return a - b; }));
+
 			//eliminate duplicates and sort ascending
+			return _.uniq(result).sort(function(a, b) { return a - b; });
+		},
+		/* creates a sorted array of unique values based on the aggregates array */
+		getSortedAggregateTotals: function (aggregates) {
+			var result = [];
+			for (var i = 0, len = aggregates.length; i < len; i++) {
+				for (var j = 0, l = aggregates[i].length; j < l; j++) {
+					result.push(aggregates[i][j].count);
+				}
+			}
+
+			return _.uniq(result).sort(function(a, b) { return a - b; });
+		},
+		/* creates a sorted array of unique values based on the elements array */
+		getSortedSubsetTotals: function (bins) {
+			console.log("getSortedSubsetTotals :: bins : ", bins);
+			/*
+			var result = elements.map(function(el) {
+				return el.degree;
+			});
+
+			return _.uniq(result).sort(function(a, b) { return a - b; });
+		 	*/
+
+			var result = [];
+			for (var i = 0, len = bins.length; i < len; i++) {
+				for (var j = 0, l = bins[i].length; j < l; j++) {
+					result.push(bins[i][j].count);
+				}
+			}
+
 			return _.uniq(result).sort(function(a, b) { return a - b; });
 		},
 		getSetIdFromName: function (setName) {

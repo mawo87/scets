@@ -230,10 +230,12 @@ $highlightColor: #2B8CBE;
 /*******
 * LEGEND
 ********/
-#legend {
+.legend {
   /* padding: 1.5em 0 0 1.5em; */
   width: 300px;
   margin-bottom: 20px;
+  float: left;
+  margin-right: 50px;
 
   h3.legend-title {
     font-size: 0.8em;
