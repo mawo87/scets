@@ -268,32 +268,16 @@ var scats = (function(vis) {
 
 			return _.uniq(result).sort(function(a, b) { return a - b; });
 		},
-		/* creates a sorted array of unique values based on the elements array */
-		getSortedSubsetTotals: function (bins) {
-			console.log("getSortedSubsetTotals :: bins : ", bins);
-			/*
-			var result = elements.map(function(el) {
-				return el.degree;
-			});
-
-			return _.uniq(result).sort(function(a, b) { return a - b; });
-		 	*/
-
-			var result = [];
-			for (var i = 0, len = bins.length; i < len; i++) {
-				for (var j = 0, l = bins[i].length; j < l; j++) {
-					result.push(bins[i][j].count);
-				}
-			}
-
-			return _.uniq(result).sort(function(a, b) { return a - b; });
+		/* creates a sorted array of unique values based on the multidimensional grid array */
+		getSortedSubsetTotals: function (grid) {
+			return _.uniq(_.flatten(grid)).sort(function(a, b) {return a - b; });
 		},
 		getSetIdFromName: function (setName) {
 			var regex = /[\s,\.]/g;
 			return setName.replace(regex, '');
 		},
 		//this will create the full create where each cell contains an array of elements instead of an int value only
-		createFullGrid: function() {
+			createFullGrid: function() {
 			console.time("createFullGrid");
 
 			var result = [],

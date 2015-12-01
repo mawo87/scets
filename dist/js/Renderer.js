@@ -44,8 +44,8 @@ var scats = (function(vis) {
 				r: 6
 			},
 			colors: {
-				aggregates: colorbrewer.Oranges[1],
-				subsets: colorbrewer.Greens[1]
+				aggregates: undefined,
+				subsets: undefined
 			},
 			labelButton: {
 				width: 14,
@@ -179,10 +179,10 @@ var scats = (function(vis) {
 			this.aggregated_bin_data = vis.helpers.createAggregatedData(vis.data.bins.data);
 
 			this.sortedAggregateTotals = vis.helpers.getSortedAggregateTotals(vis.data.aggregates);
-			this.sortedSubsetTotals = vis.helpers.getSortedSubsetTotals(vis.data.fullGrid);
+			this.sortedSubsetTotals = vis.helpers.getSortedSubsetTotals(vis.data.grid);
 
 			this.settings.colors.aggregates = this.sortedAggregateTotals.length < 9 ? colorbrewer.Oranges[this.sortedAggregateTotals.length] : colorbrewer.Oranges[9];
-			this.settings.colors.subsets = this.sortedSubsetTotals.length < 9 ? colorbrewer.Greens[this.sortedSubsetTotals.length] : colorbrewer.Greens[9];
+			this.settings.colors.subsets = this.sortedSubsetTotals.length < 9 ? colorbrewer.Purples[this.sortedSubsetTotals.length] : colorbrewer.Purples[9];
 
 			//sets y axis data
 			this.data_y_axis = this.createYAxisLabelData();
