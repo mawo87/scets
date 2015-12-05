@@ -74,6 +74,7 @@ var scats = (function(vis) {
 		this.data_y_axis = [];
 		this.user_expanded_bins = []; //bins expanded by user (click)
 		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
+		this.subsetLegendVisible = false;
 
 		this.init();
 	}
@@ -311,9 +312,6 @@ var scats = (function(vis) {
 					if (!d3.select(this).classed("expanded")) {
 						self.clearSelection();
 						self.expandRowIndex(i, true);
-
-						//show subset legend
-						$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
 					}
 				});
 			});
@@ -324,15 +322,16 @@ var scats = (function(vis) {
 					if (d3.select(this).classed("expanded")) {
 						self.clearSelection();
 						self.collapseRowIndex(i, true);
-
-						//empty all bins
-						self.user_expanded_bins = [];
-						self.auto_expanded_bins = [];
-
-						//hide subset legend
-						$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
 					}
-				})
+				});
+
+				//empty all bins
+				self.user_expanded_bins = [];
+				self.auto_expanded_bins = [];
+
+				$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
+				self.subsetLegendVisible = false;
+
 			});
 
 			//setup clear selection button
@@ -878,7 +877,10 @@ var scats = (function(vis) {
 			}
 
 			//show subset legend
-			$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
+			if (!this.subsetLegendVisible) {
+				$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
+				this.subsetLegendVisible = true;
+			}
 
 			//re-add selection if one exists
 			this.restoreSelection();
@@ -959,9 +961,12 @@ var scats = (function(vis) {
 				this.updateExpandedBins(rowIndex, this.auto_expanded_bins);
 			}
 
+			console.log("COLLAPSE BINS :: ", this.user_expanded_bins, this.auto_expanded_bins);
+
 			//hide legend for subsets if all rows are collapsed
 			if (this.user_expanded_bins.length === 0 && this.auto_expanded_bins.length === 0) {
 				$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
+				this.subsetLegendVisible = false;
 			}
 
 			//re-add selection if one exists
