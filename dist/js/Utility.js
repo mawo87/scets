@@ -277,7 +277,7 @@ var scats = (function(vis) {
 			return setName.replace(regex, '');
 		},
 		//this will create the full create where each cell contains an array of elements instead of an int value only
-			createFullGrid: function() {
+		createFullGrid: function() {
 			console.time("createFullGrid");
 
 			var result = [],
