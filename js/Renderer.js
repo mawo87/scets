@@ -1044,8 +1044,13 @@ var scats = (function(vis) {
 								console.log("SUBSET TOOLTIP :: ", d);
 
 								var text_elements = d.count > 1 ? "elements" : "element",
-									text_sets = d.degree > 1 ? "sets" : "set",
-									html = "<strong>" + d.count + "</strong> " + text_elements + " shared with <strong>" + d.degree + "</strong> other " + text_sets + ".";
+									html = "";
+
+								if (d.degree > 1) {
+									html = "<strong>" + d.count + "</strong> " + text_elements + " shared with <strong>" + (d.degree - 1) + "</strong> other sets.";
+								} else {
+									html = "<strong>" + d.count + "</strong> " + text_elements + " shared with no other sets.";
+								}
 
 								if (d3.select(context).classed("segment-tooltip")) {
 									var intersection = vis.helpers.calcIntersection(d.elements, self.currentSelection.elements),
@@ -1255,13 +1260,19 @@ var scats = (function(vis) {
 
 								var subset_first = d.subsets[0],
 									subset_last = d.subsets[d.subsets.length - 1],
-									html = "<strong>" + d.count + "</strong> elements shared with <strong>" + subset_first.degree;
+									html = "";
+
+								if (subset_first.degree > 1) {
+									html = "<strong>" + d.count + "</strong> elements shared with <strong>" + (subset_first.degree - 1);
 
 									if (subset_first.degree != subset_last.degree) {
-										html += " to " + subset_last.degree;
+										html += " to " + (subset_last.degree - 1);
 									}
 
-								html += "</strong> other sets.";
+									html += "</strong> other sets.";
+								} else if (subset_first.degree === 1) {
+									html = "<strong>" + d.count + "</strong> elements shared with no other sets.";
+								}
 
 								return html;
 
