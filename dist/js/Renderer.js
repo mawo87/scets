@@ -1262,7 +1262,11 @@ var scats = (function(vis) {
 									subset_last = d.subsets[d.subsets.length - 1],
 									html = "";
 
-								if (subset_first.degree > 1) {
+								if (subset_first.degree === 1 && subset_last.degree === 1) {
+									html = "<strong>" + d.count + "</strong> elements shared with no other sets.";
+								} else if (subset_first.degree === 1 && subset_last.degree > 1) {
+									html = "<strong>" + d.count + "</strong> elements shared with up to <strong>" + (subset_last.degree - 1) + "</strong> other sets.";
+								} else if (subset_first.degree > 1) {
 									html = "<strong>" + d.count + "</strong> elements shared with <strong>" + (subset_first.degree - 1);
 
 									if (subset_first.degree != subset_last.degree) {
@@ -1270,8 +1274,6 @@ var scats = (function(vis) {
 									}
 
 									html += "</strong> other sets.";
-								} else if (subset_first.degree === 1) {
-									html = "<strong>" + d.count + "</strong> elements shared with no other sets.";
 								}
 
 								return html;
