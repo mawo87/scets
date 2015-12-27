@@ -160,7 +160,7 @@ var scats = (function(vis) {
 
 						//initialize bins
 						scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
-						scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
+						scats.data.bins.ranges = scats.helpers.initBins(scats.data.elements, scats.data.bins.k);
 
 						//classify bin data
 						scats.helpers.classifyBinData(this.data);

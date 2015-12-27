@@ -99,20 +99,12 @@ var scats = (function(vis) {
 
 			return set_occurrence_map;
 		},
-		getElementsPerDegree: function(arr) {
-			var result = [],
-				sum;
-
-			for (var i = 0, len = arr.length; i < len; i++) {
-				sum = 0;
-				for (var j = 0, l = arr[i].length; j < l; j++) {
-					sum += arr[i][j];
-				}
-
-				result.push(sum);
+		getElementsPerDegree: function (elements, maxDegree) {
+			var degreeList = Array.apply(null, Array(maxDegree)).map(Number.prototype.valueOf,0);
+			for (var i = 0; i < elements.length; i++) {
+				degreeList[elements[i].degree - 1]++;
 			}
-
-			return result;
+			return degreeList;
 		},
 		/**
 		 * @method
@@ -162,7 +154,7 @@ var scats = (function(vis) {
 			return intersection.length / a.length;
 		},
 		initBins: function(data, k) {
-			var H = vis.helpers.getElementsPerDegree(data), //histogram data
+			var H = vis.helpers.getElementsPerDegree(vis.data.elements, vis.data.maxDegree), //histogram data
 				n = H.reduce(function(a, b) { return a + b; }), //total number of elements across all degrees
 				//b = vis.data.maxDegree, //max degree in histogram data
 				ind = 0,
