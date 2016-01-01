@@ -160,7 +160,7 @@ var scats = (function(vis) {
 
 						//initialize bins
 						scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
-						scats.data.bins.ranges = scats.helpers.initBins(scats.data.elements, scats.data.bins.k);
+						scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
 
 						//classify bin data
 						scats.helpers.classifyBinData(this.data);
@@ -1127,7 +1127,9 @@ var scats = (function(vis) {
 			if (vis.data.sortType === "name") {
 				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return s.name; });
 			} else if (vis.data.sortType === "quantity") {
-				vis.data.sets = _.sortBy(vis.data.sets, function(s) { return -s.count; });
+				vis.data.sets = _.sortBy(vis.data.sets, function (s) { return -s.count; });
+			} else if (vis.data.sortType === "distinctiveness") {
+				vis.data.sets = _.sortBy(vis.data.sets, function (s) { return -s.distinctiveness; });
 			} else {
 				vis.data.sets = vis.data.sets_default_sorted;
 			}
@@ -1168,6 +1170,10 @@ var scats = (function(vis) {
 			data_per_setGroup = vis.helpers.chunk(sorted_transposed, Math.ceil(this.max_sets_per_group));
 
 			/*** HACK END ***/
+
+
+
+			this.computeDistinctiveness();
 
 			//set number of set groups
 			this.no_set_groups = data_per_setGroup.length;
@@ -1411,6 +1417,30 @@ var scats = (function(vis) {
 
 			}
 
+		},
+		computeDistinctiveness: function () {
+
+			console.log("computeDistinctiveness :: ");
+
+			_.each(vis.data.sets, function(set) {
+				var aggregates = set.binData,
+						totalAvg = 0;
+
+				_.each(aggregates, function(aggregate) {
+					var subsets = aggregate.subsets,
+							//aggregateAvg = 0,
+							sumPerAggregate = 0;
+
+					_.each(subsets, function(subset) {
+						sumPerAggregate += subset.count * subset.degree;
+					});
+
+					totalAvg += sumPerAggregate / aggregate.count;
+
+				});
+
+				set.distinctiveness = isNaN(totalAvg / aggregates.length) ? -1 : (totalAvg / aggregates.length);
+			});
 		}
 	};
 
