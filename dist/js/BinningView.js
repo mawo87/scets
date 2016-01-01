@@ -70,7 +70,15 @@ var scats = (function(vis) {
      * @method renderHistogram
      */
     renderHistogram: function () {
-      var data = vis.helpers.getElementsPerDegree(vis.data.elements, vis.data.maxDegree);
+      var getElementsByDegree = function (elements, maxDegree) {
+        var degreeList = Array.apply(null, Array(maxDegree)).map(Number.prototype.valueOf,0);
+        for (var i = 0; i < elements.length; i++) {
+          degreeList[elements[i].degree - 1]++;
+        }
+        return degreeList;
+      };
+
+      var data = getElementsByDegree(vis.data.elements, vis.data.maxDegree);
 
       var margin = {left: 20, top: 10},
         width = 420,

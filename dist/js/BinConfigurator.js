@@ -102,7 +102,7 @@ var scats = (function(vis) {
 		    if (parseInt($(this).val()) !== self.bins.k) {
 					self.bins.k = parseInt($(this).val());
 			    self.bins.ranges = [];
-					self.bins.ranges = vis.helpers.initBins(vis.data.elements, self.bins.k);
+					self.bins.ranges = vis.helpers.initBins(vis.data.grid, self.bins.k);
 			    self.redrawBinRanges();
 		    }
 	    });
