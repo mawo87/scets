@@ -1338,7 +1338,7 @@ var scats = (function(vis) {
 								.html(function() {
 									console.log("SET TOOLTIP :: ", d);
 
-									return "<span><strong>" + d.name + "</strong></span>: <span style='font-size:11px;'>" + d.count + " elements total</span>";
+									return "<strong>" + d.name + "</strong><br><span style='font-size:11px;'><strong>" + d.count + "</strong> elements total</span><br/><span style='font-size:11px;'>Distinctiveness: <strong>" + Math.round(d.distinctiveness) + "</strong></span>";
 								});
 
 							self.tip.show.apply(context, args);
@@ -1422,25 +1422,21 @@ var scats = (function(vis) {
 
 			console.log("computeDistinctiveness :: ");
 
-			_.each(vis.data.sets, function(set) {
+			_.each(vis.data.sets, function (set) {
 				var aggregates = set.binData,
-						totalAvg = 0;
+						sum = 0;
 
-				_.each(aggregates, function(aggregate) {
-					var subsets = aggregate.subsets,
-							//aggregateAvg = 0,
-							sumPerAggregate = 0;
+				_.each(aggregates, function (aggregate) {
+					var subsets = aggregate.subsets;
 
-					_.each(subsets, function(subset) {
-						sumPerAggregate += subset.count * subset.degree;
+					_.each(subsets, function (subset) {
+						sum += subset.count * subset.degree;
 					});
-
-					totalAvg += sumPerAggregate / aggregate.count;
-
 				});
 
-				set.distinctiveness = isNaN(totalAvg / aggregates.length) ? -1 : (totalAvg / aggregates.length);
+				set.distinctiveness = isNaN(sum / set.count) ? -1 : (sum / set.count);
 			});
+
 		}
 	};
 
