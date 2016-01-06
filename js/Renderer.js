@@ -1129,7 +1129,7 @@ var scats = (function(vis) {
 			} else if (vis.data.sortType === "quantity") {
 				vis.data.sets = _.sortBy(vis.data.sets, function (s) { return -s.count; });
 			} else if (vis.data.sortType === "distinctiveness") {
-				vis.data.sets = _.sortBy(vis.data.sets, function (s) { return -s.distinctiveness; });
+				vis.data.sets = _.sortBy(vis.data.sets, function (s) { return s.distinctiveness; });
 			} else {
 				vis.data.sets = vis.data.sets_default_sorted;
 			}
@@ -1434,7 +1434,8 @@ var scats = (function(vis) {
 					});
 				});
 
-				set.distinctiveness = isNaN(sum / set.count) ? -1 : (sum / set.count);
+				//in case the distinctiveness can't be computed, let's set the set's distinctiveness to a very high value, i.e., maxDegree + 1
+				set.distinctiveness = isNaN(sum / set.count) ? (vis.data.maxDegree + 1) : (sum / set.count);
 			});
 
 		}
