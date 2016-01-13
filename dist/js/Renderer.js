@@ -192,7 +192,7 @@ var scats = (function(vis) {
 
 			initScales();
 
-			this.setupLegend();
+			this.setupLegends();
 
 			//initialize table
 			this.table = new vis.Table({ container: "#elementTable", tableClass: "table table-bordered" });
@@ -275,6 +275,7 @@ var scats = (function(vis) {
 			$('#buttonBar .btn-expand-all').unbind('click');
 			$('#buttonBar .btn-collapse-all').unbind('click');
 			$('#buttonBar .btn-remove-selection').unbind('click');
+			$('#toggleColorScaleChb').unbind('click');
 		},
 		/**
 		 * Binds click events to the UI control elements
@@ -330,6 +331,11 @@ var scats = (function(vis) {
 				self.auto_expanded_bins = [];
 
 				$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
+				$("#toggleColorScaleChb").velocity("transition.fadeOut", {
+					complete: function () {
+						$("#toggleColorScaleChb").unbind("click");
+					}
+				});
 				self.subsetLegendVisible = false;
 
 			});
@@ -549,13 +555,19 @@ var scats = (function(vis) {
 
 			}
 		},
+		setupLegends: function() {
+			//empty legend container first
+			$('#legend-wrapper').empty();
+			this.setupAggregateLegend();
+			this.setupSubsetLegend();
+		},
 		/**
-		 * Creates the HTML for the legend based on the scales.aggregateColor object
+		 * Creates the HTML for the aggregates legend based on the scales.aggregateColor object
 		 *
 		 * @memberOf scats.Renderer
-		 * @method setupLegend
+		 * @method setupAggregateLegend
 		 */
-		setupLegend: function() {
+		setupAggregateLegend: function() {
 			var self = this;
 
 			/*
@@ -563,9 +575,6 @@ var scats = (function(vis) {
 			console.log("colors(3) ", this.scales.aggregateColor(3));
 			*/
 			console.log("setupLegend :: sorted values : ", self.sortedAggregateTotals, self.sortedSubsetTotals);
-
-			//empty container first
-			$('#legend-wrapper').empty();
 
 			//setup legend for aggregates
 			var aggregateLegend = d3.select("#legend-wrapper")
@@ -595,35 +604,40 @@ var scats = (function(vis) {
 					//return "≥ " + Math.round(r[0]);
 					return "≥ " + Math.ceil(r[0]);
 				});
-
-			//setup legend for subsets
-			var subsetLegend = d3.select("#legend-wrapper")
-				.append("div")
-				.attr("class", "legend subset-legend init-hide");
-
-			subsetLegend
-				.append("h5")
-				.text("Total elements per subset:");
-
-			subsetLegend
-				.append("ul")
-				.attr("class", "list-inline");
-
-			var subsetKeys = subsetLegend.select("ul").selectAll("li")
-				.data(this.scales.subsetColor.range())
-				.enter()
-				.append("li")
-				.attr("class", "key")
-				.style("border-top-color", String)
-				.style("width", 100/this.settings.colors.subsets.length + "%")
-				.text(function(d) {
-					var r = self.scales.subsetColor.invertExtent(d);
-					return "≥ " + Math.ceil(r[0]);
-				});
-
 			//console.log("LEGEND DATA :: 18.333333333333332 : ", this.scales.aggregateColor(18.333333333333332));
 			//console.log("LEGEND DATA :: 18 : ", this.scales.aggregateColor(18));
 
+		},
+		setupSubsetLegend: function() {
+			var self = this;
+
+			//setup legend for subsets
+			var subsetLegend = d3.select("#legend-wrapper")
+					.append("div")
+					.attr("class", "legend subset-legend init-hide");
+
+			subsetLegend
+					.append("h5")
+					.text("Total elements per subset:");
+
+			subsetLegend
+					.append("ul")
+					.attr("class", "list-inline");
+
+			var subsetKeys = subsetLegend.select("ul").selectAll("li")
+					.data(this.scales.subsetColor.range())
+					.enter()
+					.append("li")
+					.attr("class", "key")
+					.style("border-top-color", String)
+					.style("width", 100/this.settings.colors.subsets.length + "%")
+					.text(function(d) {
+						var r = self.scales.subsetColor.invertExtent(d);
+						return "≥ " + Math.ceil(r[0]);
+					});
+
+			//generate checkbox
+			$("#legend-wrapper .subset-legend").append("<div class='checkbox init-hide' id='toggleColorScaleChb'><label><input type='checkbox'> include expanded bins only</label></div>");
 		},
 		/**
 		 * Renders the visualization data, common place for drawing the canvas and calling the renderSets method
@@ -635,6 +649,11 @@ var scats = (function(vis) {
 			var self = this,
 				width = this.settings.canvas.width,
 				height = this.settings.canvas.height;
+
+			//reset expanded bins
+			this.user_expanded_bins = [];
+			this.auto_expanded_bins = [];
+			this.subsetLegendVisible = false;
 
 			//empty canvas first
 			$('#canvas')
@@ -799,7 +818,8 @@ var scats = (function(vis) {
 			});
 		},
 		expandRowIndex: function (rowIndex, isUserAction) {
-			var bin = vis.data.bins.ranges[rowIndex],
+			var self = this,
+				bin = vis.data.bins.ranges[rowIndex],
 				num_of_degrees = bin.end - bin.start + 1,
 				additional_height = this.settings.set.height * num_of_degrees,
 				setGroup = d3.select(".set-group"),
@@ -879,12 +899,20 @@ var scats = (function(vis) {
 			//show subset legend
 			if (!this.subsetLegendVisible) {
 				$("#legend-wrapper .subset-legend").velocity("transition.fadeIn");
+				$("#toggleColorScaleChb").velocity("transition.fadeIn", {
+					//bind click handler to checkbox
+					complete: function () {
+						$('#toggleColorScaleChb').on("click", function() {
+							var $checkbox = $(this).find("input[type='checkbox']");
+							self.setupLegendForExpandedBins($checkbox.is(":checked"));
+						});
+					}
+				});
 				this.subsetLegendVisible = true;
 			}
 
 			//re-add selection if one exists
 			this.restoreSelection();
-
 		},
 		collapseRowIndex: function (rowIndex, isUserAction) {
 			var bin = vis.data.bins.ranges[rowIndex],
@@ -966,6 +994,11 @@ var scats = (function(vis) {
 			//hide legend for subsets if all rows are collapsed
 			if (this.user_expanded_bins.length === 0 && this.auto_expanded_bins.length === 0) {
 				$("#legend-wrapper .subset-legend").velocity("transition.fadeOut");
+				$("#toggleColorScaleChb").velocity("transition.fadeOut", {
+					complete: function () {
+						$("#toggleColorScaleChb").unbind("click");
+					}
+				});
 				this.subsetLegendVisible = false;
 			}
 
@@ -1436,6 +1469,52 @@ var scats = (function(vis) {
 
 				//in case the distinctiveness can't be computed, let's set the set's distinctiveness to a very high value, i.e., maxDegree + 1
 				set.distinctiveness = isNaN(sum / set.count) ? (vis.data.maxDegree + 1) : (sum / set.count);
+			});
+		},
+		setupLegendForExpandedBins: function (expandedOnly) {
+			var self = this,
+					visibleSubsetValues = [],
+					currSubset = undefined;
+
+			console.log("setupLegendForExpandedBins :: expandedOnly : ", expandedOnly);
+
+			if (expandedOnly) {
+				d3.selectAll(".subset").each(function(d, i) {
+					currSubset = d3.select(this).data()[0];
+					visibleSubsetValues.push(currSubset.count);
+				});
+
+				visibleSubsetValues = _.uniq(visibleSubsetValues).sort(function(a, b) { return a - b; });
+
+				this.settings.colors.subsets = visibleSubsetValues.length < 9 ? colorbrewer.Purples[visibleSubsetValues.length] : colorbrewer.Purples[9];
+				this.scales.subsetColor = d3.scale.quantile()
+						.domain(visibleSubsetValues)
+						.range(this.settings.colors.subsets);
+
+			} else {
+				this.settings.colors.subsets = this.sortedSubsetTotals.length < 9 ? colorbrewer.Purples[this.sortedSubsetTotals.length] : colorbrewer.Purples[9];
+				this.scales.subsetColor = d3.scale.quantile()
+						.domain(this.sortedSubsetTotals)
+						.range(this.settings.colors.subsets);
+			}
+
+			//remove existing subset legend and redraw legend with new values
+			d3.select("#legend-wrapper .subset-legend ul").selectAll("li").remove();
+			d3.select("#legend-wrapper .subset-legend ul").selectAll("li")
+					.data(this.scales.subsetColor.range())
+					.enter()
+					.append("li")
+					.attr("class", "key")
+					.style("border-top-color", String)
+					.style("width", 100/this.settings.colors.subsets.length + "%")
+					.text(function(d) {
+						var r = self.scales.subsetColor.invertExtent(d);
+						return "≥ " + Math.ceil(r[0]);
+					});
+
+			//re-color subsets according to new colors scale
+			d3.selectAll(".subset").each(function() {
+				d3.select(this).attr("fill", function(d) { return d.count > 0 ? self.scales.subsetColor(d.count) : "#FFFFFF"; })
 			});
 
 		}

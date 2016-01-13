@@ -148,12 +148,6 @@ th {
 .table > tfoot > tr > td {
   padding: 12px; }
 
-.table th input[type="radio"],
-input[type="checkbox"],
-.table td input[type="radio"],
-input[type="checkbox"] {
-  margin-top: -2px; }
-
 .table td.small-cell,
 .table th.small-cell {
   width: 40px; }
@@ -356,21 +350,28 @@ input[type="checkbox"] {
 /*******
 * LEGEND
 ********/
-.legend {
-  /* padding: 1.5em 0 0 1.5em; */
-  width: 300px;
-  margin-bottom: 20px;
-  float: left;
-  margin-right: 50px; }
-  .legend h3.legend-title {
-    font-size: 0.8em; }
-  .legend li.key {
-    border-top-width: 15px;
-    border-top-style: solid;
-    font-size: .75em;
-    /* width: 10%; */
-    padding-left: 0;
-    padding-right: 0; }
+#legend-wrapper {
+  padding: 10px 20px;
+  background: #F5F5F5;
+  border: 1px solid #CCCCCC;
+  margin-bottom: 20px; }
+  #legend-wrapper .legend {
+    /* padding: 1.5em 0 0 1.5em; */
+    width: 300px;
+    margin-bottom: 20px;
+    float: left;
+    margin-right: 50px; }
+    #legend-wrapper .legend h3.legend-title {
+      font-size: 0.8em; }
+    #legend-wrapper .legend ul {
+      margin-left: 0; }
+    #legend-wrapper .legend li.key {
+      border-top-width: 15px;
+      border-top-style: solid;
+      font-size: .75em;
+      /* width: 10%; */
+      padding-left: 0;
+      padding-right: 0; }
 
 /**************
 * ELEMENT-TABLE
