@@ -271,7 +271,7 @@ var scats = (function(vis) {
 		},
 		/* creates a sorted array of unique values based on the multidimensional grid array */
 		getSortedSubsetTotals: function (grid) {
-			return _.uniq(_.flatten(grid)).sort(function(a, b) {return a - b; });
+			return _.uniq(_.flatten(grid)).sort(function(a, b) { return a - b; });
 		},
 		getSetIdFromName: function (setName) {
 			var regex = /[\s,\.]/g;

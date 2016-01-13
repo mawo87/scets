@@ -230,24 +230,35 @@ $highlightColor: #2B8CBE;
 /*******
 * LEGEND
 ********/
-.legend {
-  /* padding: 1.5em 0 0 1.5em; */
-  width: 300px;
+#legend-wrapper {
+  padding: 10px 20px;
+  background: #F5F5F5;
+  border: 1px solid #CCCCCC;
   margin-bottom: 20px;
-  float: left;
-  margin-right: 50px;
 
-  h3.legend-title {
-    font-size: 0.8em;
-  }
+  .legend {
+    /* padding: 1.5em 0 0 1.5em; */
+    width: 300px;
+    margin-bottom: 20px;
+    float: left;
+    margin-right: 50px;
 
-  li.key {
-    border-top-width: 15px;
-    border-top-style: solid;
-    font-size: .75em;
-    /* width: 10%; */
-    padding-left: 0;
-    padding-right: 0;
+    h3.legend-title {
+      font-size: 0.8em;
+    }
+
+    ul {
+      margin-left: 0;
+    }
+
+    li.key {
+      border-top-width: 15px;
+      border-top-style: solid;
+      font-size: .75em;
+      /* width: 10%; */
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
 }
 
