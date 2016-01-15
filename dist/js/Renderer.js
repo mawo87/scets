@@ -904,7 +904,7 @@ var scats = (function(vis) {
 					complete: function () {
 						$('#toggleColorScaleChb').on("click", function() {
 							var $checkbox = $(this).find("input[type='checkbox']");
-							self.setupLegendForExpandedBins($checkbox.is(":checked"));
+							self.colorScaleCbHandler($checkbox.is(":checked"));
 						});
 					}
 				});
@@ -1471,12 +1471,12 @@ var scats = (function(vis) {
 				set.distinctiveness = isNaN(sum / set.count) ? (vis.data.maxDegree + 1) : (sum / set.count);
 			});
 		},
-		setupLegendForExpandedBins: function (expandedOnly) {
+		colorScaleCbHandler: function (expandedOnly) {
 			var self = this,
 					visibleSubsetValues = [],
 					currSubset = undefined;
 
-			console.log("setupLegendForExpandedBins :: expandedOnly : ", expandedOnly);
+			console.log("colorScaleCbHandler :: expandedOnly : ", expandedOnly);
 
 			if (expandedOnly) {
 				d3.selectAll(".subset").each(function(d, i) {
