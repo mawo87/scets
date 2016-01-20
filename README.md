@@ -1,6 +1,6 @@
 
-scats
-======
+scets
+=====
 A scalable visualization of set-typed data
 
 ## Run

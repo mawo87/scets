@@ -1,9 +1,9 @@
-var scats = (function(vis) {
+var scets = (function(vis) {
 
 	/**
 	 * @class Table
 	 * @classDesc The table class
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {object} $container - A jquery object
 	 * @property {string} tableClass - An optional CSS class name.
@@ -24,8 +24,8 @@ var scats = (function(vis) {
 		/**
 		 * The initialization method of the table, which will be called directly when a new instance is created.
 		 *
-		 * @memberOf scats.Table
-		 * @returns {scats.Table} - The table object itself.
+		 * @memberOf scets.Table
+		 * @returns {scets.Table} - The table object itself.
 		 * @method init
 		 */
 		init: function() {
@@ -43,8 +43,8 @@ var scats = (function(vis) {
 		/**
 		 * Appends a header row to the table.
 		 *
-		 * @memberOf scats.Table
-		 * @returns {scats.Table} - The table object itself.
+		 * @memberOf scets.Table
+		 * @returns {scets.Table} - The table object itself.
 		 * @method appendTableHead
 		 */
 		appendTableHead: function() {
@@ -61,9 +61,9 @@ var scats = (function(vis) {
 		/**
 		 * Updates the table content with the passed elements array.
 		 *
-		 * @memberOf scats.Table
+		 * @memberOf scets.Table
 		 * @param {array} elements - An array of elements that has to be presented in the table.
-		 * @returns {scats.Table} - The table object itself.
+		 * @returns {scets.Table} - The table object itself.
 		 * @method update
 		 */
 		update: function(elements) {
@@ -87,8 +87,8 @@ var scats = (function(vis) {
 		/**
 		 * Empties the content of the table body.
 		 *
-		 * @memberOf scats.Table
-		 * @returns {scats.Table} - The table object itself.
+		 * @memberOf scets.Table
+		 * @returns {scets.Table} - The table object itself.
 		 * @method clear
 		 */
 		clear: function() {
@@ -101,4 +101,4 @@ var scats = (function(vis) {
 		Table: Table
 	});
 
-})(scats || {});
+})(scets || {});

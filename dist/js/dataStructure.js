@@ -1,9 +1,9 @@
-var scats = (function(vis) {
+var scets = (function(vis) {
 
 	/**
 	 * @class Element
 	 * @classDesc Represents an element from the input data
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {string} id - The unique identifier of the element.
 	 * @property {string} name - The element's name.
@@ -26,7 +26,7 @@ var scats = (function(vis) {
 	/**
 	 * @class Set
 	 * @classDesc Represents a set in.
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {string} name - The set's name.
 	 * @property {int} count - The number of elements the set contains.
@@ -40,7 +40,7 @@ var scats = (function(vis) {
 	/**
 	 * @class SubSet
 	 * @classDesc Represents a set in.
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {string} set_name - The name of the set it belongs to.
 	 * @property {int} degree - he subset's degree.
@@ -59,7 +59,7 @@ var scats = (function(vis) {
 	/**
 	 * @class Aggregate
 	 * @classDesc Represents an aggregate (can store multiple subsets).
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {int} count - The number of subsets this aggregate holds.
 	 * @property {array} subsets - An array of subsets this aggregate holds.
@@ -73,8 +73,8 @@ var scats = (function(vis) {
 		/**
 		 * Adds a subset to the aggregate
 		 *
-		 * @memberOf scats.Aggregate
-		 * @returns {scats.Subset} - The subset to be added.
+		 * @memberOf scets.Aggregate
+		 * @returns {scets.Subset} - The subset to be added.
 		 * @method addSubset
 		 */
 		addSubset: function(subset) {
@@ -84,7 +84,7 @@ var scats = (function(vis) {
 		/**
 		 * Returns the elements of an aggregate
 		 *
-		 * @memberOf scats.Aggregate
+		 * @memberOf scets.Aggregate
 		 * @returns {Array}
 		 * @method getElements
 		 */
@@ -106,7 +106,7 @@ var scats = (function(vis) {
 	/**
 	 * @class Selection
 	 * @classDesc Represents a selection (elements of search, subset, or aggregate).
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @param {object} initializer
 	 */
@@ -126,4 +126,4 @@ var scats = (function(vis) {
 		Aggregate: Aggregate
 	});
 
-})(scats || {});
+})(scets || {});

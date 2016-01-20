@@ -1,9 +1,9 @@
-var scats = (function(vis) {
+var scets = (function(vis) {
 
 	/**
 	 * @class Renderer
 	 * @classDesc The visualization's rendering component
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {object} settings - The default setting values
 	 * @property {object} settings.canvas - The default settings for our canvas
@@ -83,7 +83,7 @@ var scats = (function(vis) {
 		/**
 		 * Initializes the Renderer, i.e., common place for calling initialization tasks.
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method init
 		 */
 		init: function() {
@@ -111,13 +111,13 @@ var scats = (function(vis) {
 				container: "#binningViewModal"
 			});
 
-			this.dataNavigator = new scats.DataNavigator({
+			this.dataNavigator = new scets.DataNavigator({
 				container: "#dataNavigatorSmall",
 				loader: "#loader",
 				size: "small",
-				selectedFile: scats.data.selectedFile,
+				selectedFile: scets.data.selectedFile,
 				onSelectCallback: function (data) {
-					scats.data.selectedFile = data.file;
+					scets.data.selectedFile = data.file;
 				},
 				onLoadedCallback: function(resp) {
 
@@ -126,50 +126,50 @@ var scats = (function(vis) {
 							elements = resp.result.elements,
 							tmp = { sets: [], elements: [] };
 
-						//extend the global scats variable and delete sets and elements as we create new instances below
-						$.extend(scats.data, resp.result);
-						delete scats.data.sets;
-						delete scats.data.elements;
+						//extend the global scets variable and delete sets and elements as we create new instances below
+						$.extend(scets.data, resp.result);
+						delete scets.data.sets;
+						delete scets.data.elements;
 
-						console.log("scats.data :: ", scats.data);
+						console.log("scets.data :: ", scets.data);
 
 						//create sets
 						for (var i = 0, len = sets.length, s; i < len; i++) {
-							s = new scats.Set(sets[i].name);
+							s = new scets.Set(sets[i].name);
 							s.count = sets[i].count;
 							tmp.sets.push(s);
 						}
 
 						//create elements
 						for (var i = 0, len = elements.length, e; i < len; i++) {
-							e = new scats.Element(elements[i].id, elements[i].name);
+							e = new scets.Element(elements[i].id, elements[i].name);
 							e.sets = elements[i].sets;
 							e.degree = elements[i].degree;
 							tmp.elements.push(e);
 						}
 
-						$.extend(scats.data, tmp);
+						$.extend(scets.data, tmp);
 
 						//create full grid
-						scats.data.fullGrid = scats.helpers.createFullGrid();
+						scets.data.fullGrid = scets.helpers.createFullGrid();
 
 						//also save a copy of the raw/default sets we can use for sorting later on
-						scats.data.sets_default_sorted = scats.data.sets;
+						scets.data.sets_default_sorted = scets.data.sets;
 
-						console.log("scats.data :: after adding sets and elements ", scats.data);
+						console.log("scets.data :: after adding sets and elements ", scets.data);
 
 						//initialize bins
-						scats.data.bins.k = scats.data.grid.length >= scats.data.bins.k ? scats.data.bins.k : scats.data.grid.length;
-						scats.data.bins.ranges = scats.helpers.initBins(scats.data.grid, scats.data.bins.k);
+						scets.data.bins.k = scets.data.grid.length >= scets.data.bins.k ? scets.data.bins.k : scets.data.grid.length;
+						scets.data.bins.ranges = scets.helpers.initBins(scets.data.grid, scets.data.bins.k);
 
 						//classify bin data
-						scats.helpers.classifyBinData(this.data);
+						scets.helpers.classifyBinData(this.data);
 					}
 
 					$(this.loader).velocity("transition.fadeOut");
 					$('#wrapper').velocity("transition.slideUpIn", {
 						complete: function () {
-							var renderer = new scats.Renderer();
+							var renderer = new scets.Renderer();
 							renderer.render();
 						}
 					});
@@ -187,6 +187,7 @@ var scats = (function(vis) {
 
 			//sets y axis data
 			this.data_y_axis = this.createYAxisLabelData();
+			console.log("y axis data :: ", this.data_y_axis);
 
 			this.setupControls();
 
@@ -248,7 +249,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the available width of the canvas
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method computeWidth
 		 */
 		computeWidth: function() {
@@ -266,7 +267,7 @@ var scats = (function(vis) {
 		/**
 		 * Unbinds all event handlers for the UI control elements
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method unbindEventHandlers
 		 */
 		unbindEventHandlers: function() {
@@ -280,7 +281,7 @@ var scats = (function(vis) {
 		/**
 		 * Binds click events to the UI control elements
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method setupControls
 		 */
 		setupControls: function() {
@@ -564,7 +565,7 @@ var scats = (function(vis) {
 		/**
 		 * Creates the HTML for the aggregates legend based on the scales.aggregateColor object
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method setupAggregateLegend
 		 */
 		setupAggregateLegend: function() {
@@ -642,7 +643,7 @@ var scats = (function(vis) {
 		/**
 		 * Renders the visualization data, common place for drawing the canvas and calling the renderSets method
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method render
 		 */
 		render: function() {
@@ -678,7 +679,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the total outer width of a set rectangle
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method getTotalSetWidth
 		 * @returns {int} - The total outer width of a set rectangle
 		 */
@@ -688,7 +689,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the inner height of a set rectangle
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method getSetInnerHeight
 		 * @returns {int} - The inner height of a set rectangle (without the border)
 		 */
@@ -698,7 +699,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the outer height of a set rectangle
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method getSetOuterHeight
 		 * @returns {int} - The outer height of a set rectangle (including the border)
 		 */
@@ -708,7 +709,7 @@ var scats = (function(vis) {
 		/**
 		 * Clears the current selection.
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method clearSelection
 		 */
 		clearSelection: function() {
@@ -776,7 +777,7 @@ var scats = (function(vis) {
 		/**
 		 * Computes the height of the canvas
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method getCanvasHeight
 		 * @return {int} - The height of the canvas
 		 */
@@ -786,7 +787,7 @@ var scats = (function(vis) {
 		/**
 		 * Sets the height of the canvas
 		 *
-		 * @memberOf scats.Renderer
+		 * @memberOf scets.Renderer
 		 * @method setCanvasHeight
 		 * @param {int} height - The height value to be set.
 		 */
@@ -1524,4 +1525,4 @@ var scats = (function(vis) {
 
 	return vis;
 
-})(scats || {});
+})(scets || {});

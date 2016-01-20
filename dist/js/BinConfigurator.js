@@ -1,9 +1,9 @@
-var scats = (function(vis) {
+var scets = (function(vis) {
 
 	/**
 	 * @class BinConfigurator
 	 * @classDesc The BinConfigurator component allows users to change the default bin settings
-	 * @memberOf scats
+	 * @memberOf scets
 	 *
 	 * @property {string} container - The container where the binning view will be rendered in
 	 * @property {array} bins - An array of bins.
@@ -56,7 +56,7 @@ var scats = (function(vis) {
 		 * - creates a save button<br/>
 		 * - attaches event handlers<br/>
 		 *
-		 * @memberOf scats.BinConfigurator
+		 * @memberOf scets.BinConfigurator
 		 * @method init
 		 */
     init: function() {
@@ -80,7 +80,7 @@ var scats = (function(vis) {
 		/**
 		 * Adds a new row to the configurator
 		 *
-		 * @memberOf scats.BinConfigurator
+		 * @memberOf scets.BinConfigurator
 		 * @method appendBinRow
 		 * @param {int} index - The index of the bin
 		 * @param {object} bin - The bin object to be added
@@ -91,7 +91,7 @@ var scats = (function(vis) {
 		/**
 		 * Attaches click handler to the form elements.
 		 *
-		 * @memberOf scats.BinConfigurator
+		 * @memberOf scets.BinConfigurator
 		 * @method attachEventHandler
 		 */
     attachEventHandler: function() {
@@ -158,7 +158,7 @@ var scats = (function(vis) {
 		/**
 		 * Removes all existing ranges and appends a new row in the form for each bin range.
 		 *
-		 * @memberOf scats.BinConfigurator
+		 * @memberOf scets.BinConfigurator
 		 * @method redrawBinRanges
 		 */
 		redrawBinRanges: function () {
@@ -173,7 +173,7 @@ var scats = (function(vis) {
 		 * @method
 		 * @name updateBinRanges
 		 * @description Updates the bin ranges of the global vis.data.bins.ranges object.
-		 * @memberOf scats.BinConfigurator
+		 * @memberOf scets.BinConfigurator
 		 * @param {array} ranges - The ranges array.
 		 */
 		updateBinRanges: function(ranges) {
@@ -226,4 +226,4 @@ var scats = (function(vis) {
 
   return vis;
 
-})(scats || {});
+})(scets || {});

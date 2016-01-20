@@ -3,7 +3,7 @@ var parse = require("csv-parse");
 var fs = require("fs");
 var multer = require("multer");
 var config = require("./modules/config.js");
-var scatsParser = require("./modules/parser.js");
+var scetsParser = require("./modules/parser.js");
 var walker = require("./modules/walker.js");
 
 var app = express();
@@ -23,7 +23,7 @@ var cpUpload = upload.fields([{ name: 'dataFile', maxCount: 1 }, { name: 'descri
 // Add headers (for CORS)
 app.use(function (req, res, next) {
   var fromConfig = config.localhost.url + ":" + config.localhost.port,
-    allowedOrigins = [fromConfig, 'scats.sybdev.com', 'http://scats.sybdev.com'],
+    allowedOrigins = [fromConfig, 'scets.sybdev.com', 'http://scets.sybdev.com'],
     origin = req.headers.origin;
 
   // Website you wish to allow to connect
@@ -223,10 +223,10 @@ function onCSVDataLoaded(setDescription, csvData, cb) {
     //console.log("parser on finish :: ", output);
 
     var data = {},
-      myScatsParser = new scatsParser.Parser(),
-      data = myScatsParser.parseFile(output, setDescription);
+      myScetsParser = new scetsParser.Parser(),
+      data = myScetsParser.parseFile(output, setDescription);
 
-    //console.log("scatsParser.parseFile :: result : ", data);
+    //console.log("scetsParser.parseFile :: result : ", data);
 
     if (cb) {
       cb(data);

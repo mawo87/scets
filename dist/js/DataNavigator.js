@@ -1,8 +1,8 @@
-var scats = (function (vis) {
+var scets = (function (vis) {
 
-  var scatsApi = {
+  var scetsApi = {
     baseUrl: function() {
-      return window.location.href.indexOf("localhost") > -1 ? "http://localhost:8080/api" : "https://scats.herokuapp.com/api";
+      return window.location.href.indexOf("localhost") > -1 ? "http://localhost:8080/api" : "https://scets.herokuapp.com/api";
     },
     getExampleList: function () {
       var self = this,
@@ -43,7 +43,7 @@ var scats = (function (vis) {
   /**
    * @class DataNavigator
    * @classDesc The Data Navigator retrieves sample files from the backend and enables users to upload new data sets
-   * @memberOf scats
+   * @memberOf scets
    *
    * @property {string} container - A selector of the container where the data navigator will ber rendered in
    * @property {string} loader - A selector of the loading container
@@ -104,7 +104,7 @@ var scats = (function (vis) {
         return html;
       },
       uploadForm: function() {
-        var html = '<form id="uploadForm" action="' + scatsApi.baseUrl() + "/upload" + '" method="post" class="init-hide">';
+        var html = '<form id="uploadForm" action="' + scetsApi.baseUrl() + "/upload" + '" method="post" class="init-hide">';
         html += '<h4>Upload a file</h4>';
         html += '<div class="row"><div class="col-md-12"><span class="help-block">Select a (.csv) file</span></div></div>';
         html += '<div class="row"><div class="col-md-12">';
@@ -132,13 +132,13 @@ var scats = (function (vis) {
   /**
    * The sample list is retrieved from the server and initialization tasks will be performed
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method init
    */
   DataNavigator.prototype.init = function() {
     console.log("DataNavigator :: init : ", this);
     var self = this;
-    scatsApi.getExampleList()
+    scetsApi.getExampleList()
       .done(function(resp) {
         console.log("GOT EXAMPLES :: ", resp);
 
@@ -161,7 +161,7 @@ var scats = (function (vis) {
   /**
    * The template for the upload form will be rendered and event handlers get attached
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method initUploadForm
    */
   DataNavigator.prototype.initUploadForm = function () {
@@ -223,7 +223,7 @@ var scats = (function (vis) {
   /**
    * Attached Event handlers to the upload form
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method attachFormEventHandlers
    */
     DataNavigator.prototype.attachFormEventHandlers = function() {
@@ -263,7 +263,7 @@ var scats = (function (vis) {
   /**
    * Validates the input of the upload form
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method validateUploadForm
    */
   DataNavigator.prototype.validateUploadForm = function () {
@@ -283,7 +283,7 @@ var scats = (function (vis) {
   /**
    * Displays error messages on the upload form
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method showErrors
    */
   DataNavigator.prototype.showErrors = function (errors) {
@@ -296,7 +296,7 @@ var scats = (function (vis) {
   /**
    * Hides error messages on the upload form
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method hideErrors
    */
   DataNavigator.prototype.hideErrors = function () {
@@ -306,7 +306,7 @@ var scats = (function (vis) {
   /**
    * Toggles the upload form
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method toggleUploadForm
    */
   DataNavigator.prototype.toggleUploadForm = function () {
@@ -330,7 +330,7 @@ var scats = (function (vis) {
   /**
    * Sets data sets
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method setDataSets
    * @param {array} dataSets - An array of data sets.
    */
@@ -341,7 +341,7 @@ var scats = (function (vis) {
   /**
    * Renders a template with the given data sets
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method render
    * @param {array} dataSets - An array of data sets.
    * @param {string} templateName - The name of the template to be rendered.
@@ -365,7 +365,7 @@ var scats = (function (vis) {
   /**
    * Attaches event handlers to the select box
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method attachEventHandler
    */
   DataNavigator.prototype.attachEventHandler = function() {
@@ -407,7 +407,7 @@ var scats = (function (vis) {
   /**
    * Loads sample files from the server
    *
-   * @memberOf scats.DataNavigator
+   * @memberOf scets.DataNavigator
    * @method loadFile
    */
   DataNavigator.prototype.loadFile = function(file) {
@@ -416,7 +416,7 @@ var scats = (function (vis) {
     $(this.container).hide();
     $(this.loader).show();
 
-    scatsApi.loadExample(file)
+    scetsApi.loadExample(file)
       .done(function(resp) {
 
         $(self.loader).hide();
@@ -435,4 +435,4 @@ var scats = (function (vis) {
 
   return vis;
 
-})(scats || {});
+})(scets || {});
