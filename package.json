@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mawo87/scats.git"
+    "url": "https://github.com/mawo87/scets.git"
   },
   "author": "Martin Wortschack",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/mawo87/scats/issues"
+    "url": "https://github.com/mawo87/scets/issues"
   },
   "devDependencies": {
     "bootstrap": "^3.3.5",

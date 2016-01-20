@@ -4,7 +4,7 @@ scets
 A scalable visualization of set-typed data
 
 ## Run
-1. Open a terminal and switch to the /scats directory
+1. Open a terminal and switch to the /scets directory
 2. Run `npm install`
 3. Run `node server.js`
 4. Copy the dist folder to your local webserver
@@ -16,12 +16,12 @@ A scalable visualization of set-typed data
 Install Gulp:
 sudo npm install -g gulp
 
-Install Gulp locally in the scats directory:
+Install Gulp locally in the scets directory:
 npm install --save-dev gulp
 
 Install Gulp Plugins:
 npm install gulp-connect gulp-traceur gulp-sass gulp-ruby-sass --save-dev
 
 Start:
-Switch to /scats and run
+Switch to /scets and run
 gulp
