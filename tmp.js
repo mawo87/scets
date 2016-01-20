@@ -1,4 +1,3 @@
-//just a test
 .on("mouseover", function(d, i) {
   console.log("d ", d);
   var that = this;
