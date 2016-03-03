@@ -75,6 +75,8 @@ var scets = (function(vis) {
 		this.user_expanded_bins = []; //bins expanded by user (click)
 		this.auto_expanded_bins = []; //bins expanded automatically (e.g., through search)
 		this.subsetLegendVisible = false;
+		this.binningView = undefined;
+		this.dataNavigator = undefined;
 
 		this.init();
 	}
@@ -395,8 +397,10 @@ var scets = (function(vis) {
 
 		},
 		/**
+		 * Creates the set occurrence map for the given elements and calls the createSegmentSelection method
+		 *
+		 * @memberOf scets.Renderer
 		 * @method createSelection
-		 * @description - Creates the set occurrence map for the given elements and calls the createSegmentSelection method
 		 * @param elements - an array of elements
 		 * @param type - the type of selection, can be one of the following: subset, aggregate, search (will be passed to createSegmentSelection)
 		 * @param rowIndex - an optional rowIndex (only for aggregate selection)
@@ -469,8 +473,10 @@ var scets = (function(vis) {
 				.removeAttr("disabled");
 		},
 		/**
-		 * @method createSegmentSelectio
-		 * @description - Creates the circle segments for the given occurrence map
+		 * Creates the circle segments for the given occurrence map
+		 *
+		 * @method createSegmentSelection
+		 * @memberOf scets.Renderer
 		 * @param set_occurrence_map - a map of sets and the degrees within theses sets that need to be highlighted
 		 * @param type - the type of selection, can be one of the following: subset, aggregate, search. The type will be used to determine the reference for the segment
 		 * @param elements - an array of elements
@@ -536,8 +542,10 @@ var scets = (function(vis) {
 			this.highlightDegreeLabels(_.uniq(highlighted_degrees));
 		},
 		/**
+		 * Re-adds selection if one exists
+		 *
+		 * @memberOf scets.Renderer
 		 * @method restoreSelection
-		 * @description re-adds selection if one exists
 		 */
 		restoreSelection: function() {
 			if (this.currentSelection) {
@@ -556,6 +564,12 @@ var scets = (function(vis) {
 
 			}
 		},
+		/**
+		 * Removes exiting legends from the container and sets up legends for aggregates and subsets
+		 *
+		 * @memberOf scets.Renderer
+		 * @method setupLegends
+		 */
 		setupLegends: function() {
 			//empty legend container first
 			$('#legend-wrapper').empty();
@@ -609,6 +623,12 @@ var scets = (function(vis) {
 			//console.log("LEGEND DATA :: 18 : ", this.scales.aggregateColor(18));
 
 		},
+		/**
+		 * Creates the HTML for the subsets legend based on the scales.subsetColor object
+		 *
+		 * @memberOf scets.Renderer
+		 * @method setupSubsetLegend
+		 */
 		setupSubsetLegend: function() {
 			var self = this;
 
@@ -794,6 +814,12 @@ var scets = (function(vis) {
 		setCanvasHeight: function(height) {
 			d3.select('#canvas svg').attr("height", height);
 		},
+		/**
+		 * Arranges the position of subset (degree) labels
+		 *
+		 * @memberOf scets.Renderer
+		 * @method arrangeLabels
+		 */
 		arrangeLabels: function() {
 			var self = this,
 				yLabelGroups = d3.selectAll('.y-label-group.expanded');
@@ -818,6 +844,14 @@ var scets = (function(vis) {
 
 			});
 		},
+		/**
+		 * Expands the row at a given index.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method expandRowIndex
+		 * @param {int} rowIndex - The row index.
+		 * @param {boolean} isUserAction - Indicates whether the action was triggered directly by a user.
+		 */
 		expandRowIndex: function (rowIndex, isUserAction) {
 			var self = this,
 				bin = vis.data.bins.ranges[rowIndex],
@@ -915,6 +949,14 @@ var scets = (function(vis) {
 			//re-add selection if one exists
 			this.restoreSelection();
 		},
+		/**
+		 * Collapses the row at a given index.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method collapseRowIndex
+		 * @param {int} rowIndex - The row index.
+		 * @param {boolean} isUserAction - Indicates whether the action was triggered directly by a user.
+		 */
 		collapseRowIndex: function (rowIndex, isUserAction) {
 			var bin = vis.data.bins.ranges[rowIndex],
 				num_of_degrees = bin.end - bin.start + 1,
@@ -1007,6 +1049,14 @@ var scets = (function(vis) {
 			this.restoreSelection();
 
 		},
+		/**
+		 * Checks if given a bin is expanded.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method isBinExpanded
+		 * @param {int} binIndex - The bin index.
+		 * @return {boolean} - True if a given bin index is expanded. False otherwise.
+		 */
 		isBinExpanded: function(binIndex) {
 			//var idx = this.user_expanded_bins.indexOf(binIndex);
 
@@ -1014,6 +1064,14 @@ var scets = (function(vis) {
 			var idx = _.indexOf(_.union(this.user_expanded_bins, this.auto_expanded_bins), binIndex);
 			return idx > -1;
 		},
+		/**
+		 * Adds or removes an index from an array of bin indexes.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method updateExpandedBins
+		 * @param {int} binIndex - The bin index.
+		 * @param {Array} binArray - An array of bin indexes.
+		 */
 		updateExpandedBins: function(binIndex, binArray) {
 			var idx = _.indexOf(binArray, binIndex);
 
@@ -1027,6 +1085,12 @@ var scets = (function(vis) {
 
 			console.log("updateExpandedBins :: expanded bins : ", binArray);
 		},
+		/**
+		 * Appends subsets for every expanded aggregate.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method appendSubsets
+		 */
 		appendSubsets: function() {
 			var self = this;
 			var delay;
@@ -1120,6 +1184,13 @@ var scets = (function(vis) {
 			}
 
 		},
+		/**
+		 * Highlights every set label (x axis label) which is included in the given array.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method highlightSetLabels
+		 * @param {Array} set_ids - An array of set IDs.
+		 */
 		highlightSetLabels: function(set_ids) {
 			d3.selectAll('.x-label')
 				.attr("class", function(d, i) {
@@ -1133,6 +1204,13 @@ var scets = (function(vis) {
 			d3.selectAll('.x-label:not(.highlighted)')
 				.style("opacity", 0.3);
 		},
+		/**
+		 * Highlights every degree label (y axis label) which is included in the given array.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method highlightDegreeLabels
+		 * @param {Array} degreeArray - An array of degrees.
+		 */
 		highlightDegreeLabels: function (degreeArray) {
 			d3.selectAll('.degree-label')
 				.attr("class", function(d) {
@@ -1142,6 +1220,13 @@ var scets = (function(vis) {
 					return d3.select(this).attr("class");
 				});
 		},
+		/**
+		 * Creates a two-dimensional array of y axis labels. First dimension represents the bin. The second dimension contains the degrees for each bin.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method createYAxisLabelData
+		 * @return {Array} - A two-dimensional array of degree labels.
+		 */
 		createYAxisLabelData: function () {
 			var result = [];
 			for (var i = 0; i < vis.data.bins.k; i++) {
@@ -1156,6 +1241,12 @@ var scets = (function(vis) {
 
 			return result;
 		},
+		/**
+		 * Sorts the sets based on the active sortType (i.e., one of the following: name, quantity, distinctiveness).
+		 *
+		 * @memberOf scets.Renderer
+		 * @method sortSets
+		 */
 		sortSets: function () {
 
 			if (vis.data.sortType === "name") {
@@ -1171,6 +1262,12 @@ var scets = (function(vis) {
 			console.log("sortSets :: sortType : ", vis.data.sortType);
 
 		},
+		/**
+		 * Renders the sets and the aggregates for each set group
+		 *
+		 * @memberOf scets.Renderer
+		 * @method renderSets
+		 */
 		renderSets: function() {
 
 			//TODO: remove --> just added for testing
@@ -1452,6 +1549,12 @@ var scets = (function(vis) {
 			}
 
 		},
+		/**
+		 * Computes the distinctiveness for each set (based on it's average degree) and stores the computed value as a set attribute.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method computeDistinctiveness
+		 */
 		computeDistinctiveness: function () {
 
 			console.log("computeDistinctiveness :: ");
@@ -1472,6 +1575,14 @@ var scets = (function(vis) {
 				set.distinctiveness = isNaN(sum / set.count) ? (vis.data.maxDegree + 1) : (sum / set.count);
 			});
 		},
+		/**
+		 * The callback method when the 'include expanded bins only' checkbox is clicked.
+		 * It modifies the color scale based on the expandedOnly parameter and re-draws the legends for aggregates and subsets.
+		 *
+		 * @memberOf scets.Renderer
+		 * @method colorScaleCbHandler
+		 * @param {boolean} expandedOnly - Indicates whether only expanded bins should be considered or all bins (including collapsed)
+		 */
 		colorScaleCbHandler: function (expandedOnly) {
 			var self = this,
 					visibleSubsetValues = [],

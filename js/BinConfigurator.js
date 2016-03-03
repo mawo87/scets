@@ -89,7 +89,7 @@ var scets = (function(vis) {
       $(this.container).find('#binForm').append(this.templates.binRow.call(this, index, bin.start, bin.end));
     },
 		/**
-		 * Attaches click handler to the form elements.
+		 * Attaches click handler to the form elements
 		 *
 		 * @memberOf scets.BinConfigurator
 		 * @method attachEventHandler
@@ -156,7 +156,7 @@ var scets = (function(vis) {
       */
     },
 		/**
-		 * Removes all existing ranges and appends a new row in the form for each bin range.
+		 * Removes all existing ranges and appends a new row in the form for each bin range
 		 *
 		 * @memberOf scets.BinConfigurator
 		 * @method redrawBinRanges
@@ -170,9 +170,9 @@ var scets = (function(vis) {
 			}
 		},
 		/**
-		 * @method
-		 * @name updateBinRanges
-		 * @description Updates the bin ranges of the global vis.data.bins.ranges object.
+		 * Updates the bin ranges of the global vis.data.bins.ranges object
+		 *
+		 * @method updateBinRanges
 		 * @memberOf scets.BinConfigurator
 		 * @param {array} ranges - The ranges array.
 		 */
@@ -181,6 +181,14 @@ var scets = (function(vis) {
 				vis.data.bins.ranges = ranges;
 			}
 		},
+		/**
+		 * Validates the bin ranges and makes sure that no bins are overlapping
+		 *
+		 * @method validate
+		 * @memberOf scets.BinConfigurator
+		 * @param ranges
+		 * @returns {Array}
+     */
 		validate: function(ranges) {
 			var errors = [],
 				errorText = [
@@ -207,10 +215,23 @@ var scets = (function(vis) {
 
 			return errors;
 		},
+		/**
+		 * Displays an error message for the first error in a given array of errors
+		 *
+		 * @method showErrors
+		 * @memberOf scets.BinConfigurator
+		 * @param errors
+     */
 		showErrors: function(errors) {
 			var $errorDiv = $("<div class='alert alert-danger error-container'><strong>Error</strong>:" + errors[0].text + "</div>");
 			$errorDiv.insertBefore("#saveBtn");
 		},
+		/**
+		 * Removes all displayed errors
+		 *
+		 * @method removeErrors
+		 * @memberOf scets.BinConfigurator
+		 */
 		removeErrors: function() {
 			$(this.container).find(".error-container").remove();
 		}
