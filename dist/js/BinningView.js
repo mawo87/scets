@@ -64,7 +64,7 @@ var scets = (function(vis) {
     },
 
     /**
-     * Renders a histogram of elements per degree.
+     * Renders a histogram of elements per degree
      *
      * @memberOf scets.BinningView
      * @method renderHistogram
