@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: DataNavigator.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: DataNavigator.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var scets = (function (vis) {
+
+  var scetsApi = {
+    baseUrl: function() {
+      return window.location.href.indexOf("localhost") > -1 ? "http://localhost:8080/api" : "https://scets.herokuapp.com/api";
+    },
+    getExampleList: function () {
+      var self = this,
+        deferred = $.Deferred();
+
+      $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: self.baseUrl() + "/examples",
+        success: function (resp) {
+          deferred.resolve(resp);
+        }
+      });
+
+      return deferred.promise();
+    },
+    loadExample: function (file) {
+      var self = this,
+        deferred = $.Deferred();
+
+      $.ajax({
+        type: "GET",
+        dataType: "json",
+        //url: self.baseUrl() + "/examples/" + fileName,
+        url: self.baseUrl() + "/example?file=" + file,
+        success: function (resp) {
+          deferred.resolve(resp);
+        },
+        error: function (err) {
+          deferred.reject(err);
+        }
+      });
+
+      return deferred.promise();
+    }
+  };
+
+  /**
+   * @class DataNavigator
+   * @classDesc The Data Navigator retrieves sample files from the backend and enables users to upload new data sets
+   * @memberOf scets
+   *
+   * @property {string} container - A selector of the container where the data navigator will ber rendered in
+   * @property {string} loader - A selector of the loading container
+   * @property {array} dataSets - An array of selectable files
+   * @property {string} selectedFile - The name of the sample file to be selected in the list
+   * @property {string} size - The size of the template to be rendered (either "large" or "small")
+   * @property {function} onSelectCallback - A callback function getting executed when a sample file is selected
+   * @property {function} onLoadedCallback - A callback function getting executed when the sample files are loaded
+   * @property {function} onUploadCallback - A callback function getting executed after a new file is uploaded
+   * @property {object} templates - The different templates to be rendered
+   * @params {object} initializer - A settings object
+   */
+  function DataNavigator(initializer) {
+    var self = this;
+    this.container = initializer.container;
+    this.loader = initializer.loader;
+    this.dataSets = initializer.dataSets || [];
+    this.selectedFile = initializer.selectedFile;
+    this.size = initializer.size || "large";
+    this.onSelectCallback = initializer.onSelectCallback || $.noop();
+    this.onLoadedCallback = initializer.onLoadedCallback || $.noop();
+    this.onUploadCallback = initializer.onUploadCallback || $.noop();
+    this.templates = {
+      main: function(dataSets) {
+        var sorted = _.sortBy(dataSets, "title");
+
+        var html = '&lt;div class="data-navigator lg">';
+        html += '&lt;div id="selectForm">';
+        html += '&lt;h4>Select a data set&lt;/h4>';
+        html += '&lt;div class="row">';
+        html += '&lt;div class="col-md-8">';
+        html += '&lt;select class="form-control" id="fileSelect">';
+        _.each(sorted, function(d, i) {
+          html += '&lt;option value="' + d.path + '" ' + (d.path === self.selectedFile ? "selected" : "") + '>' + d.title + '&lt;/option>';
+        });
+        html += '&lt;/select>&lt;/div>';
+        html += '&lt;div class="col-md-4">&lt;button class="btn btn-primary" id="loadBtn">Load&lt;/button>&lt;/div>';
+        html += '&lt;/div>&lt;br/>';
+        html += '&lt;a href="javascript:void(0);" id="toggleUploadForm">or upload a file &lt;i class="fa fa-upload">&lt;/i>&lt;/a>';
+        html += '&lt;/div>&lt;/div>';
+        return html;
+      },
+      small: function(dataSets) {
+        var sorted = _.sortBy(dataSets, "title");
+
+        var html = '&lt;div class="data-navigator sm">';
+        html += '&lt;form class="navbar-form">';
+        html += '&lt;div id="selectForm" class="form-group">';
+        html += '&lt;div class="col-sm-8">';
+        html += '&lt;select class="form-control" id="fileSelect">';
+        _.each(sorted, function(d, i) {
+          html += '&lt;option value="' + d.path + '" ' + (d.path  === self.selectedFile? "selected" : "") + '>' + d.title + '&lt;/option>';
+        });
+        html += '&lt;/select>';
+        html += '&lt;/div>';
+        html += '&lt;/form>';
+        html += '&lt;/div>';
+        return html;
+      },
+      uploadForm: function() {
+        var html = '&lt;form id="uploadForm" action="' + scetsApi.baseUrl() + "/upload" + '" method="post" class="init-hide">';
+        html += '&lt;h4>Upload a file&lt;/h4>';
+        html += '&lt;div class="row">&lt;div class="col-md-12">&lt;span class="help-block">Select a (.csv) file&lt;/span>&lt;/div>&lt;/div>';
+        html += '&lt;div class="row">&lt;div class="col-md-12">';
+        html += '&lt;div class="input-group">';
+        html += '&lt;span class="input-group-btn">&lt;span class="btn btn-primary btn-file">Browse&amp;hellip; &lt;input type="file" name="dataFile" id="dataFile" accept=".csv">&lt;/span>&lt;/span>';
+        html += '&lt;input type="text" class="form-control" readonly>';
+        html += '&lt;/div>';
+        html += '&lt;div class="alert alert-danger init-hide error-dataFile">You must submit a CSV file&lt;/div>';
+        html += '&lt;div class="row">&lt;div class="col-md-12">&lt;span class="help-block">Select a description (.json) file&lt;/span>&lt;/div>&lt;/div>';
+        html += '&lt;div class="input-group">';
+        html += '&lt;span class="input-group-btn">&lt;span class="btn btn-primary btn-file">Browse&amp;hellip; &lt;input type="file" name="descriptionFile" id="descriptionFile" accept=".json">&lt;/span>&lt;/span>';
+        html += '&lt;input type="text" class="form-control" readonly>';
+        html += '&lt;/div>';
+        html += '&lt;div class="alert alert-danger init-hide error-descriptionFile">You must submit a description file&lt;/div>';
+        html += '&lt;br/>';
+        html += '&lt;div class="row">&lt;div class="col-md-12">&lt;input type="submit" class="btn btn-primary" id="uploadBtn" value="Upload" />&amp;nbsp;&lt;button class="btn btn-default" id="cancelUploadBtn">Cancel&lt;/button>&lt;/div>&lt;/div>';
+        html += '&lt;/div>&lt;/div>';
+        html += '&lt;/form>';
+        return html;
+      }
+    };
+    this.init();
+  }
+
+  /**
+   * The sample list is retrieved from the server and initialization tasks will be performed
+   *
+   * @memberOf scets.DataNavigator
+   * @method init
+   */
+  DataNavigator.prototype.init = function() {
+    console.log("DataNavigator :: init : ", this);
+    var self = this;
+    scetsApi.getExampleList()
+      .done(function(resp) {
+        console.log("GOT EXAMPLES :: ", resp);
+
+        if (resp.success) {
+          self.setDataSets(resp.result);
+
+          $(self.loader).hide();
+
+          if (self.size === "large") {
+            self.render(self.dataSets, "main");
+            self.initUploadForm();
+            self.attachFormEventHandlers();
+          } else if (self.size === "small") {
+            self.render(self.dataSets, "small");
+          }
+        }
+      });
+  };
+
+  /**
+   * The template for the upload form will be rendered and event handlers get attached
+   *
+   * @memberOf scets.DataNavigator
+   * @method initUploadForm
+   */
+  DataNavigator.prototype.initUploadForm = function () {
+
+    var self = this;
+
+    //attach upload form first
+    $(this.container).find("#selectForm")
+      .after(this.templates.uploadForm());
+
+    //setup jquery form for async upload
+    $("#uploadForm").submit(function() {
+
+      var errors = self.validateUploadForm();
+
+      console.log("uploadBtn clicked :: errors : ", errors);
+
+      self.hideErrors();
+
+      //validate inputs
+      if (errors.length > 0) {
+        self.showErrors(errors);
+      } else {
+
+        //no errors from here on
+        $(self.container).hide();
+        $(self.loader).show();
+
+        $(this).ajaxSubmit({
+
+          error: function(xhr) {
+            $(self.loader).hide();
+
+            status('Error: ' + xhr.status);
+          },
+
+          success: function(resp) {
+            $(self.loader).hide();
+
+            if (resp.result &amp;&amp; resp.result) {
+
+              if (self.onUploadCallback) {
+                self.onUploadCallback.call(self, { file: resp.result });
+              }
+
+              self.loadFile(resp.result);
+
+            }
+          }
+        });
+      }
+
+      //Very important line, it disable the page refresh.
+      return false;
+    });
+
+  };
+
+  /**
+   * Attached Event handlers to the upload form
+   *
+   * @memberOf scets.DataNavigator
+   * @method attachFormEventHandlers
+   */
+    DataNavigator.prototype.attachFormEventHandlers = function() {
+    console.log("initEventHandlers");
+
+    var self = this;
+    $(this.container).find("#toggleUploadForm").click(function() {
+      console.log("show upload form");
+
+      self.toggleUploadForm();
+    });
+
+    $(self.container).find("#cancelUploadBtn").click(function() {
+      console.log("cancelUploadBtn clicked :: ");
+      self.toggleUploadForm();
+    });
+
+    $(document).on("change", ".btn-file :file", function() {
+      var input = $(this),
+        numFiles = input.get(0).files ? input.get(0).files.length : 1,
+        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+      input.trigger("fileselect", [numFiles, label]);
+    });
+
+    $(".btn-file :file").on("fileselect", function(event, numFiles, label) {
+      var input = $(this).parents('.input-group').find(':text'),
+        log = numFiles > 1 ? numFiles + " files selected" : label;
+
+      if (input.length) {
+        input.val(log);
+      } else {
+        if( log ) alert(log);
+      }
+    });
+  };
+
+  /**
+   * Validates the input of the upload form
+   *
+   * @memberOf scets.DataNavigator
+   * @method validateUploadForm
+   */
+  DataNavigator.prototype.validateUploadForm = function () {
+    var errors = [];
+
+    if ($(this.container).find("#dataFile").val() === "") {
+      errors.push("dataFile");
+    }
+
+    if ($(this.container).find("input#descriptionFile").val() === "") {
+      errors.push("descriptionFile");
+    }
+
+    return errors;
+  };
+
+  /**
+   * Displays error messages on the upload form
+   *
+   * @memberOf scets.DataNavigator
+   * @method showErrors
+   */
+  DataNavigator.prototype.showErrors = function (errors) {
+    var self = this;
+    _.each(errors, function(err) {
+      $(self.container).find(".error-" + err).show();
+    });
+  };
+
+  /**
+   * Hides error messages on the upload form
+   *
+   * @memberOf scets.DataNavigator
+   * @method hideErrors
+   */
+  DataNavigator.prototype.hideErrors = function () {
+    $(this.container).find(".alert-danger").hide();
+  };
+
+  /**
+   * Toggles the upload form
+   *
+   * @memberOf scets.DataNavigator
+   * @method toggleUploadForm
+   */
+  DataNavigator.prototype.toggleUploadForm = function () {
+    if ($(this.container).find("#uploadForm").is(":visible")) {
+      $(this.container).find("#uploadForm").hide();
+
+      $(this.container).find("#selectForm")
+        .show()
+        .velocity("transition.slideUpIn");
+    } else {
+      this.hideErrors();
+
+      $(this.container).find("#selectForm").hide();
+
+      $(this.container).find("#uploadForm")
+        .hide()
+        .velocity("transition.slideUpIn");
+    }
+  };
+
+  /**
+   * Sets data sets
+   *
+   * @memberOf scets.DataNavigator
+   * @method setDataSets
+   * @param {array} dataSets - An array of data sets.
+   */
+  DataNavigator.prototype.setDataSets = function(dataSets) {
+    this.dataSets = dataSets;
+  };
+
+  /**
+   * Renders a template with the given data sets
+   *
+   * @memberOf scets.DataNavigator
+   * @method render
+   * @param {array} dataSets - An array of data sets.
+   * @param {string} templateName - The name of the template to be rendered.
+   */
+  DataNavigator.prototype.render = function(dataSets, templateName) {
+    console.log("DataNavigator render :: ", dataSets, templateName);
+    if (this.templates[templateName]) {
+      console.log("DataNavigator render :: template found : ", $(this.container));
+      $(this.container)
+        .empty()
+        .html(this.templates[templateName](dataSets));
+
+      $(this.container).show();
+    }
+
+    this.attachEventHandler();
+
+    return this;
+  };
+
+  /**
+   * Attaches event handlers to the select box
+   *
+   * @memberOf scets.DataNavigator
+   * @method attachEventHandler
+   */
+  DataNavigator.prototype.attachEventHandler = function() {
+    var self = this;
+
+    if (this.size === "large") {
+      $(this.container).find("#loadBtn").click(function(e) {
+        e.preventDefault();
+
+        var file = $("#fileSelect").val();
+
+        self.selectedFile = file;
+
+        if (self.onSelectCallback) {
+          self.onSelectCallback.call(self, { file: file });
+        }
+
+        self.loadFile(file);
+      });
+    } else if (this.size === "small") {
+      $(this.container).find("#fileSelect").on("change", function(e) {
+        e.preventDefault();
+
+        var file = $(this).val();
+
+        console.log("loadFile :: ", file);
+
+        self.selectedFile = file;
+
+        if (self.onSelectCallback) {
+          self.onSelectCallback.call(self, { file: file });
+        }
+
+        self.loadFile(file);
+      });
+    }
+  };
+
+  /**
+   * Loads sample files from the server
+   *
+   * @memberOf scets.DataNavigator
+   * @method loadFile
+   */
+  DataNavigator.prototype.loadFile = function(file) {
+    var self = this;
+
+    $(this.container).hide();
+    $(this.loader).show();
+
+    scetsApi.loadExample(file)
+      .done(function(resp) {
+
+        $(self.loader).hide();
+
+        if (resp.result &amp;&amp; resp.result) {
+
+          if (self.onLoadedCallback) {
+            self.onLoadedCallback.call(self, resp);
+          }
+        }
+
+      });
+  };
+
+  vis.DataNavigator = DataNavigator;
+
+  return vis;
+
+})(scets || {});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="scets.Aggregate.html">Aggregate</a></li><li><a href="scets.BinConfigurator.html">BinConfigurator</a></li><li><a href="scets.BinningView.html">BinningView</a></li><li><a href="scets.DataNavigator.html">DataNavigator</a></li><li><a href="scets.Renderer.html">Renderer</a></li><li><a href="scets.Selection.html">Selection</a></li><li><a href="scets.Set.html">Set</a></li><li><a href="scets.SubSet.html">SubSet</a></li><li><a href="scets.Table.html">Table</a></li></ul><h3>Namespaces</h3><ul><li><a href="scets.helpers.html">helpers</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Thu Mar 03 2016 10:47:58 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
