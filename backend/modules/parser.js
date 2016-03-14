@@ -39,8 +39,6 @@
     parseFile: function(file, setDescription) {
       console.time("parseFile");
 
-      console.time("radSetAlgo");
-
       var setCount = setDescription.set.end - setDescription.set.start + 1,
         header = [],
         headerIdxAndCatIdx = [],
@@ -120,7 +118,7 @@
 
       console.log("this.data.elements[0] ", JSON.parse(JSON.stringify(this.data.elements[0])));
 
-      console.timeEnd("radSetAlgo");
+      //console.timeEnd("parseFile");
 
       var maxDegree = Math.max.apply(null, degreeVector);
 

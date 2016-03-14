@@ -80,6 +80,8 @@ var scets = (function(vis) {
 
       var data = getElementsByDegree(vis.data.elements, vis.data.maxDegree);
 
+      console.log("BinningView :: degree histogram : ", data);
+
       var margin = {left: 20, top: 10},
         width = 420,
         barHeight = 20,
