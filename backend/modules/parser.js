@@ -41,7 +41,7 @@
 
       var setCount = setDescription.set.end - setDescription.set.start + 1,
         header = [],
-        headerIdxAndCatIdx = [],
+        indexArr = [],
         id = 0,
         reducedFile = [];
 
@@ -67,7 +67,7 @@
             if (j >= setDescription.set.start && j <= setDescription.set.end) {
               var set = new Set(col);
               this.data.sets.push(set);
-              headerIdxAndCatIdx[j] = this.data.sets.length - 1;
+              indexArr[j] = this.data.sets.length - 1;
             }
           } else if (i !== 0 && j === 0) {
             id = this.data.elements.length;
@@ -79,7 +79,7 @@
             var head = header[j];
             if (j >= setDescription.set.start && j <= setDescription.set.end) {
               if (col === "1") {
-                var catIndex = headerIdxAndCatIdx[j];
+                var catIndex = indexArr[j];
                 if (catIndex !== undefined) {
                   var cat = this.data.sets[catIndex];
                   element.sets.push(cat.name);
